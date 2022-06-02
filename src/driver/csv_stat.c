@@ -296,7 +296,7 @@ int csv_stat_init (void)
 	pSTAT->disk[0].path = "/";
 
 	pSTAT->cnt_net = 1;
-	pSTAT->net[0].dev = "ens33"; // eth0
+	pSTAT->net[0].dev = DEV_ETH; // eth0
 
 	return csv_stat_update();
 }

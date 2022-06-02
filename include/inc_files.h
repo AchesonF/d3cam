@@ -68,6 +68,9 @@ extern "C" {
 #include "csv_tick.h"
 #include "csv_tty.h"
 
+
+#include "csv_gvcp.h"
+
 #include "csv_main.h"
 
 

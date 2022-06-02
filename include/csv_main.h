@@ -18,7 +18,7 @@ struct csv_product_t {
 	uint32_t			build_timestamp;		///< 编译时间戳
 	char				app_info[64];			///< 版本字节流
 
-	char				kernel_version[64];		///< linux kernel version, such as "Linux 5.10.14 #12"
+	char				kernel_version[132];	///< linux kernel version, such as "Linux 5.10.14 #12"
 	char				kernel_buildtime[32];	///< yyyy-mm-dd HH:MM:SS
 	char				filesystem_version[32];	///< 文件系统版本
 
@@ -37,6 +37,10 @@ struct csv_info_t {
 	struct csv_file_t	file;					///< 外部配置文件
 	struct csv_eth_t	eth;					///< 本地网络参数
 	struct csv_stat_t	stat;					///< 系统状态信息
+
+
+	struct csv_gvcp_t	gvcp;					///< GVCP
+
 };
 
 

@@ -175,9 +175,11 @@ int csv_init (struct csv_info_t *pCSV)
 
 	csv_eth_init();
 
-	csv_tick_init();
+	csv_gvcp_init();
 
 	csv_stat_init();
+
+	csv_tick_init();
 
 	csv_life_start();
 
@@ -205,6 +207,7 @@ int main (int argc, char **argv)
 
 	csv_init(gCSV);
 
+	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
 	struct csv_tick_t *pTICK = &gCSV->tick;
 
 
@@ -214,6 +217,11 @@ int main (int argc, char **argv)
 
 		FD_ZERO(&readset);
 		FD_ZERO(&writeset);
+
+		if (pGVCP->fd > 0) {
+			maxfd = MAX(maxfd, pGVCP->fd);
+			FD_SET(pGVCP->fd, &readset);
+		}
 
 		if (pTICK->fd > 0) {
 			maxfd = MAX(maxfd, pTICK->fd);
@@ -231,6 +239,10 @@ int main (int argc, char **argv)
 		default:		// number of descriptors
 			// log_debug("select %d", ret);
 		break;
+		}
+
+		if (FD_ISSET(pGVCP->fd, &readset)) {
+			csv_gvcp_trigger(pGVCP);
 		}
 
 

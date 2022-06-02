@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define DEV_ETH						("ens33")	///< 网卡设备节点
+#define DEV_ETH						("eth0")//("ens33")	///< 网卡设备节点
 
 #define THREAD_NAME_DHCP			("'thr_dhcp'")
 
@@ -17,15 +17,18 @@ struct csv_eth_t {
 	uint8_t				now_sta;				///< 网口连线运行状态
 	uint8_t				last_sta;				///< 网口上周期运行状态
 
-	char				ip[MAX_LEN_IP];			///< 设备 IP 地址
-	char				gw[MAX_LEN_IP];			///< 网关地址
-	char				nm[MAX_LEN_IP];			///< 子网掩码
-	char				dns[MAX_LEN_IP];		///< DNS 地址
-	char				mac[MAX_LEN_IP+2];		///< 物理地址
+	char				ip[MAX_LEN_IP];			///< 设备 IP 地址字符串
+	char				gw[MAX_LEN_IP];			///< 网关地址字符串
+	char				nm[MAX_LEN_IP];			///< 子网掩码字符串
+	char				bc[MAX_LEN_IP];			///< 广播地址字符串
+	char				dns[MAX_LEN_IP];		///< DNS 地址字符串
+	char				mac[MAX_LEN_IP+2];		///< 物理地址字符串
 
+	uint8_t				MACAddr[8];				///< mac地址
 	uint32_t			IPAddress;				///< IP地址
 	uint32_t			GateWayAddr;			///< 网关地址
 	uint32_t			IPMask;					///< 子网掩码
+	uint32_t			BroadcastAddr;			///< 广播地址
 	uint32_t			DNSAddr;				///< DNS地址
 
 	const char			*name_dhcp;				///< 动态获取IP线程

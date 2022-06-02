@@ -262,7 +262,7 @@ int utility_conv_kbuildtime (void)
 	char month[6] = {0};
 	char dummy[32] = {0};
 	char tzone[16] = {0};
-	char version[64] = {0};
+	char version[48] = {0};
 	int day = 0, year = 0, hour = 0, minute = 0, second = 0;
 	uint8_t m = 1;
 	struct tm tm_stamp;
@@ -270,13 +270,21 @@ int utility_conv_kbuildtime (void)
 	struct csv_product_t *pPdct = &gPdct;
 
 	// Linux HostPC 4.4.0-53-generic #74-Ubuntu SMP Fri Dec 2 15:59:10 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
+	// Linux ITHINK 4.9.253-tegra #1 SMP PREEMPT Sun Apr 17 02:37:44 PDT 2022 aarch64 aarch64 aarch64 GNU/Linux
 	uname(&uts);
 
-	memset(pPdct->kernel_version, 0, 64);
+	memset(pPdct->kernel_version, 0, 132);
 	memset(pPdct->kernel_buildtime, 0, 32);
 	
-    sscanf(uts.version, "#%s %s %s %s %d %d:%d:%d %s %d", version, dummy, dummy, 
-		month, &day, &hour, &minute, &second, tzone, &year);
+	// #74-Ubuntu SMP Fri Dec 2 15:59:10 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
+	// #1 SMP PREEMPT Sun Apr 17 02:37:44 PDT 2022 aarch64 aarch64 aarch64 GNU/Linux
+	if (strstr(uts.version, "PREEMPT") != NULL) {
+		sscanf(uts.version, "#%s %s %s %s %s %d %d:%d:%d %s %d", version, dummy, dummy, dummy, 
+			month, &day, &hour, &minute, &second, tzone, &year);
+	} else {
+		sscanf(uts.version, "#%s %s %s %s %d %d:%d:%d %s %d", version, dummy, dummy, 
+			month, &day, &hour, &minute, &second, tzone, &year);
+	}
 	m = utility_conv_month(month);
 
 	tm_stamp.tm_year = year - 1900;
@@ -286,7 +294,7 @@ int utility_conv_kbuildtime (void)
 	tm_stamp.tm_min = minute;
 	tm_stamp.tm_sec = second;
 
-	snprintf(pPdct->kernel_version, 64, "%s %s #%s", uts.sysname, uts.release, version);
+	snprintf(pPdct->kernel_version, 132, "%s %s #%s", uts.sysname, uts.release, version);
 	strftime(pPdct->kernel_buildtime, 32, "%F %X", &tm_stamp);
 	strcat(pPdct->kernel_buildtime, tzone);
 

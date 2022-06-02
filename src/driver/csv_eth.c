@@ -353,6 +353,41 @@ int csv_eth_maskstr_set (char *maskstr)
 	return ret;
 }
 
+int csv_eth_broadcast_get (char *bc)
+{
+	int fd = -1, ret = 0;
+	struct ifreq ifr;
+
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (fd < 0) {
+		ret = -1;
+		log_err("ERROR : socket");
+		return ret;
+	}
+
+	memset(&ifr, 0, sizeof(struct ifreq));
+	strcpy(ifr.ifr_name, DEV_ETH);
+	
+	ret = ioctl(fd, SIOCGIFBRDADDR, &ifr);
+	if (ret < 0) {
+		ret = -2;
+		log_err("ERROR : ioctl");
+		if (close(fd)<0) {
+			log_err("ERROR : close");
+		}
+		return ret;
+	}
+
+	strcpy(bc, inet_ntoa(((struct sockaddr_in *)&(ifr.ifr_netmask))->sin_addr));
+
+	if (close(fd)<0) {
+		log_err("ERROR : close");
+	}
+
+	return ret;
+}
+
+
 /**
 * @brief		获取 网关 地址
 * @param[out]	*gate		存储网关地址的缓冲区
@@ -504,7 +539,7 @@ int csv_eth_mac_get (const char *ifname, uint8_t *mac)
 	if ((ret = ioctl(fd, SIOCGIFHWADDR, &ifr)) == 0) {
 		memcpy(mac, (uint8_t *)ifr.ifr_hwaddr.sa_data, 6);
 	}
-printf("mac '%s'. TODO something wrong here\n", mac);
+
 	close(fd);
 
 	return ret;
@@ -622,9 +657,18 @@ int csv_eth_get (struct csv_eth_t *pETH)
 		pETH->GateWayAddr = inet_addr(pETH->gw);
 	}
 
-	ret = csv_eth_mac_get(pETH->name, pETH->mac);
+	ret |= csv_eth_broadcast_get(pETH->bc);
+	if (ret == 0) {
+		pETH->BroadcastAddr = inet_addr(pETH->bc);
+	}
 
-//	log_debug("%s %s %s %s", pETH->ip, pETH->nm, pETH->gw, pETH->mac);
+	ret = csv_eth_mac_get(pETH->name, pETH->MACAddr);
+
+	sprintf(pETH->mac, "%02X:%02X:%02X:%02X:%02X:%02X", pETH->MACAddr[0],
+		pETH->MACAddr[1],pETH->MACAddr[2],pETH->MACAddr[3],
+		pETH->MACAddr[4],pETH->MACAddr[5]);
+
+	log_debug("%s %s %s %s %s", pETH->ip, pETH->nm, pETH->gw, pETH->bc, pETH->mac);
 
 
 	return ret;
@@ -643,7 +687,7 @@ int csv_eth_init (void)
 	csv_eth_get(pETH);
 
 	// 备份 后台
-	return system("ifconfig ens33:1 18.0.4.101");
+	return system("ifconfig eth0:1 18.0.4.101");
 }
 
 
