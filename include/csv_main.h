@@ -18,7 +18,7 @@ struct csv_product_t {
 	uint32_t			build_timestamp;		///< 编译时间戳
 	char				app_info[64];			///< 版本字节流
 
-	char				kernel_version[32];		///< linux kernel version, such as "Linux 5.10.14 #12"
+	char				kernel_version[64];		///< linux kernel version, such as "Linux 5.10.14 #12"
 	char				kernel_buildtime[32];	///< yyyy-mm-dd HH:MM:SS
 	char				filesystem_version[32];	///< 文件系统版本
 
