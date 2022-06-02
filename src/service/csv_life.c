@@ -19,7 +19,7 @@ static int file_lifetime_write (void)
 		pLIFE->total, pLIFE->current, pLIFE->last, pLIFE->count);
 	ret = csv_file_write_data(pLIFE->file, (uint8_t *)buffer, len);
 	if (ret < 0) {
-//		log_info(LOG_FMT"ERROR : write file %s", LOG_ARGS, pLIFE->file);
+		log_info("ERROR : write file %s", pLIFE->file);
 		return -1;
 	}
 

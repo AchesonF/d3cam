@@ -55,10 +55,8 @@ void csv_stop (int signum)
 	if (gCSV != NULL) {
 		free(gCSV);
 	}
-printf("OK : Stop process pid[%d] via signum[%d]\n", 
-		getpid(), signum);
-//	log_info(LOG_FMT"OK : Stop process pid[%d] via signum[%d]", 
-//		LOG_ARGS, getpid(), signum);
+
+	log_info("OK : Stop process pid[%d] via signum[%d]", getpid(), signum);
 
 	sync();
 
@@ -76,8 +74,8 @@ static struct csv_info_t *csv_global_init (void)
 
 	pCSV = (struct csv_info_t *) malloc(sizeof(*pCSV));
 	if (pCSV == NULL) {
-//		log_exit(LOG_FMT"ERROR : malloc csv_info_t", LOG_ARGS);
-
+		log_alert("ERROR : malloc csv_info_t");
+		exit(-1);
 		return NULL;
 	}
 
@@ -158,8 +156,8 @@ static void startup_opts (int argc, char **argv)
 
 	utility_calibrate_clock();
 
-//	log_info("%s", pPdct->app_info);
-//	log_info("%s (%s)", pPdct->kernel_version, pPdct->kernel_buildtime);
+	log_info("%s", pPdct->app_info);
+	log_info("%s (%s)", pPdct->kernel_version, pPdct->kernel_buildtime);
 
 //	csv_daemon_init();
 }
@@ -218,10 +216,10 @@ int main (int argc, char **argv)
 			continue;
 		break;
 		case -1:		// error must be restart ?
-//			log_err(LOG_FMT"ERROR : select", LOG_ARGS);
+			log_err("ERROR : select");
 		break;
 		default:		// number of descriptors
-			// log_dbg(LOG_FMT"select %d", LOG_ARGS, ret);
+			// log_debug("select %d", ret);
 		break;
 		}
 

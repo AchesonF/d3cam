@@ -17,17 +17,16 @@ int csv_file_get_size (const char *path, uint32_t *filesize)
 {
 	FILE *fp=NULL;
 
-	if (path==NULL) {
-//		log_info(LOG_FMT"ERROR : %s", LOG_ARGS, __func__);
+	if (NULL == path) {
+		log_info("ERROR : %s",  __func__);
 
 		return -1;
 	}
 
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-#ifdef CONFIG_DEBUG
-//		log_err(LOG_FMT"ERROR : open \"%s\"", LOG_ARGS, path);
-#endif
+		log_err("ERROR : open '%s'", path);
+
 		return -2;
 	}
 
@@ -55,16 +54,15 @@ int csv_file_read_data (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size == 0) {
-//		log_info(LOG_FMT"ERROR : %s", LOG_ARGS, __func__);
+		log_info("ERROR : %s", __func__);
 
 		return -1;
 	}
 
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-#ifdef CONFIG_DEBUG
-//		log_err(LOG_FMT"ERROR : fopen \"%s\"", LOG_ARGS, path);
-#endif
+		log_err("ERROR : fopen '%s'", path);
+
 		return -2;
 	}
 
@@ -72,7 +70,7 @@ int csv_file_read_data (const char *path, uint8_t *buf, uint32_t size)
 
 	ret = fread(buf, size, 1, fp);
 	if (ret < 0) {
-//		log_err(LOG_FMT"ERROR : fread ret[%ld] vs size[%ld]", LOG_ARGS, ret, size);
+		log_err("ERROR : fread ret[%ld] vs size[%ld]", ret, size);
 
 		fclose(fp);
 		return -3;
@@ -91,13 +89,13 @@ int csv_file_read_string (const char *filename, char *buf, size_t size)
 
 	fp = fopen(filename, "r");
 	if (fp == NULL) {
-//		log_err(LOG_FMT"ERROR : fopen \"%s\"", LOG_ARGS, filename);
+		log_err("ERROR : fopen '%s'", filename);
 		return -1;
 	}
 
 	rv = fread(buf, 1, size - 1, fp);
 	if (rv <= 0) {
-//		log_err(LOG_FMT"ERROR : fread \"%s\"", LOG_ARGS, filename);
+		log_err("ERROR : fread '%s'", filename);
 		
 		fclose(fp);
 		return -1;
@@ -106,7 +104,7 @@ int csv_file_read_string (const char *filename, char *buf, size_t size)
 	buf[rv] = '\0';
 
 	if (fclose(fp) != 0) {
-//		log_err(LOG_FMT"ERROR : fclose \"%s\"", LOG_ARGS, filename);
+		log_err("ERROR : fclose '%s'", filename);
 		return -1;
 	}
 
@@ -127,22 +125,21 @@ int csv_file_write_data (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp=NULL;
 
 	if (size==0) {
-//		log_info(LOG_FMT"ERROR : %s", LOG_ARGS, __func__);
+		log_info("ERROR : %s", __func__);
 		
 		return -1;
 	}
 
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-#ifdef CONFIG_DEBUG
-//		log_err(LOG_FMT"ERROR : open \"%s\"", LOG_ARGS, path);
-#endif
+		log_err("ERROR : open '%s'", path);
+
 		return -2;
 	}
 
 	ret = fwrite(buf, size, 1, fp);
 	if (ret < 0) {
-//		log_err(LOG_FMT"ERROR : fwrite", LOG_ARGS);
+		log_err("ERROR : fwrite");
 		fclose(fp);
 		return -3;
 	}
@@ -158,22 +155,21 @@ int csv_file_write_data_append (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp=NULL;
 
 	if (size==0) {
-//		log_info(LOG_FMT"ERROR : %s", LOG_ARGS, __func__);
+		log_info("ERROR : %s", __func__);
 		
 		return -1;
 	}
 
 	fp = fopen(path, "a");
 	if (fp == NULL) {
-#ifdef CONFIG_DEBUG
-//		log_err(LOG_FMT"ERROR : open \"%s\"", LOG_ARGS, path);
-#endif
+		log_err("ERROR : open '%s'", path);
+
 		return -2;
 	}
 
 	ret = fwrite(buf, size, 1, fp);
 	if (ret < 0) {
-//		log_err(LOG_FMT"ERROR : fwrite", LOG_ARGS);
+		log_err("ERROR : fwrite");
 		fclose(fp);
 		return -3;
 	}

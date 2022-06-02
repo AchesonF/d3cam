@@ -2,6 +2,13 @@
 # Sets D3CAM_PROJECT_VERSION and D3CAM_PACKAGE_VERSION
 #
 
+if (CMAKE_BUILD_TYPE)
+	string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
+	if (BUILD_TYPE_UPPER MATCHES "DEBUG")
+		add_definitions(-DBUILD_TYPE_DEBUG=1)
+	endif ()
+endif ()
+
 # Split a version number into separate components
 #   version: the version number to split
 #   major: variable name to store the major version in

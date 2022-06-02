@@ -16,7 +16,7 @@ struct queue_t *queue_init (void)
 {
 	struct queue_t *pQ = malloc(sizeof(struct queue_t));
 	if (pQ == NULL) {
-//		log_err(LOG_FMT"ERROR : queue malloc", LOG_ARGS);
+		printf("ERROR : queue malloc");
 
 		return NULL;
 	}

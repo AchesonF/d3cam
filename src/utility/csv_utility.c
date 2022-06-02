@@ -261,19 +261,21 @@ int utility_conv_kbuildtime (void)
 {
 	char month[6] = {0};
 	char dummy[32] = {0};
+	char tzone[16] = {0};
 	int ver = 0, day = 0, year = 0, hour = 0, minute = 0, second = 0;
 	uint8_t m = 1;
 	struct tm tm_stamp;
 	struct utsname uts;
 	struct csv_product_t *pPdct = &gPdct;
 
+	// Linux HostPC 4.4.0-53-generic #74-Ubuntu SMP Fri Dec 2 15:59:10 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
 	uname(&uts);
 
 	memset(pPdct->kernel_version, 0, 32);
 	memset(pPdct->kernel_buildtime, 0, 32);
-
-    sscanf(uts.version, "#%d %s %s %d %d:%d:%d %s %d", &ver, dummy, 
-		month, &day, &hour, &minute, &second, dummy, &year);
+	
+    sscanf(uts.version, "#%d-%s %s %s %s %d %d:%d:%d %s %d", &ver, dummy, dummy, dummy,
+		month, &day, &hour, &minute, &second, tzone, &year);
 	m = utility_conv_month(month);
 
 	tm_stamp.tm_year = year - 1900;
@@ -285,6 +287,7 @@ int utility_conv_kbuildtime (void)
 
 	snprintf(pPdct->kernel_version, 32, "%s %s #%d", uts.sysname, uts.release, ver);
 	strftime(pPdct->kernel_buildtime, 32, "%F %X", &tm_stamp);
+	strcat(pPdct->kernel_buildtime, tzone);
 
 	return 0;
 }
@@ -300,15 +303,14 @@ int utility_calibrate_clock (void)
 	time_t now = time(NULL);
 	tm = localtime(&now);
 	if (strftime(timebuf, sizeof(timebuf), "%F %X", tm) != 0) {
-//		log_info(LOG_FMT"Boot time : %s ", LOG_ARGS, timebuf);
+		log_info("Boot time : %s ", timebuf);
 	}
 
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 
 	if (tv.tv_sec < pPdct->build_timestamp) {
-//		log_info(LOG_FMT"calibrate system clock to default '%s'", LOG_ARGS, 
-//			pPdct->app_buildtime);
+		log_info("calibrate system clock to default '%s'", pPdct->app_buildtime);
 
 		char date_buf[40] = {0};
 		memset(date_buf, 0, 40);

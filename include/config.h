@@ -10,7 +10,9 @@ extern "C" {
 
 #define SOFT_BUILDTIME			(__DATE__", "__TIME__)	///< 程序编译时间
 
-
+#if (BUILD_TYPE_DEBUG==1)
+  #define CONFIG_DEBUG
+#endif
 
 
 

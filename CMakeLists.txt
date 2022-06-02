@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
 
 project(D3Cam VERSION 1.0.0 LANGUAGES CXX C)
 
@@ -11,6 +11,8 @@ include(GNUInstallDirs)
 if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE RELEASE CACHE STRING "Build type: DEBUG or RELEASE" FORCE)
 endif ()
+
+message(STATUS "CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
 #set(PREFIX_WORK_MACHINE "arm-linux-" CACHE STRING "Compiler's prefix for working machine.")
 
