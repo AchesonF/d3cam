@@ -670,6 +670,7 @@ int csv_eth_get (struct csv_eth_t *pETH)
 
 	log_debug("%s %s %s %s %s", pETH->ip, pETH->nm, pETH->gw, pETH->bc, pETH->mac);
 
+	//log_hex(pETH->MACAddr, 6, "mac");
 
 	return ret;
 }

@@ -19,6 +19,7 @@ extern "C" {
 *		LOG_DEBUG		debug-level message\n
 */
 
+extern int hex_printf (const uint8_t *buff, uint32_t count);
 
 extern void log_do (int priority, const char *fmt, ...);
 
@@ -41,6 +42,8 @@ extern void log_do (int priority, const char *fmt, ...);
   #define log_debug(fmt, ...) log_do(LOG_DEBUG, "%lld[_D_]: %s(%d): " fmt, \
 		utility_get_microsecond(), __func__, __LINE__, ##__VA_ARGS__)
 
+  #define log_hex(buff, len, fmt, ...) log_do(LOG_DEBUG, "%s(%d): " fmt, \
+		__func__, __LINE__, ##__VA_ARGS__); hex_printf(buff, len)
 
 #else
   #define log_alert(fmt, ...) log_do(LOG_ALERT, "%lld[_A_]: " fmt, \
@@ -58,8 +61,9 @@ extern void log_do (int priority, const char *fmt, ...);
   #define log_info(fmt, ...) log_do(LOG_INFO, "%lld[_I_]: " fmt, \
 		utility_get_microsecond(), ##__VA_ARGS__)
 
-  #define log_debug(fmt, ...) log_do(LOG_DEBUG, "%lld[_D_]: " fmt, \
-		utility_get_microsecond(), ##__VA_ARGS__)
+  #define log_debug(fmt, ...)
+
+  #define log_hex(fmt, buff, len)
 
 #endif
 
