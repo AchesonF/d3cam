@@ -86,9 +86,10 @@ static struct csv_info_t *csv_global_init (void)
 
 static void print_usage (const char *prog)
 {
-	printf("\nUsage: %s [-dhvt] [-D opt]\n", prog);
+	printf("\nUsage: %s [-dmhvt] [-D opt]\n", prog);
 	puts("  -d --debug    Debug mode.\n"
 		"  -D --Data     Show data flow. opt: \n\t\t1:tcp 2:tty 3:udp 4:sql ...255:all\n"
+		"  -m --daemon   Disable daemon.\n"
 		"  -h --help     Show this info.\n"
 		"  -v --version  Build version.\n"
 		"  -t --work     System working hour.\n");
@@ -98,6 +99,7 @@ static const struct option lopts[] = {
 	{ "debug",		no_argument,	0, 'd' },
 	{ "Data",	required_argument,	0, 'D' },
 	{ "help",		no_argument,	0, 'h' },
+	{ "daemon",		no_argument,	0, 'm' },
 	{ "version",	no_argument,	0, 'v' },
 	{ "work",		no_argument,	0, 't' },
 	{ NULL,			0,				0,	0 },
@@ -115,7 +117,7 @@ static void startup_opts (int argc, char **argv)
 	csv_life_init();
 
 	while (1) {
-		c = getopt_long(argc, argv, "D:dhvt", lopts, NULL);
+		c = getopt_long(argc, argv, "D:dmhvt", lopts, NULL);
 		if (c == -1) {
 			break;
 		}
@@ -124,6 +126,9 @@ static void startup_opts (int argc, char **argv)
 		case 'd':
 			pPdct->tlog = true;
 		break;
+		case 'm':
+			pPdct->dis_daemon = true;
+			break;
 
 		case 'h':
 		case '?':
@@ -159,15 +164,20 @@ static void startup_opts (int argc, char **argv)
 	log_info("%s", pPdct->app_info);
 	log_info("%s (%s)", pPdct->kernel_version, pPdct->kernel_buildtime);
 
-//	csv_daemon_init();
+	if (!pPdct->dis_daemon) {
+		csv_daemon_init(argc, argv);
+	}
 }
 
 int csv_init (struct csv_info_t *pCSV)
 {
 	csv_file_init();
 
+	csv_eth_init();
+
 	csv_tick_init();
 
+	csv_stat_init();
 
 	csv_life_start();
 

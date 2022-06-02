@@ -10,6 +10,7 @@ struct csv_product_t {
 	uint8_t				tlog;					///< terminal 显示log日志0:不显示
 	uint8_t				tdata;					///< terminal 显示data数据
 												///< 1:tcp 2:tty 3:udp 4:sql ...255:all
+	uint8_t				dis_daemon;				///< 禁用守护进程
 
 	char				*app_name;				///< 本软件名称
 	char				*app_version;			///< 本软件版本
@@ -25,7 +26,7 @@ struct csv_product_t {
 	uint32_t			app_runtime;			///< 本软件运行时间，单位s
 
 	struct csv_lifetime_t	lifetime;			///< 工时信息
-
+	struct csv_daemon_t		daemon;				///< 守护进程 及交互
 
 };
 
@@ -34,7 +35,8 @@ struct csv_info_t {
 	struct csv_tick_t	tick;					///< 轮询时钟
 
 	struct csv_file_t	file;					///< 外部配置文件
-
+	struct csv_eth_t	eth;					///< 本地网络参数
+	struct csv_stat_t	stat;					///< 系统状态信息
 };
 
 

@@ -60,9 +60,13 @@ extern "C" {
 #include "log.h"
 
 #include "csv_utility.h"
+#include "csv_daemon.h"
 #include "csv_file.h"
+#include "csv_eth.h"
 #include "csv_life.h"
+#include "csv_stat.h"
 #include "csv_tick.h"
+#include "csv_tty.h"
 
 #include "csv_main.h"
 
