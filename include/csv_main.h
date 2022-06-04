@@ -39,6 +39,7 @@ struct csv_info_t {
 	struct csv_stat_t	stat;					///< 系统状态信息
 
 
+	struct csv_mvs_t	mvs;					///< 支持海康工业相机
 	struct csv_gvcp_t	gvcp;					///< GVCP
 
 };

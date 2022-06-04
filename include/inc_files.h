@@ -55,6 +55,8 @@ extern "C" {
 #include "project_version.h"
 #include "config.h"
 
+#include "MvCameraControl.h"
+
 #include "list.h"
 #include "queue.h"
 #include "log.h"
@@ -70,6 +72,8 @@ extern "C" {
 
 
 #include "csv_gvcp.h"
+
+#include "csv_mvs.h"
 
 #include "csv_main.h"
 
