@@ -63,7 +63,7 @@ extern void log_do (int priority, const char *fmt, ...);
 
   #define log_debug(fmt, ...)
 
-  #define log_hex(fmt, buff, len)
+  #define log_hex(buff, len, fmt, ...)
 
 #endif
 

@@ -177,6 +177,8 @@ int csv_init (struct csv_info_t *pCSV)
 
 	csv_gvcp_init();
 
+	csv_mvs_init();
+
 	csv_stat_init();
 
 	csv_tick_init();

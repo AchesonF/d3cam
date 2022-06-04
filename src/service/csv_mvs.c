@@ -21,14 +21,14 @@ void PrintDeviceInfo (MV_CC_DEVICE_INFO *pstMVDevInfo)
         // ch:打印当前相机ip和用户自定义名字 | en:print current ip and user defined name
         printf("Device Model Name: %s\n", pstGigEInfo->chModelName);
         //printf("CurrentIp: %s\n" , inet_ntoa(swap32(pstGigEInfo->nCurrentIp)));
-        printf("UserDefinedName: %s\n\n" , pstGigEInfo->chUserDefinedName);
+//        printf("UserDefinedName: %s\n\n" , pstGigEInfo->chUserDefinedName);
 	}
 		break;
 	case MV_USB_DEVICE:
 	{
 		MV_USB3_DEVICE_INFO *pstUsb3VInfo = &pstMVDevInfo->SpecialInfo.stUsb3VInfo;
         printf("Device Model Name: %s\n", pstUsb3VInfo->chModelName);
-        printf("UserDefinedName: %s\n\n", pstUsb3VInfo->chUserDefinedName);
+//        printf("UserDefinedName: %s\n\n", pstUsb3VInfo->chUserDefinedName);
 	}
 		break;
 	default:
@@ -107,6 +107,10 @@ static void *WorkThread (void* pUser)
 		} else {
 			printf("cam[%s]:Get One Frame failed![%x]\n", camSerialNumber, nRet);
 		}
+
+		log_hex(pData, 1024, "SN:%s", camSerialNumber);
+
+		break;
     }
 
 	csv_grab_end(pUser);
@@ -120,7 +124,7 @@ static void *csv_mvs_loop (void *data)
 		return NULL;
 	}
 
-    int nRet = MV_OK, i = 0, ret_exit = -1;
+    int nRet = MV_OK, i = 0, ret_exit = 0;
 
 	void* handle[CAMERA_NUM] = {NULL};
 	struct csv_mvs_t *pMVS = (struct csv_mvs_t *)data;
@@ -129,19 +133,25 @@ static void *csv_mvs_loop (void *data)
 
 	memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
 
+	log_info("in mvs loop");
+
 	do {
 		// enum device
 		nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, &stDeviceList);
 		if (MV_OK != nRet) {
 			log_debug("MV_CC_EnumDevices fail! nRet [%x]", nRet);
+			ret_exit = -1;
 		    break;
 		}
+
+		log_info("nDeviceNum %d", stDeviceList.nDeviceNum);
 
 		if (stDeviceList.nDeviceNum > 0) {
 			for (i = 0; i < stDeviceList.nDeviceNum; i++) {
 				log_info("[device %d]: ", i);
 				pDeviceInfo = stDeviceList.pDeviceInfo[i];
 				if (NULL == pDeviceInfo) {
+					ret_exit = -1;
 					break;
 				}
 				PrintDeviceInfo(pDeviceInfo);
