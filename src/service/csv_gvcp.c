@@ -31,9 +31,36 @@ int csv_gvcp_trigger (struct csv_gvcp_t *pGVCP)
 	pGVCP->Recv.nRx = recvfrom(pGVCP->fd, pBuf, SIZE_UDP_BUFF, 0, 
 		(struct sockaddr *)&pGVCP->from_addr, &from_len);
 
+	if (pGVCP->Recv.nRx < sizeof(struct gvcp_cmd_header_t)) {
+		log_hex(pBuf, pGVCP->Recv.nRx, "wrong gvcp head length.");
+		return -1;
+	}
 
+	struct gvcp_cmd_header_t *pHeader = (struct gvcp_cmd_header_t *)pBuf;
+	struct gvcp_cmd_header_t Cmdheader;
 
+	Cmdheader.cMsgKeyCode = pHeader->cMsgKeyCode;
+	Cmdheader.cFlag = pHeader->cFlag;
+	Cmdheader.wCmd = ntohs(pHeader->wCmd);
+	Cmdheader.wLen = ntohs(pHeader->wLen);
+	Cmdheader.wReqID = ntohs(pHeader->wReqID);
 
+	if (Cmdheader.cMsgKeyCode != 0x42) {
+		return 0;
+	}
+
+	switch (Cmdheader.wCmd) {
+	case GVCP_DISCOVERY_CMD:
+		break;
+	case GVCP_FORCEIP_CMD:
+		break;
+	case GVCP_READMEM_CMD:
+		break;
+	case GVCP_WRITEREG_CMD:
+		break;
+	default:
+		break;
+	}
 
 	return 0;
 }

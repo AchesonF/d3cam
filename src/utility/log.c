@@ -6,7 +6,7 @@ extern "C" {
 
 #define MAX_LINE					(4096)		///< 每行最大字符数
 
-int hex_printf (const uint8_t *buff, uint32_t count)
+int hex_printf (const uint8_t *buff, int count)
 {
 	uint32_t i = 0, j = 0;
 	char str[16] = {0};
@@ -14,6 +14,10 @@ int hex_printf (const uint8_t *buff, uint32_t count)
 	uint32_t index = 0;
 	uint32_t str_index = 0;
 	uint32_t cnt = (count+15)>>4;
+
+	if (count < 0) {
+		return -1;
+	}
 
 	printf("offs  01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0F 0E 0F |     ASCII\n");
 	printf("------------------------------------------------------------------------\n");

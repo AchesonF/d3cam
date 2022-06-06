@@ -26,8 +26,6 @@ struct csv_product_t {
 	uint32_t			app_runtime;			///< 本软件运行时间，单位s
 
 	struct csv_lifetime_t	lifetime;			///< 工时信息
-//	struct csv_daemon_t		daemon;				///< 守护进程 及交互
-
 	struct csv_hb_t			hb;					///< 守护进程及交互
 };
 

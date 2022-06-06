@@ -133,8 +133,6 @@ static void *csv_mvs_loop (void *data)
 
 	memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
 
-	log_info("in mvs loop");
-
 	do {
 		// enum device
 		nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, &stDeviceList);

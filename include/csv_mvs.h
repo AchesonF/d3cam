@@ -14,10 +14,10 @@ struct mvd_param_t {
 };
 
 struct csv_mvs_t {
-	uint8_t				cnt_mvs;
-	uint8_t				bExit;
+	uint8_t					cnt_mvs;
+	uint8_t					bExit;
 
-	struct mvd_param_t	cam[MAX_SUPPORT_CAMS];
+	struct mvd_param_t		cam[MAX_SUPPORT_CAMS];
 
 	const char				*name_mvs;		///< 消息
 	pthread_t				thr_mvs;		///< ID

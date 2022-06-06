@@ -58,16 +58,21 @@ inline uint32_t swap32(uint32_t x)
 // BE连续两个u8_t 字节转化为u16_t
 uint16_t u8v_to_u16 (uint8_t *data)
 {
-    //return be16toh((uint16_t *)data);
+	uint16_t *pe = (uint16_t *)data;
 
-	return ((uint16_t)(data[0]<<8)+data[1]);
+    return be16toh(*pe);
+
+	//return ((uint16_t)(data[0]<<8)+data[1]);
 }
 
 // BE连续四个u8_t 字节转化为u32_t
 uint32_t u8v_to_u32 (uint8_t *data)
 {
-	return ((uint32_t)(data[0]<<24)+(uint32_t)(data[1]<<16)
-		+(uint32_t)(data[2]<<8)+data[3]);
+	uint32_t *pe = (uint32_t *)data;
+	return be32toh(*pe);
+
+	//return ((uint32_t)(data[0]<<24)+(uint32_t)(data[1]<<16)
+	//	+(uint32_t)(data[2]<<8)+data[3]);
 }
 
 // uint16_t 转化为2字节BE

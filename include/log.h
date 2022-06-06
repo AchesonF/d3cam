@@ -19,7 +19,7 @@ extern "C" {
 *		LOG_DEBUG		debug-level message\n
 */
 
-extern int hex_printf (const uint8_t *buff, uint32_t count);
+extern int hex_printf (const uint8_t *buff, int count);
 
 extern void log_do (int priority, const char *fmt, ...);
 

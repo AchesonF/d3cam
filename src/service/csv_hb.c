@@ -157,6 +157,8 @@ int csv_hb_init (int argc, char **argv)
 	case 0:		// child
 		close(pHB->pipefd[1]);	// not use in child process
 		csv_hb_server_init(pHB);
+		log_info("ERROR : heartbeat die. ~~~~");
+		exit(EXIT_FAILURE);
 		break;
 	case -1:	// error
 		log_err("ERROR : fork");
