@@ -165,7 +165,7 @@ static void startup_opts (int argc, char **argv)
 	log_info("%s (%s)", pPdct->kernel_version, pPdct->kernel_buildtime);
 
 	if (!pPdct->dis_daemon) {
-		csv_daemon_init(argc, argv);
+		csv_hb_init(argc, argv);
 	}
 }
 

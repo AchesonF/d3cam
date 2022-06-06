@@ -58,6 +58,8 @@ inline uint32_t swap32(uint32_t x)
 // BE连续两个u8_t 字节转化为u16_t
 uint16_t u8v_to_u16 (uint8_t *data)
 {
+    //return be16toh((uint16_t *)data);
+
 	return ((uint16_t)(data[0]<<8)+data[1]);
 }
 
@@ -271,10 +273,15 @@ int utility_conv_kbuildtime (void)
 
 	// Linux HostPC 4.4.0-53-generic #74-Ubuntu SMP Fri Dec 2 15:59:10 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
 	// Linux ITHINK 4.9.253-tegra #1 SMP PREEMPT Sun Apr 17 02:37:44 PDT 2022 aarch64 aarch64 aarch64 GNU/Linux
+	// Linux debian 5.10.0-9-amd64 #1 SMP Debian 5.10.70-1 (2021-09-30) x86_64 GNU/Linux
 	uname(&uts);
 
 	memset(pPdct->kernel_version, 0, 132);
 	memset(pPdct->kernel_buildtime, 0, 32);
+
+	if (strstr(uts.version, "Debian") != NULL) {
+		return -1;
+	}
 	
 	// #74-Ubuntu SMP Fri Dec 2 15:59:10 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
 	// #1 SMP PREEMPT Sun Apr 17 02:37:44 PDT 2022 aarch64 aarch64 aarch64 GNU/Linux
