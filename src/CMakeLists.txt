@@ -25,6 +25,7 @@ add_executable(${D3CAM}
 target_link_libraries(${D3CAM}
 	pthread
 #	sqlite3
+	dl
 	MvCameraControl
 )
 

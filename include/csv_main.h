@@ -41,6 +41,7 @@ struct csv_info_t {
 	struct csv_mvs_t	mvs;					///< 支持海康工业相机
 	struct csv_gvcp_t	gvcp;					///< GVCP
 
+	struct csv_so_t		so;						///< 挂载算法so 
 };
 
 

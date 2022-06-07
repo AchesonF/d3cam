@@ -76,7 +76,7 @@ extern "C" {
 #include "csv_gvcp.h"
 
 #include "csv_mvs.h"
-
+#include "csv_so.h"
 #include "csv_main.h"
 
 
