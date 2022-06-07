@@ -18,6 +18,9 @@ struct csv_mvs_t {
 	uint8_t					bExit;
 
 	struct mvd_param_t		cam[MAX_SUPPORT_CAMS];
+	MV_CC_DEVICE_INFO_LIST	stDeviceList;
+	void					*handle[MAX_SUPPORT_CAMS];
+	// todo bind dev
 
 	const char				*name_mvs;		///< 消息
 	pthread_t				thr_mvs;		///< ID
