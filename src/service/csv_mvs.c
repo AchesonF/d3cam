@@ -124,6 +124,7 @@ static void *csv_mvs_loop (void *data)
 		return NULL;
 	}
 
+	int ret = 0;
     int nRet = MV_OK, i = 0, ret_exit = 0;
 
 	void* handle[CAMERA_NUM] = {NULL};
@@ -221,11 +222,18 @@ static void *csv_mvs_loop (void *data)
 		}
 
 
-	} while (0);
+		ret = pthread_cond_wait(&pMVS->cond_mvs, &pMVS->mutex_mvs);
+		if (ret != 0) {
+			log_err("ERROR : pthread_cond_wait");
+			break;
+		}
+
+		// todo exit work threads / refresh threads
+	} while (1);
 
 exit:
 
-	log_info("OK : exit pthread %s (%d)", pMVS->name_mvs, ret_exit);
+	log_info("WARN : exit pthread %s (%d)", pMVS->name_mvs, ret_exit);
 	pthread_exit(NULL);
 
 	return NULL;
@@ -255,7 +263,7 @@ int csv_mvs_thread (struct csv_mvs_t *pMVS)
 		log_err("ERROR : create pthread %s", pMVS->name_mvs);
 		return -1;
 	} else {
-		log_info("OK : create pthread %s as (%p)", pMVS->name_mvs, pMVS->thr_mvs);
+		log_info("OK : create pthread %s @ (%p)", pMVS->name_mvs, pMVS->thr_mvs);
 	}
 
 	return 0;

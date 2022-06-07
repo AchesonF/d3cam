@@ -177,6 +177,8 @@ int csv_init (struct csv_info_t *pCSV)
 
 	csv_gvcp_init();
 
+	csv_uevent_init();
+
 	csv_mvs_init();
 
 	csv_stat_init();
@@ -209,6 +211,7 @@ int main (int argc, char **argv)
 
 	csv_init(gCSV);
 
+	struct csv_uevent_t *pUE = &gCSV->uevent;
 	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
 	struct csv_tick_t *pTICK = &gCSV->tick;
 
@@ -223,6 +226,11 @@ int main (int argc, char **argv)
 		if (pGVCP->fd > 0) {
 			maxfd = MAX(maxfd, pGVCP->fd);
 			FD_SET(pGVCP->fd, &readset);
+		}
+
+		if (pUE->fd > 0) {
+			maxfd = MAX(maxfd, pUE->fd);
+			FD_SET(pUE->fd, &readset);
 		}
 
 		if (pTICK->fd > 0) {
@@ -247,6 +255,9 @@ int main (int argc, char **argv)
 			csv_gvcp_trigger(pGVCP);
 		}
 
+		if (FD_ISSET(pUE->fd, &readset)) {
+			csv_uevent_trigger(pUE);
+		}
 
 		if (FD_ISSET(pTICK->fd, &readset)) {
 			csv_tick_timer_trigger(pTICK);

@@ -40,6 +40,8 @@ extern "C" {
 #include <time.h>
 #include <unistd.h>
 
+#include <linux/netlink.h>
+
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -62,7 +64,6 @@ extern "C" {
 #include "log.h"
 
 #include "csv_utility.h"
-//#include "csv_daemon.h"
 #include "csv_hb.h"
 #include "csv_file.h"
 #include "csv_eth.h"
@@ -70,7 +71,7 @@ extern "C" {
 #include "csv_stat.h"
 #include "csv_tick.h"
 #include "csv_tty.h"
-
+#include "csv_uevent.h"
 
 #include "csv_gvcp.h"
 
