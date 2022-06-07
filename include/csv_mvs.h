@@ -19,7 +19,7 @@ struct csv_mvs_t {
 
 	struct mvd_param_t		cam[MAX_SUPPORT_CAMS];
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
-	void					*handle[MAX_SUPPORT_CAMS];
+	//void					*handle[MAX_SUPPORT_CAMS];
 	// todo bind dev
 
 	const char				*name_mvs;		///< 消息

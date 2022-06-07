@@ -110,6 +110,7 @@ static void parse_event (const char *kmsg)
 	kuevent.devpath = "";
 	kuevent.subsystem = "";
 	kuevent.devtype = "";
+	kuevent.product = "";
 	kuevent.major = -1;
 	kuevent.minor = -1;
 
@@ -127,6 +128,9 @@ static void parse_event (const char *kmsg)
 		} else if (!strncmp(kmsg, "DEVTYPE=", 8)) {
 			kmsg += 8;
 			kuevent.devtype = kmsg;
+		} else if (!strncmp(kmsg, "PRODUCT=", 8)) {
+			kmsg += 8;
+			kuevent.product = kmsg;
 		} else if (!strncmp(kmsg, "MAJOR=", 6)) {
 			kmsg += 6;
 			kuevent.major = atoi(kmsg);
@@ -138,10 +142,10 @@ static void parse_event (const char *kmsg)
 		while (*kmsg++) ; // 以 \n 分割字段
 	}
 
-	if (strncasecmp(kuevent.devtype, "usb_device", 10) == 0) {
+	if ((strncasecmp(kuevent.devtype, "usb_device", 10) == 0)
+		&&(strncasecmp(kuevent.product, "2bdf", 4) == 0)) { // hik
 		if ((strncasecmp(kuevent.action, "add", 3) == 0)
 		  ||(strncasecmp(kuevent.action, "remove", 6) == 0)) {
-			// todo MV_CC_EnumDevices
 			pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
 		}
 	}
