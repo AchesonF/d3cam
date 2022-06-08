@@ -52,6 +52,17 @@ void csv_stop (int signum)
 {
 	int ret = 0;
 
+	csv_gvcp_deinit();
+
+	csv_tcp_deinit();
+
+	csv_uevent_deinit();
+
+	csv_mvs_deinit();
+
+	csv_tick_deinit();
+
+
 	if (gCSV != NULL) {
 		free(gCSV);
 	}
@@ -59,11 +70,6 @@ void csv_stop (int signum)
 	log_info("OK : Stop process pid[%d] via signum[%d]", getpid(), signum);
 
 	sync();
-
-	if (signum == SIGPWR) {
-		ret = system("reboot");
-		sleep(1);
-	}
 
 	exit(ret);
 }
@@ -177,6 +183,8 @@ int csv_init (struct csv_info_t *pCSV)
 
 	csv_gvcp_init();
 
+	csv_tcp_init();
+
 	csv_uevent_init();
 
 	csv_mvs_init();
@@ -200,7 +208,7 @@ int csv_init (struct csv_info_t *pCSV)
 
 int main (int argc, char **argv)
 {
-	int ret = 0;
+	int ret = 0, i = 0;
 	int maxfd = 0;
 	struct timeval tv;
 	fd_set readset, writeset;
@@ -214,6 +222,7 @@ int main (int argc, char **argv)
 	struct csv_uevent_t *pUE = &gCSV->uevent;
 	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
 	struct csv_tick_t *pTICK = &gCSV->tick;
+	struct csv_tcp_t *pTCP = NULL;
 
 
 	while (1) {
@@ -231,6 +240,19 @@ int main (int argc, char **argv)
 		if (pUE->fd > 0) {
 			maxfd = MAX(maxfd, pUE->fd);
 			FD_SET(pUE->fd, &readset);
+		}
+
+		for (i = 0; i < TOTAL_TCP; i++) {
+			pTCP = &gCSV->tcp[i];
+			if (pTCP->fd > 0) {
+				maxfd = MAX(maxfd, pTCP->fd);
+				FD_SET(pTCP->fd, &readset);
+			}
+
+			if (pTCP->beat_fd > 0) {
+				maxfd = MAX(maxfd, pTCP->beat_fd);
+				FD_SET(pTCP->beat_fd, &readset);
+			}
 		}
 
 		if (pTICK->fd > 0) {
@@ -257,6 +279,17 @@ int main (int argc, char **argv)
 
 		if (FD_ISSET(pUE->fd, &readset)) {
 			csv_uevent_trigger(pUE);
+		}
+
+		for (i = 0; i < TOTAL_TCP; i++) {
+			pTCP = &gCSV->tcp[i];
+			if (FD_ISSET(pTCP->fd, &readset)) {
+				csv_tcp_reading_trigger(pTCP);
+			}
+
+			if (FD_ISSET(pTCP->beat_fd, &readset)) {
+				csv_beat_timer_trigger(pTCP->pBeat);
+			}
 		}
 
 		if (FD_ISSET(pTICK->fd, &readset)) {
