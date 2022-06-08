@@ -78,6 +78,7 @@ extern "C" {
 #include "csv_tty.h"
 #include "csv_uevent.h"
 
+#include "csv_web.h"
 #include "csv_gvcp.h"
 
 #include "csv_mvs.h"

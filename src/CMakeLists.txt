@@ -1,5 +1,7 @@
 set(D3CAM "d3cam")
 
+add_subdirectory(libweb)
+
 # add some include directories
 #include_directories()
 
@@ -27,6 +29,7 @@ target_link_libraries(${D3CAM}
 #	sqlite3
 	dl
 	MvCameraControl
+	web
 )
 
 install(TARGETS ${D3CAM}

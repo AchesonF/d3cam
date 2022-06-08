@@ -39,6 +39,12 @@ message(STATUS "Compile for Machine: " ${ARCHITECTURE})
 include_directories(
 	include
 	include/mvs
+	include/web
+	src/libweb/esp
+	src/libweb/http
+	src/libweb/mpr
+	src/libweb/pcre
+	src/libweb/sqlite
 	${CMAKE_BINARY_DIR}
 )
 

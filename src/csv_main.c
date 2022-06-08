@@ -4,6 +4,9 @@
 extern "C" {
 #endif
 
+#define MIN(a,b) (((a)>(b))?(b):(a))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
 struct csv_info_t *gCSV = NULL;
 
 struct csv_product_t gPdct = {
