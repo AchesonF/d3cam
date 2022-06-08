@@ -34,6 +34,8 @@ static void csv_trace (int signum)
 
 	fprintf(fp, "==== received signum[%d] backtrace ====\n", signum);
 	fprintf(stderr, "==== received signum[%d] backtrace ====\n", signum);
+	fprintf(fp, "%s\n", gPdct.app_info);
+	fprintf(stderr, "%s\n", gPdct.app_info);
 	for (i = 0; i < size; i++) {
 		fprintf(fp, "%d %s \n", i, strings[i]);	
 		fprintf(stderr, "%d %s \n", i, strings[i]);	
@@ -172,6 +174,8 @@ static void startup_opts (int argc, char **argv)
 
 	if (!pPdct->dis_daemon) {
 		csv_hb_init(argc, argv);
+	} else {
+		log_info("mypid is %d.", getpid());
 	}
 }
 

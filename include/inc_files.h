@@ -62,6 +62,7 @@ extern "C" {
 #include "list.h"
 #include "queue.h"
 #include "log.h"
+#include "crc.h"
 
 #include "csv_utility.h"
 #include "csv_hb.h"

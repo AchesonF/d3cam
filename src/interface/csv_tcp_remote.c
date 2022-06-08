@@ -109,14 +109,11 @@ static void *csv_tcp_remote_cnnt_loop (void *data)
 
 	struct tcp_remote_t *pTCPR = (struct tcp_remote_t *)data;
 
-	sleep(1);
-
 	while (1) {
+    	sleep(1);
 		if (!pTCPR->connected) {
 			csv_tcp_retmote_connect_try(pTCPR);
 		}
-
-    	sleep(5);
 	}
 
 	log_info("WARN : exit pthread %s", pTCPR->name_tcpr_cnnt);
@@ -140,7 +137,7 @@ static int csv_tcp_remote_cnnt_thread (struct tcp_remote_t *pTCPR)
 		log_info("ERROR : create pthread %s", pTCPR->name_tcpr_cnnt);
 		ret = -1;
 	} else {
-		log_info("OK : create pthread %s as (%p)", 
+		log_info("OK : create pthread %s @ (%p)", 
 			pTCPR->name_tcpr_cnnt, pTCPR->thr_tcpr_cnnt);
 	}
 

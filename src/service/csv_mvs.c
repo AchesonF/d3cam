@@ -267,7 +267,7 @@ static void *csv_mvs_loop (void *data)
 				log_err("ERROR : pthread_create Cam[%d] failed. ret = %d", idx, ret);
 				continue;
 			}
-			log_info("OK : create thread : [%d] %p", idx, tid);
+			log_info("OK : create pthread 'cam%d' @ (%p)", idx, tid);
 		}
 
 wait:
@@ -318,6 +318,22 @@ int csv_mvs_thread (struct csv_mvs_t *pMVS)
 	return 0;
 }
 
+static int csv_mvs_thread_cancel (struct csv_mvs_t *pMVS)
+{
+	int ret = 0;
+	void *retval = NULL;
+
+	ret = pthread_cancel(pMVS->thr_mvs);
+	if (ret != 0) {
+		log_err("ERROR : pthread_cancel %s", pMVS->name_mvs);
+	} else {
+		log_info("OK : cancel pthread %s", pMVS->name_mvs);
+	}
+
+	ret = pthread_join(pMVS->thr_mvs, &retval);
+
+	return ret;
+}
 
 int csv_mvs_init (void)
 {
@@ -332,9 +348,7 @@ int csv_mvs_init (void)
 
 int csv_mvs_deinit (void)
 {
-
-
-	return 0;
+	return csv_mvs_thread_cancel(&gCSV->mvs);
 }
 
 #ifdef __cplusplus

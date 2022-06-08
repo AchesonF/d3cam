@@ -239,7 +239,7 @@ int utility_conv_buildtime (void)
 
 	char *buildtime = malloc(32);
 	if (buildtime == NULL) {
-//		log_err(LOG_FMT"malloc", LOG_ARGS);
+//		log_err("ERROR : malloc");
 		return -1;
 	}
 
