@@ -685,8 +685,7 @@ int csv_eth_init (void)
 
 	csv_eth_get(pETH);
 
-	// 备份 后台
-	return system("ifconfig eth0:1 18.0.4.101");
+	return 0;
 }
 
 

@@ -8,9 +8,9 @@ extern "C" {
 
 static void *csv_web_loop (void *data)
 {
-	maRunWebServer("appweb.conf");
+	maRunWebServer("webapp.conf");
 
-	log_info("OK : exit pthread");
+	log_info("WARN : exit pthread 'thr_web'");
 	pthread_exit(NULL);
 
 	return NULL;

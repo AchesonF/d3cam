@@ -137,8 +137,8 @@ static int csv_tcp_remote_cnnt_thread (struct tcp_remote_t *pTCPR)
 		log_info("ERROR : create pthread %s", pTCPR->name_tcpr_cnnt);
 		ret = -1;
 	} else {
-		log_info("OK : create pthread %s @ (%p)", 
-			pTCPR->name_tcpr_cnnt, pTCPR->thr_tcpr_cnnt);
+		log_info("OK : create pthread %s %d @ (%p)", 
+			pTCPR->name_tcpr_cnnt, getpid(), pTCPR->thr_tcpr_cnnt);
 	}
 
 	return ret;
@@ -274,7 +274,7 @@ int csv_tcp_remote_init (void)
 	pTCPR->connected = false;
 	pTCPR->name_tcpr_cnnt = NAME_THREAD_TCPR_CNNT;
 	pTCPR->port = 9091;	// must from config file
-	memcpy(pTCPR->ip, "127.0.0.1", MAX_LEN_IP);
+	memcpy(pTCPR->ip, "18.0.4.230", MAX_LEN_IP);
 
 	pTCPR->beat.name = NAME_TMR_BEAT_TCPR;
 	pTCPR->beat.timerfd = -1;

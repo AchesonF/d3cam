@@ -198,6 +198,8 @@ int csv_init (struct csv_info_t *pCSV)
 
 	csv_stat_init();
 
+	csv_web_init();
+
 	csv_tick_init();
 
 	csv_life_start();

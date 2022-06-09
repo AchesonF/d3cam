@@ -28,7 +28,7 @@ add_library(${LIB_WEB} SHARED
 	${SRC_SSL}
 )
 
-target_link_libraries(${LIB_WEB} pthread dl ssl crypto )
+target_link_libraries(${LIB_WEB} pthread m dl ssl crypto )
 
 install(TARGETS ${LIB_WEB}
         EXPORT PROJECTTargets

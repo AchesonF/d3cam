@@ -49,7 +49,6 @@ include_directories(
 )
 
 set(DIR_LIBS_MVS "/opt/MVS/lib/aarch64/")
-
 link_directories(${DIR_LIBS_MVS})
 
 add_subdirectory(src)

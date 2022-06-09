@@ -14,10 +14,10 @@ int csv_tcp_reading_trigger (struct csv_tcp_t *pTCP)
 
 	nRead = pTCP->recv(rbuf, MAX_LEN_FRAME);
 	if (nRead < 0) {
-		log_err("ERROR : recv");
+		log_err("%s : recv %d", pTCP->name, nRead);
 		return -1;
 	} else if (nRead == 0) {
-		log_info("recv EOF", pTCP->name);
+		log_info("%s : EOF", pTCP->name);
 		pTCP->close();
 	} else {
 		// todo queue msg
