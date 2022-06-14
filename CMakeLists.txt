@@ -1,6 +1,12 @@
+
+if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
+	message(FATAL_ERROR "FATAL: In-source builds are not allowed.
+		You should create a separate directory for build files.")
+endif()
+
 cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
 
-project(D3Cam VERSION 1.0.0 LANGUAGES CXX C)
+project(D3WEB VERSION 1.0.0 LANGUAGES CXX C)
 
 message(STATUS "PROJECT_NAME: " ${PROJECT_NAME})
 message(STATUS "PROJECT_VERSION: " ${PROJECT_VERSION})
@@ -11,6 +17,8 @@ include(GNUInstallDirs)
 if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Build type: DEBUG or RELEASE" FORCE)
 endif ()
+
+message(STATUS "CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
 
 #set(PREFIX_WORK_MACHINE "arm-linux-" CACHE STRING "Compiler's prefix for working machine.")
@@ -33,22 +41,35 @@ EXECUTE_PROCESS(COMMAND ${CMAKE_CXX_COMPILER} -dumpmachine
 string(REGEX REPLACE "([a-zA-Z_0-9]+).*" "\\1" ARCHITECTURE ${CXX_MACHINE})
 message(STATUS "Compile for Machine: " ${ARCHITECTURE})
 
+if ("${ARCHITECTURE}" STREQUAL "aarch64")
+	set(DIR_LIBS_MVS "/opt/MVS/lib/aarch64/")
+elseif ("${ARCHITECTURE}" STREQUAL "x86_64")
+	set(DIR_LIBS_MVS "/opt/MVS/lib/64/")
+else ()
+	message(FATAL_ERROR "Not support machine: " ${ARCHITECTURE})
+endif ()
+
+link_directories(
+	${DIR_LIBS_MVS}
+)
+
+option(USING_WEB_SERVER "Add web thread" OFF)
+if (USING_WEB_SERVER)
+	add_definitions(-DUSING_WEB_THREAD=1)
+	add_subdirectory(libweb)
+	add_subdirectory(tools)
+
+	set(LIB_WEB_SERVER "web")
+	set(INC_WEB_SERVER "include/web src/libweb/esp src/libweb/http src/libweb/mpr src/libweb/pcre src/libweb/sqlite")
+endif ()
 
 # add include directories here
 include_directories(
 	include
 	include/mvs
-	include/web
-	src/libweb/esp
-	src/libweb/http
-	src/libweb/mpr
-	src/libweb/pcre
-	src/libweb/sqlite
+	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}
 )
-
-set(DIR_LIBS_MVS "/opt/MVS/lib/aarch64/")
-link_directories(${DIR_LIBS_MVS})
 
 add_subdirectory(src)
 
