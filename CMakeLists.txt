@@ -9,10 +9,9 @@ include(cmake/project_version.cmake)
 include(GNUInstallDirs)
 
 if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE RELEASE CACHE STRING "Build type: DEBUG or RELEASE" FORCE)
+	set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Build type: DEBUG or RELEASE" FORCE)
 endif ()
 
-message(STATUS "CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
 #set(PREFIX_WORK_MACHINE "arm-linux-" CACHE STRING "Compiler's prefix for working machine.")
 

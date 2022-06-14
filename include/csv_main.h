@@ -43,9 +43,7 @@ struct csv_info_t {
 
 	struct csv_so_t		so;						///< 挂载算法so 
 
-	struct tcp_local_t	tcp_l;					///< 本地tcp服务
-	struct tcp_remote_t	tcp_r;					///< 连接远程tcp服务
-	struct csv_tcp_t	tcp[TOTAL_TCP];
+	struct csv_tcp_t	tcpl;					///< 本地tcp服务
 };
 
 

@@ -5,41 +5,34 @@
 extern "C" {
 #endif
 
-enum {
-	TCP_LOCAL		= (0),			///< 本地服务
-	TCP_REMOTE		= (1),			///< 远程服务
+#define NAME_TCP_LOCAL					"'tcp_local'"	// to tcp pc client
+#define NAME_TMR_BEAT_TCPL				"'tmr_beat_tcpl'"
 
-	TOTAL_TCP
-};
+#define CHECK_NET_BREAK_TIME			10
 
+#define PORT_TCP_LISTEN					(26666)
+#define MAX_TCP_CONNECT					(1)
 
-typedef int (*tcp_open)(void);
-typedef int (*tcp_close)(void);
-typedef int (*tcp_recv)(uint8_t *buf, int nbytes);
-typedef int (*tcp_send)(uint8_t *buf, int nbytes);
-typedef int (*tcp_beat_open)(void);
-typedef int (*tcp_beat_close)(void);
+#define MAX_LEN_FRAME					(1024*1024)
 
 
 struct csv_tcp_t {
-	int					fd;				///< 描述符
-	char				*name;			///< 名称
-	int					index;			///< 通道索引
-	uint32_t			cnnt_time;		///< 建链至今时间 s
+	int					fd;					///< 描述符
+	char				*name;				///< 名称
+	uint16_t			port;				///< 监听端口
+	int					fd_listen;			///< 监听口句柄
+	uint8_t				accepted;			///< 已建立连接
+	uint32_t			cnnt_time;			///< 建链至今时间 s
 
-	tcp_open			open;
-	tcp_close			close;
-	tcp_recv			recv;
-	tcp_send			send;
-
-	int					beat_fd;		///< 心跳描述符
-	struct csv_beat_t	*pBeat;
-	tcp_beat_open		beat_open;
-	tcp_beat_close		beat_close;
+	struct csv_beat_t	beat;
 };
 
 
 extern int csv_tcp_reading_trigger (struct csv_tcp_t *pTCP);
+
+extern int csv_tcp_local_close (void);
+
+extern int csv_tcp_local_accept (void);
 
 extern int csv_tcp_init (void);
 

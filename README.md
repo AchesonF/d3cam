@@ -5,7 +5,9 @@
 安装必要工具：
 
 ```sh
-sudo apt install git gitk cmake cmake-curses-gui 
+sudo apt update && sudo apt upgrade
+sudo apt install git gitk cmake cmake-curses-gui libssl-dev
+sudo apt install ./MVS-2.1.1_aarch64_20211224.deb
 ```
 
 ##　编译步骤

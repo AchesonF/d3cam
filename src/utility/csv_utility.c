@@ -9,25 +9,6 @@ const char Hex2Ascii[17] = "0123456789ABCDEF";
 /* 0-9 数字转字符 */
 const char Dec2Ascii[11] = "0123456789";
 
-inline int utility_msec_between(struct timeval start, struct timeval end)
-{
-	int sec = end.tv_sec - start.tv_sec;
-	int usec = end.tv_usec - start.tv_usec;
-	return sec * 1000 + usec / 1000;
-}
-
-void utility_delay_ms(uint32_t ms)
-{
-	struct timeval start;
-	struct timeval now;
-	gettimeofday(&start, NULL);
-
-	while ( 1 ) {
-		gettimeofday(&now, NULL);
-		if ( utility_msec_between(start, now) >= ms )
-			break;
-	}
-}
 
 /* bcd 2 dec */
 inline int convert_dec(uint8_t val)

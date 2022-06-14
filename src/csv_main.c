@@ -23,14 +23,14 @@ struct csv_product_t gPdct = {
 
 static void csv_trace (int signum)
 {
-	void *array[100];
+	void *array[256];
 	size_t size;
 	char **strings;
 	int i;
 	FILE *fp;
 
 	signal(signum, SIG_DFL);
-	size = backtrace(array, 100);
+	size = backtrace(array, 256);
 	strings = (char **)backtrace_symbols(array, size);
 
 	fp = fopen(FILE_PATH_BACKTRACE, "a+");
@@ -64,6 +64,8 @@ void csv_stop (int signum)
 	csv_uevent_deinit();
 
 	csv_mvs_deinit();
+
+	csv_web_deinit();
 
 	csv_tick_deinit();
 
@@ -231,8 +233,7 @@ int main (int argc, char **argv)
 	struct csv_uevent_t *pUE = &gCSV->uevent;
 	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
 	struct csv_tick_t *pTICK = &gCSV->tick;
-	struct csv_tcp_t *pTCP = NULL;
-
+	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
 
 	while (1) {
 		tv.tv_sec = 1;
@@ -251,16 +252,18 @@ int main (int argc, char **argv)
 			FD_SET(pUE->fd, &readset);
 		}
 
-		for (i = 0; i < TOTAL_TCP; i++) {
-			pTCP = &gCSV->tcp[i];
-			if (pTCP->fd > 0) {
-				maxfd = MAX(maxfd, pTCP->fd);
-				FD_SET(pTCP->fd, &readset);
-			}
+		if (pTCPL->fd_listen > 0) {
+			maxfd = MAX(maxfd, pTCPL->fd_listen);
+			FD_SET(pTCPL->fd_listen, &readset);
+		}
 
-			if (pTCP->beat_fd > 0) {
-				maxfd = MAX(maxfd, pTCP->beat_fd);
-				FD_SET(pTCP->beat_fd, &readset);
+		if (pTCPL->fd > 0) {
+			maxfd = MAX(maxfd, pTCPL->fd);
+			FD_SET(pTCPL->fd, &readset);
+
+			if (pTCPL->beat.timerfd > 0) {
+				maxfd = MAX(maxfd, pTCPL->beat.timerfd);
+				FD_SET(pTCPL->beat.timerfd, &readset);
 			}
 		}
 
@@ -290,16 +293,21 @@ int main (int argc, char **argv)
 			csv_uevent_trigger(pUE);
 		}
 
-		for (i = 0; i < TOTAL_TCP; i++) {
-			pTCP = &gCSV->tcp[i];
-			if (FD_ISSET(pTCP->fd, &readset)) {
-				csv_tcp_reading_trigger(pTCP);
+		if (FD_ISSET(pTCPL->fd_listen, &readset)) {
+			if (pTCPL->accepted) {
+				csv_tcp_local_close();
 			}
-
-			if (FD_ISSET(pTCP->beat_fd, &readset)) {
-				csv_beat_timer_trigger(pTCP->pBeat);
-			}
+			csv_tcp_local_accept();
 		}
+
+		if (FD_ISSET(pTCPL->fd, &readset)) {
+			csv_tcp_reading_trigger(pTCPL);
+		}
+
+		if (FD_ISSET(pTCPL->beat.timerfd, &readset)) {
+			csv_beat_timer_trigger(&pTCPL->beat);
+		}
+
 
 		if (FD_ISSET(pTICK->fd, &readset)) {
 			csv_tick_timer_trigger(pTICK);

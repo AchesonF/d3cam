@@ -12,6 +12,7 @@ struct csv_beat_t {
 	char				*name;
 	int					timerfd;
 
+	uint8_t				enable;			///< 使能
 	uint8_t				iftype;			///< 通道号
 	uint8_t				responsed;		///< 有应答
 	uint8_t				cnt_timeo;		///< 超时计数

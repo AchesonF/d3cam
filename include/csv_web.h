@@ -6,9 +6,10 @@ extern "C" {
 #endif
 
 
+extern int csv_web_init (void);
 
-extern int csv_web_init (void);
-extern int csv_web_init (void);
+extern int csv_web_deinit (void);
+
 
 #ifdef __cplusplus
 }

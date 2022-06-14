@@ -8,8 +8,6 @@ extern "C" {
 extern const char Hex2Ascii[17];
 extern const char Dec2Ascii[11];
 
-extern int utility_msec_between(struct timeval start, struct timeval end);
-extern void utility_delay_ms(uint32_t ms);
 extern int convert_dec(uint8_t val);
 extern uint8_t convert_hex(int val);
 

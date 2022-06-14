@@ -1,7 +1,13 @@
 set(D3CAM "d3cam")
 
-add_subdirectory(libweb)
-add_subdirectory(tools)
+option(USING_WEB_SERVER "Add web thread" OFF)
+if (USING_WEB_SERVER)
+	add_definitions(-DUSING_WEB_THREAD=1)
+	add_subdirectory(libweb)
+	add_subdirectory(tools)
+
+	set(LIB_WEB_SERVER "web")
+endif ()
 
 # add some include directories
 #include_directories()
@@ -24,12 +30,14 @@ add_executable(${D3CAM}
 	${DIR_UTILITY}
 )
 
+
+
 target_link_libraries(${D3CAM}
 	pthread
 #	sqlite3
 	dl
 	MvCameraControl
-	web
+	${LIB_WEB_SERVER}
 )
 
 

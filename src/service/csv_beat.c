@@ -8,6 +8,14 @@ int csv_beat_timer_open (struct csv_beat_t *pBeat)
 {
 	int fd = -1;
 
+	if (pBeat == NULL) {
+		return -1;
+	}
+
+	if (!pBeat->enable) {
+		return 0;
+	}
+
 	fd = timerfd_create(CLOCK_REALTIME, 0);
 	if (fd < 0) {
 		log_err("ERROR : create hb %s", pBeat->name);
@@ -37,6 +45,10 @@ int csv_beat_timer_open (struct csv_beat_t *pBeat)
 
 int csv_beat_timer_close (struct csv_beat_t *pBeat)
 {
+	if (pBeat == NULL) {
+		return -1;
+	}
+
 	if (pBeat->timerfd > 0) {
 		if (close(pBeat->timerfd) < 0) {
 			log_err("ERROR : close hb timer %s", pBeat->name);
@@ -70,7 +82,7 @@ int csv_beat_timer_trigger (struct csv_beat_t *pBeat)
 	if (++pBeat->cnt_timeo >= HEARTBEAT_TIMEO) {
 		log_info("WARN : %s beat timeout.", pBeat->name);
 
-		return gCSV->tcp[pBeat->iftype].close();
+		return csv_tcp_local_close();
 	}
 
 //	uhf_msg_heartbeat_package(&gCSV->msg.up_data);

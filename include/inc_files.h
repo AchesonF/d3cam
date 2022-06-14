@@ -71,8 +71,6 @@ extern "C" {
 #include "csv_life.h"
 #include "csv_stat.h"
 #include "csv_beat.h"
-#include "csv_tcp_local.h"
-#include "csv_tcp_remote.h"
 #include "csv_tcp.h"
 #include "csv_tick.h"
 #include "csv_tty.h"

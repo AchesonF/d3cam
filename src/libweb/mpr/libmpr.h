@@ -8060,7 +8060,7 @@ PUBLIC ssize mprWriteSocketVector(MprSocket *sp, MprIOVec *iovec, int count);
     #define CONFIG_MPR_SSL_TIMEOUT 86400
 #endif
 //#define ME_MPR_HAS_ALPN 1
-#define ME_MPR_HAS_ALPN 0 // htrfid
+#define ME_MPR_HAS_ALPN 0		// htrfid
 #define MPR_HAS_CRPTO_ENGINE 1
 
 /**

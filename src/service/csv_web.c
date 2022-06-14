@@ -1,10 +1,12 @@
 
-#include "webapp.h"
-#include "inc_files.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifdef USING_WEB_THREAD
+
+#include "webapp.h"
+#include "inc_files.h"
 
 static void *csv_web_loop (void *data)
 {
@@ -41,6 +43,27 @@ int csv_web_init (void)
 {
 	return csv_web_thread();
 }
+
+int csv_web_deinit (void)
+{
+
+	return 0;
+}
+
+#else
+
+int csv_web_init (void)
+{
+	return 0;
+}
+
+int csv_web_deinit (void)
+{
+
+	return 0;
+}
+
+#endif
 
 #ifdef __cplusplus
 }
