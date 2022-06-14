@@ -87,6 +87,7 @@ int csv_tick_timer_trigger (struct csv_tick_t *pTICK)
 	if (pTICK->cnt%(5*TICKS_PER_SECOND) == 0) {
 		csv_stat_update();
 //		log_info("%d", pPdct->app_runtime);
+//		log_info("%f", utility_get_sec_since_boot());
 	}
 
 	return 0;

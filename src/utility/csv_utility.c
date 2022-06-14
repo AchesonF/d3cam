@@ -115,6 +115,14 @@ void hexstr_to_u8v (char *buf, uint16_t len, uint8_t *data)
 	}
 }
 
+double utility_get_sec_since_boot (void)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+	return (ts.tv_sec + (ts.tv_nsec / 1000.0 / 1000.0 / 1000.0));
+}
+
 /**
 * @brief		获取1970.01.01 00:00:00.000 至今经过的毫秒数
 * @param[in]	void
@@ -238,7 +246,7 @@ int utility_conv_buildtime (void)
 	strftime(buildtime, 32, "%F %X", &tm_stamp);
 	pPdct->app_buildtime = buildtime;
 
-	snprintf(pPdct->app_info, 64, "%s %s (%s)", pPdct->app_name, pPdct->app_version, 
+	snprintf(pPdct->app_info, 128, "%s %s (%s)", pPdct->app_name, pPdct->app_version, 
 		pPdct->app_buildtime);
 
 	return 0;
@@ -316,7 +324,7 @@ int utility_calibrate_clock (void)
 
 		char date_buf[40] = {0};
 		memset(date_buf, 0, 40);
-		sprintf(date_buf, "date -s \"@%d\"", pPdct->build_timestamp);
+		snprintf(date_buf, 40, "date -s \"@%d\"", pPdct->build_timestamp);
 		system_redef(date_buf);
 		system_redef("hwclock -w -u");
 	}

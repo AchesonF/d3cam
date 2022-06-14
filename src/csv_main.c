@@ -16,6 +16,7 @@ struct csv_product_t gPdct = {
     .app_name = CONFIG_APP_NAME,
     .app_version = SOFTWARE_VERSION,
     .app_buildtime = SOFT_BUILDTIME,
+    .compiler_version = COMPILER_VERSION,
 
     .uptime = 0,
     .app_runtime = 0,
@@ -174,13 +175,13 @@ static void startup_opts (int argc, char **argv)
 
 	utility_calibrate_clock();
 
-	log_info("%s", pPdct->app_info);
+	log_info("%s via GCC %s", pPdct->app_info, pPdct->compiler_version);
 	log_info("%s (%s)", pPdct->kernel_version, pPdct->kernel_buildtime);
 
 	if (!pPdct->dis_daemon) {
 		csv_hb_init(argc, argv);
 	} else {
-		log_info("mypid is %d.", getpid());
+		log_info("Mypid(%d).", getpid());
 	}
 }
 
@@ -206,8 +207,8 @@ int csv_init (struct csv_info_t *pCSV)
 
 	csv_life_start();
 
-	signal(SIGSEGV, csv_trace);
-	signal(SIGABRT, csv_trace);
+	signal(SIGSEGV, csv_trace);		// 11
+	signal(SIGABRT, csv_trace);		// 6
 
 	signal(SIGINT, csv_stop);
 	signal(SIGSTOP, csv_stop);
@@ -257,7 +258,7 @@ int main (int argc, char **argv)
 			FD_SET(pTCPL->fd_listen, &readset);
 		}
 
-		if (pTCPL->fd > 0) {
+		if ((pTCPL->accepted)&&(pTCPL->fd > 0)) {
 			maxfd = MAX(maxfd, pTCPL->fd);
 			FD_SET(pTCPL->fd, &readset);
 
@@ -285,34 +286,32 @@ int main (int argc, char **argv)
 		break;
 		}
 
-		if (FD_ISSET(pGVCP->fd, &readset)) {
+		if ((pGVCP->fd > 0)&&(FD_ISSET(pGVCP->fd, &readset))) {
 			csv_gvcp_trigger(pGVCP);
 		}
 
-		if (FD_ISSET(pUE->fd, &readset)) {
+		if ((pUE->fd > 0)&&(FD_ISSET(pUE->fd, &readset))) {
 			csv_uevent_trigger(pUE);
 		}
 
-		if (FD_ISSET(pTCPL->fd_listen, &readset)) {
+		if ((pTCPL->fd_listen > 0)&&(FD_ISSET(pTCPL->fd_listen, &readset))) {
 			if (pTCPL->accepted) {
 				csv_tcp_local_close();
 			}
 			csv_tcp_local_accept();
 		}
 
-		if (FD_ISSET(pTCPL->fd, &readset)) {
+		if ((pTCPL->accepted)&&(FD_ISSET(pTCPL->fd, &readset))) {
 			csv_tcp_reading_trigger(pTCPL);
 		}
 
-		if (FD_ISSET(pTCPL->beat.timerfd, &readset)) {
+		if ((pTCPL->beat.timerfd > 0)&&(FD_ISSET(pTCPL->beat.timerfd, &readset))) {
 			csv_beat_timer_trigger(&pTCPL->beat);
 		}
 
-
-		if (FD_ISSET(pTICK->fd, &readset)) {
+		if ((pTICK->fd > 0)&&(FD_ISSET(pTICK->fd, &readset))) {
 			csv_tick_timer_trigger(pTICK);
 		}
-
 
 	}
 

@@ -46,10 +46,10 @@ static int csv_hb_startcmd_get (struct csv_hb_t *pHB, int argc, char **argv)
 {
 	int i = 0;
 	char str_opt[MAX_LEN_STARTCMD] = {0};
-	memset(pHB->cmdline, 0, MAX_LEN_STARTCMD);
+	memset(pHB->cmdline, 0, MAX_LEN_STARTCMD*5);
 
 	for (i = 0; i < argc; i++) {
-		sprintf(str_opt, "%s ", argv[i]);
+		snprintf(str_opt, MAX_LEN_STARTCMD, "%s ", argv[i]);
 		strcat(pHB->cmdline, str_opt);
 	}
 
@@ -149,7 +149,7 @@ int csv_hb_init (int argc, char **argv)
 		return -1;
 	}
 
-	log_info("pipe %d  %d\n", pHB->pipefd[0], pHB->pipefd[1]);
+	log_info("pipe ifd(%d) ofd(%d)", pHB->pipefd[0], pHB->pipefd[1]);
 
 	cpid = fork();
 

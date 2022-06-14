@@ -15,8 +15,9 @@ struct csv_product_t {
 	char				*app_name;				///< 本软件名称
 	char				*app_version;			///< 本软件版本
 	char				*app_buildtime;			///< 本软件编译时间
+	char				*compiler_version;		///< 编译链版本
 	uint32_t			build_timestamp;		///< 编译时间戳
-	char				app_info[64];			///< 版本字节流
+	char				app_info[128];			///< 版本字节流
 
 	char				kernel_version[132];	///< linux kernel version, such as "Linux 5.10.14 #12"
 	char				kernel_buildtime[32];	///< yyyy-mm-dd HH:MM:SS
@@ -30,9 +31,6 @@ struct csv_product_t {
 };
 
 struct csv_info_t {
-
-	struct csv_tick_t	tick;					///< 轮询时钟
-
 	struct csv_file_t	file;					///< 外部配置文件
 	struct csv_eth_t	eth;					///< 本地网络参数
 	struct csv_stat_t	stat;					///< 系统状态信息
@@ -44,6 +42,8 @@ struct csv_info_t {
 	struct csv_so_t		so;						///< 挂载算法so 
 
 	struct csv_tcp_t	tcpl;					///< 本地tcp服务
+
+	struct csv_tick_t	tick;					///< 轮询时钟
 };
 
 

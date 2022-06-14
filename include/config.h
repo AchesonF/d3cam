@@ -13,8 +13,8 @@ extern "C" {
 #define COMPILER_VERSION		__VERSION__
 
 
-#if (BUILD_TYPE_DEBUG==1)
-  #define CONFIG_DEBUG 0
+#ifndef CONFIG_DEBUG
+  #define CONFIG_DEBUG			0
 #endif
 
 

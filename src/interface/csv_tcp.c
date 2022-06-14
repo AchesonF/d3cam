@@ -19,27 +19,27 @@ static int csv_tcp_local_beat_close (void)
 
 static int csv_tcp_local_open (void)
 {
-	int err = 0, fd = -1, ret = 0;
+	int fd = -1, ret = 0;
 
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
 
 	fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
-		log_err("ERROR : socket %s", pTCPL->name);
+		log_err("ERROR : socket %s", pTCPL->name_listen);
 		return -1;
 	}
 
-	err = fcntl(fd, F_SETFL, O_NONBLOCK);
-	if (err < 0) {
-		log_err("ERROR : fnctl %s", pTCPL->name);
+	ret = fcntl(fd, F_SETFL, O_NONBLOCK);
+	if (ret < 0) {
+		log_err("ERROR : fnctl %s", pTCPL->name_listen);
 		close(fd);
-		return err;
+		return ret;
 	}
 
     int optval = 0;
     ret = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
     if (ret < 0) {
-        log_err("ERROR : setsockopt %s", pTCPL->name);
+        log_err("ERROR : setsockopt %s", pTCPL->name_listen);
         close(fd);
         return ret;
     }
@@ -50,24 +50,24 @@ static int csv_tcp_local_open (void)
     sin.sin_addr.s_addr = htonl(INADDR_ANY);
     sin.sin_port = htons(pTCPL->port);
 
-	err = bind(fd, (struct sockaddr *)&sin, sizeof(sin));
-	if (err < 0) {
-		log_err("ERROR : bind %s", pTCPL->name);
+	ret = bind(fd, (struct sockaddr *)&sin, sizeof(sin));
+	if (ret < 0) {
+		log_err("ERROR : bind %s", pTCPL->name_listen);
 		close(fd);
-		return err;
+		return ret;
 	}
 
-	err = listen(fd, MAX_TCP_CONNECT);
-	if (err < 0) {
-		log_err("ERROR : listen %s", pTCPL->name);
+	ret = listen(fd, MAX_TCP_CONNECT);
+	if (ret < 0) {
+		log_err("ERROR : listen %s", pTCPL->name_listen);
 		close(fd);
-		return err;
+		return ret;
 	}
 
 	pTCPL->fd_listen = fd;
 
 	log_info("OK : bind %s : '%d/tcp' as fd(%d).", 
-		pTCPL->name, pTCPL->port, pTCPL->fd_listen);
+		pTCPL->name_listen, pTCPL->port, pTCPL->fd_listen);
 
 	return 0;
 }
@@ -76,12 +76,12 @@ static int csv_tcp_local_release (struct csv_tcp_t *pTCPL)
 {
 	if (pTCPL->fd_listen > 0) {
 		if (close(pTCPL->fd_listen) < 0) {
-			log_err("ERROR : close %s", pTCPL->name);
+			log_err("ERROR : close %s", pTCPL->name_listen);
 			return -1;
 		}
 
 		pTCPL->fd_listen = -1;
-		log_info("OK : close %s.", pTCPL->name);
+		log_info("OK : close %s.", pTCPL->name_listen);
 	}
 
 	return 0;
@@ -95,12 +95,12 @@ int csv_tcp_local_close (void)
 
 	if (pTCPL->fd > 0) {
 		close(pTCPL->fd);
+		log_info("OK : close %s. cnnt: %f s", pTCPL->name, 
+			(utility_get_sec_since_boot() - pTCPL->time_start));
 	}
 
 	pTCPL->fd = -1;
 	pTCPL->accepted = false;
-
-	log_info("OK : close %s. cnnt: %d s", pTCPL->name, pTCPL->cnnt_time);
 
 	return 0;
 }
@@ -115,7 +115,7 @@ int csv_tcp_local_accept (void)
 
 	fd = accept(pTCPL->fd_listen, (struct sockaddr *)&peer, &sock_len);
 	if (fd <= 0) {
-		log_err("ERROR : accept %s", pTCPL->name);
+		log_err("ERROR : accept %s", pTCPL->name_listen);
 		return fd;
 	}
 
@@ -153,7 +153,7 @@ int csv_tcp_local_accept (void)
 	log_info("OK : %s accept '%s:%d' as fd(%d).", pTCPL->name,
             inet_ntoa(peer.sin_addr), htons(peer.sin_port), fd);
 
-	pTCPL->cnnt_time = 0;
+	pTCPL->time_start = utility_get_sec_since_boot();
 
 	csv_beat_timer_open(&pTCPL->beat);
 
@@ -234,18 +234,18 @@ int csv_tcp_reading_trigger (struct csv_tcp_t *pTCPL)
 {
 	int nRead = 0;
 
-	uint8_t rbuf[MAX_LEN_FRAME] = {0};
-
-	nRead = csv_tcp_local_recv(rbuf, MAX_LEN_FRAME);
+	nRead = csv_tcp_local_recv(pTCPL->rbuf, MAX_LEN_FRAME);
 	if (nRead < 0) {
-		log_err("%s : recv %d", pTCPL->name, nRead);
+		log_err("ERROR : %s recv %d", pTCPL->name, nRead);
+		pTCPL->rlen = 0;
 		return -1;
 	} else if (nRead == 0) {
-		log_info("%s : EOF", pTCPL->name);
+		log_info("WARN : %s EOF.", pTCPL->name);
 		csv_tcp_local_close();
+		pTCPL->rlen = 0;
 	} else {
 		// todo queue msg
-
+		pTCPL->rlen = nRead;
 	}
 
 	return 0;
@@ -259,10 +259,11 @@ int csv_tcp_init (void)
 
 	pTCPL->fd = -1;
 	pTCPL->name = NAME_TCP_LOCAL;
+	pTCPL->name_listen = NAME_TCP_LISTEN;
 	pTCPL->port = PORT_TCP_LISTEN;
 	pTCPL->fd_listen = -1;
 	pTCPL->accepted = false;
-	pTCPL->cnnt_time = 0;
+	pTCPL->time_start = 0.0;
 
 	pTCPL->beat.name = NAME_TMR_BEAT_TCPL;
 	pTCPL->beat.timerfd = -1;
@@ -272,7 +273,7 @@ int csv_tcp_init (void)
 
 	ret = csv_tcp_local_open();
 
-	return 0;
+	return ret;
 }
 
 int csv_tcp_deinit (void)

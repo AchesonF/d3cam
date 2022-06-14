@@ -5,8 +5,10 @@
 if (CMAKE_BUILD_TYPE)
 	string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
 	if (BUILD_TYPE_UPPER MATCHES "DEBUG")
-		add_definitions(-DBUILD_TYPE_DEBUG=1)
+		add_definitions(-DCONFIG_DEBUG=1)
 	endif ()
+else ()
+	add_definitions(-DCONFIG_DEBUG=0)
 endif ()
 
 # Split a version number into separate components

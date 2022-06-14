@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#define NAME_TCP_LISTEN					"'tcp_listen'"
 #define NAME_TCP_LOCAL					"'tcp_local'"	// to tcp pc client
 #define NAME_TMR_BEAT_TCPL				"'tmr_beat_tcpl'"
 
@@ -19,12 +20,16 @@ extern "C" {
 struct csv_tcp_t {
 	int					fd;					///< 描述符
 	char				*name;				///< 名称
+	char				*name_listen;		///< 监听名称
 	uint16_t			port;				///< 监听端口
 	int					fd_listen;			///< 监听口句柄
 	uint8_t				accepted;			///< 已建立连接
-	uint32_t			cnnt_time;			///< 建链至今时间 s
+	double				time_start;			///< 建链时刻 s
 
 	struct csv_beat_t	beat;
+
+	uint8_t				rbuf[MAX_LEN_FRAME];
+	uint32_t			rlen;
 };
 
 

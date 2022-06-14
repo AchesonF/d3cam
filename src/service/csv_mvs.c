@@ -228,7 +228,7 @@ static int csv_mvs_device_prepare (struct csv_mvs_t *pMVS)
 			csv_mvs_show_device_info(pDevInfo);
 		}
 	} else {
-		log_info("Find No Cam Devices!");
+		log_info("No Cam Devices!");
 		return -3;
 	}
 
@@ -256,6 +256,9 @@ static void *csv_mvs_loop (void *data)
 		if (ret < 0) {
 			goto wait;
 		}
+
+
+		// TODO 不开线程处理
 
 		pMVS->bExit = 0;
 		for (i = 0; i < pMVS->cnt_mvs; i++) {

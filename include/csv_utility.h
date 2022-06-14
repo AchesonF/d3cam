@@ -31,6 +31,8 @@ extern void u8v_to_hexstr (uint8_t *data, uint16_t len, char *buf);
 
 extern void hexstr_to_u8v (char *buf, uint16_t len, uint8_t *data);
 
+extern double utility_get_sec_since_boot (void);
+
 extern uint64_t utility_get_millisecond (void);
 
 extern uint64_t utility_get_microsecond (void);
