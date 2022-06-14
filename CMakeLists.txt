@@ -55,18 +55,20 @@ link_directories(
 
 option(USING_WEB_SERVER "Add web thread" OFF)
 if (USING_WEB_SERVER)
-	add_definitions(-DUSING_WEB_THREAD=1)
-	add_subdirectory(libweb)
-	add_subdirectory(tools)
-
-	set(LIB_WEB_SERVER "web")
-	set(INC_WEB_SERVER "include/web src/libweb/esp src/libweb/http src/libweb/mpr src/libweb/pcre src/libweb/sqlite")
+	set(INC_WEB_SERVER 
+		"include/web"
+		"src/libweb/esp"
+		"src/libweb/http"
+		"src/libweb/mpr"
+		"src/libweb/pcre"
+		"src/libweb/sqlite"
+	)
 endif ()
 
 # add include directories here
 include_directories(
-	include
-	include/mvs
+	"include"
+	"include/mvs"
 	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}
 )

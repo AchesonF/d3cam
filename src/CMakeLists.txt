@@ -1,5 +1,14 @@
 set(EXE_TARGET "d3cam")
 
+if (USING_WEB_SERVER)
+	add_definitions(-DUSING_WEB_THREAD=1)
+
+	add_subdirectory(libweb)
+	add_subdirectory(tools)
+
+	set(LIB_WEB_SERVER "web")
+endif ()
+
 # add some include directories
 #include_directories()
 
