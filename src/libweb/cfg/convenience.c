@@ -28,7 +28,6 @@ static int runServer(cchar *configFile, cchar *ip, int port, cchar *home, cchar 
         mprLog("error webapp", 0, "Cannot start the web server");
         return MPR_ERR_CANT_COMPLETE;
     }
-
     mprServiceEvents(-1, 0);
     httpStopEndpoints();
     return 0;
@@ -47,7 +46,6 @@ PUBLIC int maRunWebServer(cchar *configFile)
         mprLog("error webapp", 0, "Cannot create the web server runtime");
         return MPR_ERR_CANT_CREATE;
     }
-
     rc = runServer(configFile, 0, 0, 0, 0);
     mprDestroy();
     return rc;

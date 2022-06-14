@@ -1,7 +1,7 @@
 
 /* Settings */
 #ifndef CONFIG_COMPANY
-    #define CONFIG_COMPANY "ht"
+    #define CONFIG_COMPANY "CSV"
 #endif
 
 #ifndef CONFIG_COMPILER_HAS_ATOMIC

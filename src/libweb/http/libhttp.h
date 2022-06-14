@@ -787,15 +787,13 @@ PUBLIC int httpGetTraceLevel(HttpTrace *trace);
  */
 PUBLIC bool httpLog(HttpTrace *trace, cchar *event, cchar *type, cchar *fmt, ...);
 #else
-/*    #define httpLog(trace, event, type, ...) \
+    #define httpLog(trace, event, type, ...) \
         if (trace && trace->level > 0) { \
             int __tlevel = PTOI(mprLookupKey(trace->events, type)); \
             if (__tlevel > 0 && __tlevel <= trace->level) { \
                 httpLogProc(trace, event, type, 0, __VA_ARGS__); \
             } \
         } else
-*/
-	#define httpLog(trace, event, type, ...)
 #endif
 
 //  Internal

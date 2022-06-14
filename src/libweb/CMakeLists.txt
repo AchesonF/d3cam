@@ -9,13 +9,6 @@ file(GLOB SRC_PCRE pcre/*.c)
 file(GLOB SRC_SQLITE sqlite/*.c)
 file(GLOB SRC_SSL ssl/*.c)
 
-#include_directories(
-#	esp
-#	http
-#	mpr
-#	pcre
-#	sqlite
-#)
 
 add_library(${LIB_WEB} SHARED 
 	${SRC_CFG} 
