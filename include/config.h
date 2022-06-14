@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-
+// define in cmake
 #define CONFIG_APP_NAME			PROJECT_UPPER_NAME
 #define SOFTWARE_VERSION		PROJECT_VERSION
 

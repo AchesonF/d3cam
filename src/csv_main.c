@@ -106,6 +106,7 @@ static void print_usage (const char *prog)
 		"  -m --daemon   Disable daemon.\n"
 		"  -h --help     Show this info.\n"
 		"  -v --version  Build version.\n"
+		"  -W --WebCfg   Web config file, suffix as '.conf'\n"
 		"  -t --work     System working hour.\n");
 }
 
@@ -116,6 +117,7 @@ static const struct option lopts[] = {
 	{ "daemon",		no_argument,	0, 'm' },
 	{ "version",	no_argument,	0, 'v' },
 	{ "work",		no_argument,	0, 't' },
+	{ "WebCfg",	required_argument,	0, 'W' },
 	{ NULL,			0,				0,	0 },
 };
 
@@ -131,7 +133,7 @@ static void startup_opts (int argc, char **argv)
 	csv_life_init();
 
 	while (1) {
-		c = getopt_long(argc, argv, "D:dmhvt", lopts, NULL);
+		c = getopt_long(argc, argv, "W:D:dmhvt", lopts, NULL);
 		if (c == -1) {
 			break;
 		}
@@ -139,7 +141,7 @@ static void startup_opts (int argc, char **argv)
 		switch (c) {
 		case 'd':
 			pPdct->tlog = true;
-		break;
+			break;
 		case 'm':
 			pPdct->dis_daemon = true;
 			break;
@@ -148,14 +150,18 @@ static void startup_opts (int argc, char **argv)
 		case '?':
 			print_usage(argv[0]);
 			exit(1);
-		break;
+			break;
 		case 'D':
 			pPdct->tdata = (uint8_t)atoi(optarg);
-		break;
+			break;
+		case 'W':
+			memset(pPdct->WebCfg, 0, 256);
+			strncpy(pPdct->WebCfg, optarg, 256);
+			break;
 		case 'v':
 			printf("Version : %s\n", pPdct->app_info);
 			exit(1);
-		break;
+			break;
 		case 't':
 		{
 			struct csv_lifetime_t *pLIFE = &pPdct->lifetime;

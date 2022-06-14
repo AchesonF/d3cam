@@ -286,6 +286,9 @@ wait:
 	} while (1);
 
 	log_info("WARN : exit pthread %s", pMVS->name_mvs);
+
+	pMVS->thr_mvs = 0;
+
 	pthread_exit(NULL);
 
 	return NULL;
@@ -318,6 +321,8 @@ int csv_mvs_thread (struct csv_mvs_t *pMVS)
 		log_info("OK : create pthread %s @ (%p)", pMVS->name_mvs, pMVS->thr_mvs);
 	}
 
+	//pthread_attr_destory(&attr);
+
 	return 0;
 }
 
@@ -325,6 +330,10 @@ static int csv_mvs_thread_cancel (struct csv_mvs_t *pMVS)
 {
 	int ret = 0;
 	void *retval = NULL;
+
+	if (pMVS->thr_mvs <= 0) {
+		return 0;
+	}
 
 	ret = pthread_cancel(pMVS->thr_mvs);
 	if (ret != 0) {

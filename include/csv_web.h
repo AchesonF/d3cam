@@ -5,6 +5,17 @@
 extern "C" {
 #endif
 
+#define NAME_THREAD_WEB			"'thr_web'"
+
+#define DEFAULT_WEB_CONFIG		"webapp.conf"
+
+struct csv_web_t {
+	char					*ConfigFile;
+
+	const char				*name_web;		///< 消息
+	pthread_t				thr_web;		///< ID
+	pthread_mutex_t			mutex_web;		///< 锁
+};
 
 extern int csv_web_init (void);
 

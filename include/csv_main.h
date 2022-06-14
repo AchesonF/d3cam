@@ -11,6 +11,8 @@ struct csv_product_t {
 	uint8_t				tdata;					///< terminal 显示data数据
 												///< 1:tcp 2:tty 3:udp 4:sql ...255:all
 	uint8_t				dis_daemon;				///< 禁用守护进程
+	char				WebCfg[256];			///< web 配置文件
+
 
 	char				*app_name;				///< 本软件名称
 	char				*app_version;			///< 本软件版本
@@ -42,6 +44,7 @@ struct csv_info_t {
 	struct csv_so_t		so;						///< 挂载算法so 
 
 	struct csv_tcp_t	tcpl;					///< 本地tcp服务
+	struct csv_web_t	web;					///< WEB 服务
 
 	struct csv_tick_t	tick;					///< 轮询时钟
 };
