@@ -57,6 +57,7 @@ extern "C" {
 #include "project_version.h"
 #include "config.h"
 
+#include <json-c/json.h>
 #include "MvCameraControl.h"
 
 #include "list.h"
@@ -67,6 +68,7 @@ extern "C" {
 #include "csv_utility.h"
 #include "csv_hb.h"
 #include "csv_file.h"
+#include "csv_json.h"
 #include "csv_eth.h"
 #include "csv_life.h"
 #include "csv_stat.h"

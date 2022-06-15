@@ -260,6 +260,8 @@ int csv_init (struct csv_info_t *pCSV)
 {
 	csv_file_init();
 
+	csv_json_init();
+
 	csv_eth_init();
 
 	csv_gvcp_init();

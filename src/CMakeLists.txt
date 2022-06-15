@@ -37,6 +37,7 @@ target_link_libraries(${EXE_TARGET}
 #	sqlite3
 	dl
 	MvCameraControl
+	json-c
 	${LIB_WEB_SERVER}
 )
 

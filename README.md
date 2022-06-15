@@ -13,12 +13,14 @@ sudo apt install -y ./MVS-2.1.1_aarch64_20211224.deb
 ## 编译 libopencv_world.so
 
 ```sh
-wget 
-make
-
+git clone https://github.com/opencv/opencv
+cd opencv
+make -p build && cd build
+ccmake ..
+'c' -> select opencv_world ON
+make -j
+make package
 ```
-
-
 
 
 
