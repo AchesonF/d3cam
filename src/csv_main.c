@@ -20,6 +20,7 @@ struct csv_product_t gPdct = {
 
     .uptime = 0,
     .app_runtime = 0,
+    .fd_lock = -1,
 };
 
 static void csv_trace (int signum)
@@ -29,6 +30,20 @@ static void csv_trace (int signum)
 	char **strings;
 	int i;
 	FILE *fp;
+	char *strSIG = NULL;
+
+	switch (signum) {
+	case SIGABRT:
+		strSIG = "SIGABRT";
+		break;
+	case SIGSEGV:
+		strSIG = "SIGSEGV";
+		break;
+	default:
+		strSIG = "htop maybe help";
+		break;
+	}
+
 
 	signal(signum, SIG_DFL);
 	size = backtrace(array, 256);
@@ -36,8 +51,8 @@ static void csv_trace (int signum)
 
 	fp = fopen(FILE_PATH_BACKTRACE, "a+");
 
-	fprintf(fp, "==== received signum[%d] backtrace ====\n", signum);
-	fprintf(stderr, "==== received signum[%d] backtrace ====\n", signum);
+	fprintf(fp, "==== received signum[%d]=%s backtrace ====\n", signum, strSIG);
+	fprintf(stderr, "==== received signum[%d]=%s backtrace ====\n", signum, strSIG);
 	fprintf(fp, "%s\n", gPdct.app_info);
 	fprintf(stderr, "%s\n", gPdct.app_info);
 	for (i = 0; i < size; i++) {
@@ -48,6 +63,8 @@ static void csv_trace (int signum)
 	free(strings);
 	fclose(fp);
 
+	close(gPdct.fd_lock);
+
 	sync();
 
 	//system("reboot");
@@ -57,6 +74,19 @@ static void csv_trace (int signum)
 void csv_stop (int signum)
 {
 	int ret = 0;
+	char *strSIG = NULL;
+
+	switch (signum) {
+	case SIGINT:
+		strSIG = "SIGINT";
+		break;
+	case SIGSTOP:
+		strSIG = "SIGSTOP";
+		break;
+	default:
+		strSIG = "htop maybe help";
+		break;
+	}
 
 	csv_gvcp_deinit();
 
@@ -75,7 +105,10 @@ void csv_stop (int signum)
 		free(gCSV);
 	}
 
-	log_info("OK : Stop process pid[%d] via signum[%d]", getpid(), signum);
+	log_info("OK : Stop process pid[%d] via signum[%d]=%s", 
+		getpid(), signum, strSIG);
+
+	close(gPdct.fd_lock);
 
 	sync();
 
@@ -96,6 +129,38 @@ static struct csv_info_t *csv_global_init (void)
 	memset(pCSV, 0, sizeof(*pCSV));
 
 	return pCSV;
+}
+
+static int csv_lock_pid (void)
+{
+	int fd = -1, ret = 0;
+	char strpid[32] = {0};
+
+	fd = open(FILE_PID_LOCK, O_RDWR|O_CREAT, 0600);
+	if (fd < 0) {
+		log_err("ERROR : open '%s'", FILE_PID_LOCK);
+		log_warn("You should delete '%s' first.", FILE_PID_LOCK);
+
+		exit(EXIT_FAILURE);
+	}
+
+	ret = lockf(fd, F_TLOCK, 0);
+	if (ret < 0) {
+		log_err("ERROR : lockf fd(%d)", fd);
+		log_warn("You don't need to start me again!");
+
+		exit(EXIT_FAILURE);
+	}
+
+	gPdct.fd_lock = fd;
+
+	snprintf(strpid, 32, "%d", getpid());
+	ret = write(fd, strpid, strlen(strpid));
+	if (ret < 0) {
+		log_err("ERROR : write fd(%d)", fd);
+	}
+
+	log_info("My pid id %d.", getpid());
 }
 
 static void print_usage (const char *prog)
@@ -179,6 +244,8 @@ static void startup_opts (int argc, char **argv)
 		}
 	}
 
+	csv_lock_pid();
+
 	utility_calibrate_clock();
 
 	log_info("%s via GCC %s", pPdct->app_info, pPdct->compiler_version);
@@ -186,8 +253,6 @@ static void startup_opts (int argc, char **argv)
 
 	if (!pPdct->dis_daemon) {
 		csv_hb_init(argc, argv);
-	} else {
-		log_info("Mypid(%d).", getpid());
 	}
 }
 

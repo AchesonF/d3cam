@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#define FILE_PID_LOCK			"/var/lock/"CONFIG_APP_NAME".pid"
 
 struct csv_product_t {
 	uint8_t				tlog;					///< terminal 显示log日志0:不显示
@@ -27,6 +28,8 @@ struct csv_product_t {
 
 	uint32_t			uptime;					///< 操作系统运行时间，单位s
 	uint32_t			app_runtime;			///< 本软件运行时间，单位s
+
+	int					fd_lock;
 
 	struct csv_lifetime_t	lifetime;			///< 工时信息
 	struct csv_hb_t			hb;					///< 守护进程及交互
