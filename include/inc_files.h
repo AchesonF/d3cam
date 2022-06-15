@@ -57,22 +57,28 @@ extern "C" {
 #include "project_version.h"
 #include "config.h"
 
+#include <json-c/json.h>
 #include "MvCameraControl.h"
 
 #include "list.h"
 #include "queue.h"
 #include "log.h"
+#include "crc.h"
 
 #include "csv_utility.h"
 #include "csv_hb.h"
 #include "csv_file.h"
+#include "csv_json.h"
 #include "csv_eth.h"
 #include "csv_life.h"
 #include "csv_stat.h"
+#include "csv_beat.h"
+#include "csv_tcp.h"
 #include "csv_tick.h"
 #include "csv_tty.h"
 #include "csv_uevent.h"
 
+#include "csv_web.h"
 #include "csv_gvcp.h"
 
 #include "csv_mvs.h"

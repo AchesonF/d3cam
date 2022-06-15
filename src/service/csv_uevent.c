@@ -146,6 +146,9 @@ static void parse_event (const char *kmsg)
 		&&(strncasecmp(kuevent.product, "2bdf", 4) == 0)) { // hik
 		if ((strncasecmp(kuevent.action, "add", 3) == 0)
 		  ||(strncasecmp(kuevent.action, "remove", 6) == 0)) {
+
+// hik plug in/out event
+
 			pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
 		}
 	}

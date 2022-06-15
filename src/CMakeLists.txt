@@ -1,4 +1,13 @@
-set(D3CAM "d3cam")
+set(EXE_TARGET "d3cam")
+
+if (USING_WEB_SERVER)
+	add_definitions(-DUSING_WEB_THREAD=1)
+
+	add_subdirectory(libweb)
+	add_subdirectory(tools)
+
+	set(LIB_WEB_SERVER "web")
+endif ()
 
 # add some include directories
 #include_directories()
@@ -11,7 +20,7 @@ aux_source_directory(function DIR_FUNCTION)
 aux_source_directory(service DIR_SERVICE)
 aux_source_directory(utility DIR_UTILITY)
 
-add_executable(${D3CAM}
+add_executable(${EXE_TARGET}
 	csv_main.c
 	${DIR_DRIVER} 
 	${DIR_DEVICE} 
@@ -22,19 +31,24 @@ add_executable(${D3CAM}
 )
 
 
-target_link_libraries(${D3CAM}
+
+target_link_libraries(${EXE_TARGET}
 	pthread
 #	sqlite3
 	dl
 	MvCameraControl
+	json-c
+	${LIB_WEB_SERVER}
 )
 
-install(TARGETS ${D3CAM}
+
+install(TARGETS ${EXE_TARGET}
         EXPORT PROJECTTargets
         COMPONENT bin
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+#        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/target
 )
 
 
@@ -42,8 +56,8 @@ install(TARGETS ${D3CAM}
 #add_custom_target(CopyTask)
 #add_custom_command(TARGET CopyTask
 #  POST_BUILD
-#  COMMAND bash "-c" "sha256sum ${D3CAM} >SHA256SUM"
-#  COMMAND cp ${D3CAM} ${TARGET_OUT_DIR}
+#  COMMAND bash "-c" "sha256sum ${EXE_TARGET} >SHA256SUM"
+#  COMMAND cp ${EXE_TARGET} ${TARGET_OUT_DIR}
 #  COMMAND cp SHA256SUM ${TARGET_OUT_DIR}
 #)
 

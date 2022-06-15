@@ -228,7 +228,7 @@ static int csv_mvs_device_prepare (struct csv_mvs_t *pMVS)
 			csv_mvs_show_device_info(pDevInfo);
 		}
 	} else {
-		log_info("Find No Cam Devices!");
+		log_info("No Cam Devices!");
 		return -3;
 	}
 
@@ -257,6 +257,9 @@ static void *csv_mvs_loop (void *data)
 			goto wait;
 		}
 
+
+		// TODO 不开线程处理
+
 		pMVS->bExit = 0;
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
 			pthread_t tid;
@@ -267,7 +270,7 @@ static void *csv_mvs_loop (void *data)
 				log_err("ERROR : pthread_create Cam[%d] failed. ret = %d", idx, ret);
 				continue;
 			}
-			log_info("OK : create thread : [%d] %p", idx, tid);
+			log_info("OK : create pthread 'cam%d' @ (%p)", idx, tid);
 		}
 
 wait:
@@ -283,6 +286,9 @@ wait:
 	} while (1);
 
 	log_info("WARN : exit pthread %s", pMVS->name_mvs);
+
+	pMVS->thr_mvs = 0;
+
 	pthread_exit(NULL);
 
 	return NULL;
@@ -315,9 +321,31 @@ int csv_mvs_thread (struct csv_mvs_t *pMVS)
 		log_info("OK : create pthread %s @ (%p)", pMVS->name_mvs, pMVS->thr_mvs);
 	}
 
+	//pthread_attr_destory(&attr);
+
 	return 0;
 }
 
+static int csv_mvs_thread_cancel (struct csv_mvs_t *pMVS)
+{
+	int ret = 0;
+	void *retval = NULL;
+
+	if (pMVS->thr_mvs <= 0) {
+		return 0;
+	}
+
+	ret = pthread_cancel(pMVS->thr_mvs);
+	if (ret != 0) {
+		log_err("ERROR : pthread_cancel %s", pMVS->name_mvs);
+	} else {
+		log_info("OK : cancel pthread %s", pMVS->name_mvs);
+	}
+
+	ret = pthread_join(pMVS->thr_mvs, &retval);
+
+	return ret;
+}
 
 int csv_mvs_init (void)
 {
@@ -332,9 +360,7 @@ int csv_mvs_init (void)
 
 int csv_mvs_deinit (void)
 {
-
-
-	return 0;
+	return csv_mvs_thread_cancel(&gCSV->mvs);
 }
 
 #ifdef __cplusplus

@@ -8,8 +8,6 @@ extern "C" {
 extern const char Hex2Ascii[17];
 extern const char Dec2Ascii[11];
 
-extern int utility_msec_between(struct timeval start, struct timeval end);
-extern void utility_delay_ms(uint32_t ms);
 extern int convert_dec(uint8_t val);
 extern uint8_t convert_hex(int val);
 
@@ -18,8 +16,8 @@ extern uint16_t swap16 (uint16_t x);
 extern uint32_t swap32 (uint32_t x);
 
 
-#define MIN(a,b) (((a)>(b))?(b):(a))
-#define MAX(a,b) (((a)>(b))?(a):(b))
+//#define MIN(a,b) (((a)>(b))?(b):(a))
+//#define MAX(a,b) (((a)>(b))?(a):(b))
 
 extern uint16_t u8v_to_u16(uint8_t *data);
 
@@ -32,6 +30,8 @@ extern uint8_t u32_to_u8v(uint32_t data, uint8_t *buf);
 extern void u8v_to_hexstr (uint8_t *data, uint16_t len, char *buf);
 
 extern void hexstr_to_u8v (char *buf, uint16_t len, uint8_t *data);
+
+extern double utility_get_sec_since_boot (void);
 
 extern uint64_t utility_get_millisecond (void);
 

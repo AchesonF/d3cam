@@ -15,7 +15,7 @@ extern "C" {
 */
 int csv_file_get_size (const char *path, uint32_t *filesize)
 {
-	FILE *fp=NULL;
+	FILE *fp = NULL;
 
 	if (NULL == path) {
 		log_info("ERROR : %s",  __func__);
@@ -84,8 +84,8 @@ int csv_file_read_data (const char *path, uint8_t *buf, uint32_t size)
 // 读取不定长度文件流
 int csv_file_read_string (const char *filename, char *buf, size_t size)
 {
-	FILE *fp;
-	size_t rv;
+	FILE *fp = NULL;
+	size_t rv = 0;
 
 	fp = fopen(filename, "r");
 	if (fp == NULL) {
@@ -121,8 +121,8 @@ int csv_file_read_string (const char *filename, char *buf, size_t size)
 */
 int csv_file_write_data (const char *path, uint8_t *buf, uint32_t size)
 {
-	int ret=0;
-	FILE *fp=NULL;
+	int ret = 0;
+	FILE *fp = NULL;
 
 	if (size==0) {
 		log_info("ERROR : %s", __func__);
@@ -151,8 +151,8 @@ int csv_file_write_data (const char *path, uint8_t *buf, uint32_t size)
 
 int csv_file_write_data_append (const char *path, uint8_t *buf, uint32_t size)
 {
-	int ret=0;
-	FILE *fp=NULL;
+	int ret = 0;
+	FILE *fp = NULL;
 
 	if (size==0) {
 		log_info("ERROR : %s", __func__);
@@ -198,8 +198,8 @@ static int csv_file_get (struct csv_file_t *pFILE)
 /*	char str_cmd[256] = {0};
 
 	// birthday
-	if (uhf_file_isExist(pFILE->file_birthday)) {
-		ret = uhf_file_get_size(pFILE->file_birthday, &pFILE->len_birthday);
+	if (csv_file_isExist(pFILE->file_birthday)) {
+		ret = csv_file_get_size(pFILE->file_birthday, &pFILE->len_birthday);
 		if ((ret < 0)||(pFILE->len_birthday < SIZE_BIRTHDAY)) {
 			pFILE->len_birthday = SIZE_BIRTHDAY;
 			memcpy(pFILE->birthday, DEFAULT_BIRTHDAY, pFILE->len_birthday);
@@ -217,8 +217,8 @@ static int csv_file_get (struct csv_file_t *pFILE)
 	}
 
 	// sn = uuid
-	if (uhf_file_isExist(pFILE->file_uuid)) {
-		ret = uhf_file_get_size(pFILE->file_uuid, &pFILE->len_uuid);
+	if (csv_file_isExist(pFILE->file_uuid)) {
+		ret = csv_file_get_size(pFILE->file_uuid, &pFILE->len_uuid);
 		if ((ret < 0)||(pFILE->len_uuid < SIZE_UUID)) {
 			pFILE->len_uuid = SIZE_UUID;
 			memcpy(pFILE->uuid, DEFAULT_UUID, pFILE->len_uuid);

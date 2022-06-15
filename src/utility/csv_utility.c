@@ -9,25 +9,6 @@ const char Hex2Ascii[17] = "0123456789ABCDEF";
 /* 0-9 数字转字符 */
 const char Dec2Ascii[11] = "0123456789";
 
-inline int utility_msec_between(struct timeval start, struct timeval end)
-{
-	int sec = end.tv_sec - start.tv_sec;
-	int usec = end.tv_usec - start.tv_usec;
-	return sec * 1000 + usec / 1000;
-}
-
-void utility_delay_ms(uint32_t ms)
-{
-	struct timeval start;
-	struct timeval now;
-	gettimeofday(&start, NULL);
-
-	while ( 1 ) {
-		gettimeofday(&now, NULL);
-		if ( utility_msec_between(start, now) >= ms )
-			break;
-	}
-}
 
 /* bcd 2 dec */
 inline int convert_dec(uint8_t val)
@@ -132,6 +113,14 @@ void hexstr_to_u8v (char *buf, uint16_t len, uint8_t *data)
 	for(i = 0; i < len/2; i++) {
 		data[i] = (hexchar_to_decimal(buf[2*i])<<4)+hexchar_to_decimal(buf[2*i+1]);
 	}
+}
+
+double utility_get_sec_since_boot (void)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+	return (ts.tv_sec + (ts.tv_nsec / 1000.0 / 1000.0 / 1000.0));
 }
 
 /**
@@ -239,7 +228,7 @@ int utility_conv_buildtime (void)
 
 	char *buildtime = malloc(32);
 	if (buildtime == NULL) {
-//		log_err(LOG_FMT"malloc", LOG_ARGS);
+//		log_err("ERROR : malloc");
 		return -1;
 	}
 
@@ -257,7 +246,7 @@ int utility_conv_buildtime (void)
 	strftime(buildtime, 32, "%F %X", &tm_stamp);
 	pPdct->app_buildtime = buildtime;
 
-	snprintf(pPdct->app_info, 64, "%s %s (%s)", pPdct->app_name, pPdct->app_version, 
+	snprintf(pPdct->app_info, 128, "%s %s (%s)", pPdct->app_name, pPdct->app_version, 
 		pPdct->app_buildtime);
 
 	return 0;
@@ -335,7 +324,7 @@ int utility_calibrate_clock (void)
 
 		char date_buf[40] = {0};
 		memset(date_buf, 0, 40);
-		sprintf(date_buf, "date -s \"@%d\"", pPdct->build_timestamp);
+		snprintf(date_buf, 40, "date -s \"@%d\"", pPdct->build_timestamp);
 		system_redef(date_buf);
 		system_redef("hwclock -w -u");
 	}

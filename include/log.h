@@ -23,7 +23,7 @@ extern int hex_printf (const uint8_t *buff, int count);
 
 extern void log_do (int priority, const char *fmt, ...);
 
-#ifdef CONFIG_DEBUG
+#if (CONFIG_DEBUG==1)
   #define log_alert(fmt, ...) log_do(LOG_ALERT, "%lld[_A_]: %s(%d): " fmt, \
 		utility_get_microsecond(), __func__, __LINE__, ##__VA_ARGS__)
 
@@ -46,20 +46,15 @@ extern void log_do (int priority, const char *fmt, ...);
 		__func__, __LINE__, ##__VA_ARGS__); hex_printf(buff, len)
 
 #else
-  #define log_alert(fmt, ...) log_do(LOG_ALERT, "%lld[_A_]: " fmt, \
-		utility_get_microsecond(), ##__VA_ARGS__)
+  #define log_alert(fmt, ...) log_do(LOG_ALERT, "[_A_]: " fmt, ##__VA_ARGS__)
 
-  #define log_err(fmt, ...) log_do(LOG_ERR, "%lld[_E_]: " fmt, \
-		utility_get_microsecond(), ##__VA_ARGS__)
+  #define log_err(fmt, ...) log_do(LOG_ERR, "[_E_]: " fmt, ##__VA_ARGS__)
 
-  #define log_warn(fmt, ...) log_do(LOG_WARNING, "%lld[_W_]: " fmt, \
-		utility_get_microsecond(), ##__VA_ARGS__)
+  #define log_warn(fmt, ...) log_do(LOG_WARNING, "[_W_]: " fmt, ##__VA_ARGS__)
 
-  #define log_notice(fmt, ...) log_do(LOG_NOTICE, "%lld[_N_]: " fmt, \
-		utility_get_microsecond(), ##__VA_ARGS__)
+  #define log_notice(fmt, ...) log_do(LOG_NOTICE, "[_N_]: " fmt, ##__VA_ARGS__)
 
-  #define log_info(fmt, ...) log_do(LOG_INFO, "%lld[_I_]: " fmt, \
-		utility_get_microsecond(), ##__VA_ARGS__)
+  #define log_info(fmt, ...) log_do(LOG_INFO, "[_I_]: " fmt,  ##__VA_ARGS__)
 
   #define log_debug(fmt, ...)
 

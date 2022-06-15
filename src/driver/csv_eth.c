@@ -109,7 +109,7 @@ int csv_eth_ipaddr_set (uint32_t ip_addr)
 	}
 
 	local_ip_addr = ntohl(ip_addr);
-	sprintf(ip, "%d.%d.%d.%d", (local_ip_addr & 0xff000000) >> 24, 
+	snprintf(ip, 20, "%d.%d.%d.%d", (local_ip_addr & 0xff000000) >> 24, 
 					(local_ip_addr & 0xff0000) >> 16, 
 					(local_ip_addr & 0xff00) >> 8, 
 					(local_ip_addr & 0xff));
@@ -261,7 +261,7 @@ int csv_eth_mask_set (uint32_t net_mask)
 	}
 
 	local_net_mask = ntohl(net_mask);
-	sprintf(nm, "%d.%d.%d.%d", (local_net_mask & 0xff000000) >> 24, 
+	snprintf(nm, 20, "%d.%d.%d.%d", (local_net_mask & 0xff000000) >> 24, 
 					(local_net_mask & 0xff0000) >> 16, 
 					(local_net_mask & 0xff00) >> 8, 
 					(local_net_mask & 0xff));
@@ -664,13 +664,11 @@ int csv_eth_get (struct csv_eth_t *pETH)
 
 	ret = csv_eth_mac_get(pETH->name, pETH->MACAddr);
 
-	sprintf(pETH->mac, "%02X:%02X:%02X:%02X:%02X:%02X", pETH->MACAddr[0],
+	snprintf(pETH->mac, 18, "%02X:%02X:%02X:%02X:%02X:%02X", pETH->MACAddr[0],
 		pETH->MACAddr[1],pETH->MACAddr[2],pETH->MACAddr[3],
 		pETH->MACAddr[4],pETH->MACAddr[5]);
 
-	log_debug("%s %s %s %s %s", pETH->ip, pETH->nm, pETH->gw, pETH->bc, pETH->mac);
-
-	//log_hex(pETH->MACAddr, 6, "mac");
+//	log_debug("%s %s %s %s %s", pETH->ip, pETH->nm, pETH->gw, pETH->bc, pETH->mac);
 
 	return ret;
 }
@@ -687,8 +685,7 @@ int csv_eth_init (void)
 
 	csv_eth_get(pETH);
 
-	// 备份 后台
-	return system("ifconfig eth0:1 18.0.4.101");
+	return 0;
 }
 
 

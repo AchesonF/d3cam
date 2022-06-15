@@ -13,7 +13,7 @@ extern "C" {
 
 struct csv_hb_t {
 
-	char			cmdline[MAX_LEN_STARTCMD];	// 程序启动命令
+	char			cmdline[MAX_LEN_STARTCMD*5];	// 程序启动命令
 	int				pipefd[2];	// 0:read 1:write
 	char			*beacon;		// 信标数据
 
