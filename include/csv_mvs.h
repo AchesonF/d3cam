@@ -9,7 +9,23 @@ extern "C" {
 
 #define MAX_SUPPORT_CAMS		(4)		/* 左右上下四个位置 */
 
-struct mvd_param_t {
+#define MAX_CAMERA_NUM (2)
+
+
+typedef struct {
+    void *cameraHandle[MAX_CAMERA_NUM];
+    char serialNum[MAX_CAMERA_NUM][32];
+    char modelName[MAX_CAMERA_NUM][32];
+    MVCC_FLOATVALUE exposureTime[MAX_CAMERA_NUM];
+    MVCC_FLOATVALUE camGain[MAX_CAMERA_NUM];
+    unsigned char *imgData[MAX_CAMERA_NUM];
+    MV_FRAME_OUT_INFO_EX imageInfo[MAX_CAMERA_NUM];
+} HikvCamera;
+
+extern HikvCamera hkcamera;
+
+
+struct mvs_param_t {
 
 };
 
@@ -17,7 +33,7 @@ struct csv_mvs_t {
 	uint8_t					cnt_mvs;
 	uint8_t					bExit;
 
-	struct mvd_param_t		cam[MAX_SUPPORT_CAMS];
+	struct mvs_param_t		cam[MAX_SUPPORT_CAMS];
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
 	//void					*handle[MAX_SUPPORT_CAMS];
 	// todo bind dev

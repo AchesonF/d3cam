@@ -4,6 +4,397 @@
 extern "C" {
 #endif
 
+MV_CC_DEVICE_INFO_LIST stDeviceList;
+
+HikvCamera hkcamera;
+
+/* 枚举相机 */
+int csv_mvs_cams_enum (void)
+{
+    int nRet = MV_OK;
+
+    memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
+
+    //枚举USB相机设备
+    nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE|MV_USB_DEVICE, &stDeviceList);
+    if (MV_OK != nRet){
+        log_info("MV_CC_EnumDevices USB Devices fail! nRet [%x]", nRet);
+        return -1;
+    }
+
+    log_info("camera_nDeviceNum = %d", stDeviceList.nDeviceNum);
+    for (unsigned int i = 0; i < stDeviceList.nDeviceNum; i++){
+        MV_CC_DEVICE_INFO* pDeviceInfo = stDeviceList.pDeviceInfo[i];
+        if (NULL == pDeviceInfo){
+            break;
+        }
+
+        if (pDeviceInfo->nTLayerType == MV_USB_DEVICE){
+            log_info("UserDefinedName: %s", pDeviceInfo->SpecialInfo.stUsb3VInfo.chUserDefinedName);
+            sprintf(hkcamera.modelName[i], "%s", (char *)pDeviceInfo->SpecialInfo.stUsb3VInfo.chModelName);
+            sprintf(hkcamera.serialNum[i], "%s", (char *)pDeviceInfo->SpecialInfo.stUsb3VInfo.chSerialNumber);
+        }else{//GIGE device
+			log_info("UserDefinedName: %s", pDeviceInfo->SpecialInfo.stGigEInfo.chUserDefinedName);
+            sprintf(hkcamera.modelName[i], "%s", (char *)pDeviceInfo->SpecialInfo.stGigEInfo.chModelName);
+            sprintf(hkcamera.serialNum[i], "%s", (char *)pDeviceInfo->SpecialInfo.stGigEInfo.chSerialNumber);
+		}
+    }
+    
+    return stDeviceList.nDeviceNum;
+}
+
+int csv_mvs_cams_open (void)
+{
+    int nRet = MV_OK, i = 0;
+    int errNum = 0;
+	static int cameraIsOpen = 0;
+	if(cameraIsOpen>0) return 0; //已经打开的就不要打开了
+    for (i = 0; i < MAX_CAMERA_NUM; i++) {
+        nRet = MV_CC_CreateHandle(&hkcamera.cameraHandle[i], stDeviceList.pDeviceInfo[i]);
+        if (MV_OK != nRet){
+            log_info("MV_CC_CreateHandle fail! nRet [%x]", nRet);
+            break;
+        }
+        // 打开相机
+        nRet = MV_CC_OpenDevice(hkcamera.cameraHandle[i], MV_ACCESS_Exclusive, 0);
+        if (MV_OK != nRet) {
+            MV_CC_DestroyHandle(hkcamera.cameraHandle[i]);
+            errNum++;
+        }
+        
+        // 设置最佳包长（针对网口）
+        if (stDeviceList.pDeviceInfo[i]->nTLayerType == MV_GIGE_DEVICE) {
+            int nPacketSize = MV_CC_GetOptimalPacketSize(hkcamera.cameraHandle[i]);
+            if (nPacketSize > 0) {
+                nRet = MV_CC_SetIntValue(hkcamera.cameraHandle[i],"GevSCPSPacketSize",nPacketSize);
+            }
+        }
+        
+        //获取相机的曝光时间
+        nRet = MV_CC_GetFloatValue(hkcamera.cameraHandle[i], "ExposureTime", &hkcamera.exposureTime[i]);
+        if (MV_OK != nRet){
+            errNum++;
+        }
+        //获取相机的增益数据
+        nRet = MV_CC_GetFloatValue(hkcamera.cameraHandle[i], "Gain", &hkcamera.camGain[i]);
+        if (MV_OK != nRet){
+            errNum++;
+        }
+        
+        nRet = MV_CC_SetFloatValue(hkcamera.cameraHandle[i], "ExposureTime", 20000);
+        if (MV_OK == nRet) {
+            log_info("set exposure time = %f OK! ret = [%x]", 20000, nRet);
+        } else{
+            errNum++;
+        }
+
+        // 设置抓取图片的像素格式
+        unsigned int enValue = PixelType_Gvsp_Mono8;
+        if (strstr(hkcamera.modelName[i], "UC") != NULL){ // 彩色相机
+			enValue = PixelType_Gvsp_RGB8_Packed;
+		} else {	// 黑白相机
+		}
+
+        nRet = MV_CC_SetPixelFormat(hkcamera.cameraHandle[i], enValue);
+        char *imgformat0 = (char *)"PixelType_Gvsp_RGB8_Packed";
+        char *imgformat1 = (char *)"PixelType_Gvsp_Mono8";
+        char *imgfmt;
+        if(enValue == PixelType_Gvsp_RGB8_Packed) imgfmt = imgformat0;
+        if(enValue == PixelType_Gvsp_Mono8) imgfmt = imgformat1;
+        if (MV_OK != nRet){
+            log_info("SetPixelFormat=%s fail [%x]", imgfmt, nRet);
+        }
+
+        nRet = MV_CC_SetBoolValue(hkcamera.cameraHandle[i], "AcquisitionFrameRateEnable", false);
+        if (MV_OK != nRet){
+            log_info("set AcquisitionFrameRateEnable fail! nRet=[0x%x]", nRet);
+            errNum++;
+        }
+
+		int devicetype = RDM_LIGHT;
+
+        // ROI 处理结构光图像不能被16整除的问题
+        if(RDM_LIGHT != devicetype){
+            MVCC_INTVALUE struIntValue = {0};
+            nRet = MV_CC_GetIntValue(hkcamera.cameraHandle[i], "Width", &struIntValue);
+            printf("camera_image_width = %d\n", struIntValue.nCurValue);
+            int img_cut_off = struIntValue.nCurValue%16;
+            if(img_cut_off > 0){//图像为非16Bytes对齐图像
+                nRet = MV_CC_SetIntValue(hkcamera.cameraHandle[i], "OffsetX", img_cut_off/2);
+                nRet = MV_CC_SetIntValue(hkcamera.cameraHandle[i], "Width", struIntValue.nCurValue-img_cut_off);
+            }
+            if (MV_OK != nRet){
+                log_info("%s[%d]: MV_CC_SetOffsetX fail! nRet=[0x%x]", nRet);
+                errNum++;
+            }
+        }
+        //设置触发模式为ON
+        nRet = MV_CC_SetEnumValue(hkcamera.cameraHandle[i], "TriggerMode", MV_TRIGGER_MODE_ON);
+        if (MV_OK != nRet){
+            log_info("%s[%d]: MV_CC_SetTriggerMode fail! nRet=[0x%x]", nRet);
+            errNum++;
+        }
+        // 设置触发源line0
+        nRet = MV_CC_SetEnumValue(hkcamera.cameraHandle[i], "TriggerSource", MV_TRIGGER_SOURCE_LINE0);
+        if (MV_OK != nRet){
+            log_info("%s[%d]: MV_CC_SetTriggerSource fail! nRet=[0x%x]", nRet);
+            errNum++;
+        }
+
+        //准备开始取数据流
+        nRet = MV_CC_StartGrabbing(hkcamera.cameraHandle[i]);
+        if (MV_OK != nRet){
+            log_info("%s[%d]: MV_CC_StartGrabbing fail! nRet=[0x%x][%s]", nRet, hkcamera.serialNum[i]);
+            errNum++;
+        }
+    }
+    if(errNum > 0){
+        return -1;
+    }
+    cameraIsOpen++;
+    return 0;
+}
+
+int csv_mvs_cams_close (void)
+{
+    int nRet = MV_OK, i = 0;
+    int errNum = 0;
+
+    for (i = 0; i < MAX_CAMERA_NUM; i++){
+
+        //关闭handle
+        nRet = MV_CC_CloseDevice(hkcamera.cameraHandle[i]);
+        if (MV_OK != nRet){
+            log_info("MV_CC_CloseDevice fail! nRet=[0x%x]", nRet);
+            errNum++;
+        }
+        //释放句柄
+        nRet = MV_CC_DestroyHandle(hkcamera.cameraHandle[i]);
+        if (MV_OK != nRet){
+            log_info("MV_CC_DestroyHandle fail! nRet=[0x%x]", nRet);
+            errNum++;
+        }
+        hkcamera.cameraHandle[i] = NULL;
+    }
+    sleep(1);
+    if(errNum>0){
+        return -1;
+    }
+    return 0;
+}
+
+/* 获取相机曝光参数 */
+int csv_mvs_cams_exposure_get (void)
+{
+    int nRet = MV_OK, i = 0;
+    int errNum = 0;
+    for (i = 0; i < MAX_CAMERA_NUM; i++){
+        nRet = MV_CC_GetFloatValue(hkcamera.cameraHandle[i], "ExposureTime", &hkcamera.exposureTime[i]);
+        if (MV_OK == nRet){
+            log_info("exposure time current value: %f [%f, %f]", 
+				hkcamera.exposureTime[i].fCurValue, hkcamera.exposureTime[i].fMin, hkcamera.exposureTime[i].fMax);
+        } else {
+            errNum++;
+        }
+    }
+    if(errNum>0){
+        return -1;
+    }
+    return 0;
+}
+
+/* 设置相机曝光参数 */
+int csv_mvs_cams_exposure_set (float fExposureTime)
+{
+    int nRet = MV_OK, i = 0;
+    int errNum = 0;
+
+    for (i = 0; i < MAX_CAMERA_NUM; i++){
+        if(hkcamera.exposureTime[i].fMax < fExposureTime){
+            fExposureTime = hkcamera.exposureTime[i].fMax;
+        }
+        if(hkcamera.exposureTime[i].fMin > fExposureTime){
+            fExposureTime = hkcamera.exposureTime[i].fMin;
+        }
+
+        nRet = MV_CC_SetFloatValue(hkcamera.cameraHandle[i], "ExposureTime", fExposureTime);
+        if (MV_OK == nRet) {
+            log_info("set exposure = %f time OK!", fExposureTime);
+        } else {
+            log_info("set exposure time failed! nRet=[0x%x][%s]", nRet, hkcamera.serialNum[i]);
+            errNum++;
+        }
+    }
+    if(errNum>0){
+        return -1;
+    }
+    return 0;
+}
+
+/* 获取相机增益参数 */
+int csv_mvs_cams_gain_get (void)
+{
+    int nRet = MV_OK, i = 0;
+    int errNum = 0;
+
+    for (i = 0; i < MAX_CAMERA_NUM; i++){
+        nRet = MV_CC_GetFloatValue(hkcamera.cameraHandle[i], "Gain", &hkcamera.camGain[i]);
+        if (MV_OK != nRet) {
+            log_info("get camGain failed! nRet=[0x%x]", nRet);
+            errNum++;
+        }
+    }
+    if(errNum>0){
+        return -1;
+    }
+    return 0;
+}
+
+/* 设置相机增益参数 */
+int csv_mvs_cams_gain_set (float fGain)
+{
+    int nRet = MV_OK, i = 0;
+    int errNum = 0;
+
+    for (i = 0; i < MAX_CAMERA_NUM; i++){
+        if(hkcamera.camGain[i].fMax < fGain){
+            fGain = hkcamera.camGain[i].fMax;
+        }
+        if(hkcamera.camGain[i].fMin > fGain){
+            fGain = hkcamera.camGain[i].fMin;
+        }
+        nRet = MV_CC_SetFloatValue(hkcamera.cameraHandle[i], "Gain", fGain);
+        if (MV_OK != nRet){
+            log_info("set setCamGain failed! nRet=[0x%x]", nRet);
+            errNum++;
+        }
+    }
+    if(errNum>0){
+        return -1;
+    }
+    return 0;
+}
+/* 设置用户自定义的相机名称参数 */
+int csv_mvs_cam_userid_set (char *camSNum, char *strValue)
+{
+    int nRet = MV_OK, i = 0;
+
+    for (i = 0; i < MAX_CAMERA_NUM; i++){
+        if(strstr(hkcamera.serialNum[i], camSNum) != NULL){
+            nRet = MV_CC_SetStringValue(hkcamera.cameraHandle[i], "DeviceUserID", (char*)strValue);
+            if (MV_OK == nRet){
+                log_info("Set DeviceUserID OK!");
+                return 0;
+            }else{
+                log_info("Set DeviceUserID Failed! nRet=[0x%x]", nRet);
+                return -1;
+            }
+        }
+    }
+    log_info("not find [%s] Devices!", camSNum);
+    return -1;
+}
+
+/* 抓取左右相机的图片 */
+int csv_mvs_cams_grab_both (void)
+{
+    int nRet = MV_OK, i = 0;
+    int errnum = 0;
+    MVCC_INTVALUE stParam;
+
+    memset(&stParam, 0, sizeof(MVCC_INTVALUE));
+    nRet = MV_CC_GetIntValue(hkcamera.cameraHandle[0], "PayloadSize", &stParam); //必须保证两个相机是一样的参数
+    if (MV_OK != nRet){
+        log_info("Get PayloadSize fail! nRet=[0x%x][%s]", nRet, hkcamera.serialNum[0]);
+        return -1;
+    }
+    for (i = 0; i < MAX_CAMERA_NUM; i++){
+        //下一次调用前将申请内存空间释放
+        if(hkcamera.imgData[i] != NULL){
+            //free(hkcamera.imgData[i]);
+            memset(hkcamera.imgData[i], 0x00, sizeof(unsigned char) * stParam.nCurValue);
+        }else{
+			hkcamera.imgData[i] = (unsigned char *)malloc(sizeof(unsigned char) * stParam.nCurValue);
+			if(hkcamera.imgData[i]==NULL){
+				printf("malloc error");
+				return -1;
+			}
+		}
+        memset(&hkcamera.imageInfo[i], 0, sizeof(MV_FRAME_OUT_INFO_EX));
+        //hkcamera.imgData[i] = (unsigned char *)malloc(sizeof(unsigned char) * stParam.nCurValue);
+        nRet = MV_CC_GetOneFrameTimeout(hkcamera.cameraHandle[i], hkcamera.imgData[i], 
+        	stParam.nCurValue, &hkcamera.imageInfo[i], 3000);
+        if (nRet == MV_OK){
+            log_info("GetOneFrame W[%d], H[%d], nFrameNum[%d][%s]", 
+            	hkcamera.imageInfo[i].nWidth, hkcamera.imageInfo[i].nHeight, 
+            	hkcamera.imageInfo[i].nFrameNum, hkcamera.serialNum[i]);
+        } else {
+            errnum++;
+        }
+    }
+    if(errnum>0){
+        return -1;
+    }
+    return 0;
+}
+
+int csv_mvs_cams_reenum(void)
+{
+    int nRet = MV_OK, i = 0;
+    int errNum = 0;
+    sleep(6);
+    memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
+    // 枚举USB相机设备
+    nRet = MV_CC_EnumDevices(MV_USB_DEVICE, &stDeviceList);
+    if (MV_OK != nRet){
+        log_info("MV_CC_EnumDevices fail! nRet [%x]", nRet);
+        return -1;
+    }
+    log_info("camera_nDeviceNum = %d", stDeviceList.nDeviceNum);
+    for (i = 0; i < stDeviceList.nDeviceNum; i++){
+        MV_CC_DEVICE_INFO* pDeviceInfo = stDeviceList.pDeviceInfo[i];
+        if (NULL == pDeviceInfo){
+            continue;
+        }
+        if (pDeviceInfo->nTLayerType == MV_USB_DEVICE){
+            sprintf(hkcamera.modelName[i], "%s", (char *)pDeviceInfo->SpecialInfo.stUsb3VInfo.chModelName);
+            sprintf(hkcamera.serialNum[i], "%s", (char *)pDeviceInfo->SpecialInfo.stUsb3VInfo.chSerialNumber);
+        }
+        // 选择设备并创建句柄
+        nRet = MV_CC_CreateHandle(&hkcamera.cameraHandle[i], stDeviceList.pDeviceInfo[i]);
+        if (MV_OK != nRet){
+            log_info("MV_CC_CreateHandle fail! nRet [%x]", nRet);
+            errNum++;
+            continue;
+        }
+        //打开相机
+        nRet = MV_CC_OpenDevice(hkcamera.cameraHandle[i], MV_ACCESS_Exclusive, 0);
+        if (MV_OK != nRet){
+            log_info("MV_CC_OpenDevice fail! nRet [%x][%s]", nRet, hkcamera.serialNum[i]);
+            MV_CC_DestroyHandle(hkcamera.cameraHandle[i]);
+            errNum++;
+            continue;
+        }
+        nRet = MV_CC_SetCommandValue(hkcamera.cameraHandle[i], "DeviceReset");
+		nRet = MV_CC_CloseDevice(hkcamera.cameraHandle[i]);
+        if (MV_OK != nRet)
+        {
+            log_info("MV_CC_CloseDevice fail! nRet [%x]", nRet);
+            errNum++;
+            continue;
+        }
+        //释放句柄
+        nRet = MV_CC_DestroyHandle(hkcamera.cameraHandle[i]);
+        if (MV_OK != nRet){
+            log_info("MV_CC_DestroyHandle fail! nRet=[0x%x]", nRet);
+            errNum++;
+        }
+        hkcamera.cameraHandle[i] = NULL;
+    }
+    //sleep(6);
+    return errNum;
+}
+
 
 static int csv_mvs_show_device_info (MV_CC_DEVICE_INFO *pDevInfo)
 {
