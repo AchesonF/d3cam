@@ -250,7 +250,7 @@ static void startup_opts (int argc, char **argv)
 
 	utility_calibrate_clock();
 
-	log_info("%s via GCC %s", pPdct->app_info, pPdct->compiler_version);
+	log_info("%s via GCC/GXX %s", pPdct->app_info, pPdct->compiler_version);
 	log_info("%s (%s)", pPdct->kernel_version, pPdct->kernel_buildtime);
 
 	if (!pPdct->dis_daemon) {

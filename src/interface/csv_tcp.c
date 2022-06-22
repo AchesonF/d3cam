@@ -234,18 +234,18 @@ int csv_tcp_reading_trigger (struct csv_tcp_t *pTCPL)
 {
 	int nRead = 0;
 
-	nRead = csv_tcp_local_recv(pTCPL->rbuf, MAX_LEN_FRAME);
+	nRead = csv_tcp_local_recv(pTCPL->buf_recv, MAX_LEN_TCP_FRAME);
 	if (nRead < 0) {
 		log_err("ERROR : %s recv %d", pTCPL->name, nRead);
-		pTCPL->rlen = 0;
+		pTCPL->len_recv = 0;
 		return -1;
 	} else if (nRead == 0) {
 		log_info("WARN : %s EOF.", pTCPL->name);
 		csv_tcp_local_close();
-		pTCPL->rlen = 0;
+		pTCPL->len_recv = 0;
 	} else {
 		// todo queue msg
-		pTCPL->rlen = nRead;
+		pTCPL->len_recv = nRead;
 	}
 
 	return 0;

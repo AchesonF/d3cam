@@ -79,7 +79,7 @@ extern "C" {
 #include "csv_tick.h"
 #include "csv_tty.h"
 #include "csv_uevent.h"
-
+#include "csv_msg.h"
 #include "csv_dlp.h"
 #include "csv_web.h"
 #include "csv_gvcp.h"
