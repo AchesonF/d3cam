@@ -275,7 +275,7 @@ int csv_mvs_cams_gain_set (float fGain)
     return 0;
 }
 /* 设置用户自定义的相机名称参数 */
-int csv_mvs_cam_userid_set (char *camSNum, char *strValue)
+int csv_mvs_cams_userid_set (char *camSNum, char *strValue)
 {
     int nRet = MV_OK, i = 0;
 
