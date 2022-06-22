@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #define NAME_DEV_DLP			"'tty_dlp'"
-#define DEV_TTY_DLP				"/dev/ttyS1"
+#define DEV_TTY_DLP				"/dev/ttyTHS0"
 
 #define SIZE_DLP_BUFF			(1024)
 #define DEFAULT_DLP_BAUDRATE	(9600)
