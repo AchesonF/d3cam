@@ -171,7 +171,8 @@ static void print_usage (const char *prog)
 {
 	printf("\nUsage: %s [-dmhvt] [-D opt]\n", prog);
 	puts("  -d --debug    Debug mode.\n"
-		"  -D --Data     Show data flow. opt: \n\t\t1:tcp 2:tty 3:udp 4:sql ...255:all\n"
+		"  -D --Data     Show data flow. opt: \n\t\t1:tcp 2:tty "\
+						"3:udp 4:sql ...9: data 255:all\n"
 		"  -m --daemon   Disable daemon.\n"
 		"  -h --help     Show this info.\n"
 		"  -v --version  Build version.\n"
