@@ -714,7 +714,7 @@ int csv_mvs_thread (struct csv_mvs_t *pMVS)
 
 	//pthread_attr_destory(&attr);
 
-	return 0;
+	return ret;
 }
 
 static int csv_mvs_thread_cancel (struct csv_mvs_t *pMVS)
@@ -746,12 +746,14 @@ int csv_mvs_init (void)
 	pMVS->bExit = 0;
 	pMVS->name_mvs = NAME_THREAD_MVS;
 
-	return csv_mvs_thread(pMVS);
+	//return csv_mvs_thread(pMVS);
+	return 0;
 }
 
 int csv_mvs_deinit (void)
 {
-	return csv_mvs_thread_cancel(&gCSV->mvs);
+	//return csv_mvs_thread_cancel(&gCSV->mvs);
+	return 0;
 }
 
 #ifdef __cplusplus

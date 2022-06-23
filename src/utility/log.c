@@ -19,6 +19,11 @@ int hex_printf (const uint8_t *buff, int count)
 		return -1;
 	}
 
+	if (cnt > 64) {
+		cnt = 64;
+		printf("!!! TOO LONG. ONLY SHOW HEAD 1024 bytes !!!\n");
+	}
+
 	printf("offs  01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0F 0E 0F |     ASCII\n");
 	printf("------------------------------------------------------------------------\n");
 	for (i = 0; i < cnt; i++) {

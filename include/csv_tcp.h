@@ -32,6 +32,7 @@ struct csv_tcp_t {
 	uint32_t			len_recv;
 };
 
+extern int csv_tcp_local_recv (uint8_t *buf, int nbytes);
 
 extern int csv_tcp_reading_trigger (struct csv_tcp_t *pTCP);
 

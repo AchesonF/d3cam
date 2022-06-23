@@ -160,10 +160,11 @@ int csv_tcp_local_accept (void)
 	return 0;
 }
 
-static int csv_tcp_local_recv (uint8_t *buf, int nbytes)
+int csv_tcp_local_recv (uint8_t *buf, int nbytes)
 {
 	int ret = 0;
 	uint32_t n_read = 0;
+	uint32_t timeo = 0;
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
 
 	if (pTCPL->fd <= 0) {
@@ -175,6 +176,10 @@ static int csv_tcp_local_recv (uint8_t *buf, int nbytes)
 		if (ret <= 0)
 			break;
 		n_read += ret;
+
+		if (++timeo >= 100) { // timeout, maybe more
+			return -2;
+		}
 	}
 
 	if (ret == 0) {	/* EOF */
@@ -243,12 +248,12 @@ int csv_tcp_reading_trigger (struct csv_tcp_t *pTCPL)
 		log_info("WARN : %s EOF.", pTCPL->name);
 		csv_tcp_local_close();
 		pTCPL->len_recv = 0;
-	} else {
-		// todo queue msg
-		pTCPL->len_recv = nRead;
+		return 0;
 	}
 
-	return 0;
+	pTCPL->len_recv = nRead;
+
+	return csv_msg_check(pTCPL->buf_recv, pTCPL->len_recv);
 }
 
 int csv_tcp_init (void)

@@ -92,6 +92,8 @@ void csv_stop (int signum)
 
 	csv_dlp_deinit();
 
+	csv_msg_deinit();
+
 	csv_tcp_deinit();
 
 	csv_uevent_deinit();
@@ -271,6 +273,8 @@ int csv_init (struct csv_info_t *pCSV)
 	csv_gvcp_init();
 
 	csv_tcp_init();
+
+	csv_msg_init();
 
 	csv_uevent_init();
 

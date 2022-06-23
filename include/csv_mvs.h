@@ -45,6 +45,10 @@ struct csv_mvs_t {
 };
 
 
+extern int csv_mvs_cams_enum (void);
+
+
+
 extern int csv_mvs_init (void);
 
 extern int csv_mvs_deinit (void);

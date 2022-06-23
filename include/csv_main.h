@@ -52,6 +52,8 @@ struct csv_info_t {
 	struct csv_web_t	web;					///< WEB 服务
 
 	struct csv_tick_t	tick;					///< 轮询时钟
+
+	struct csv_msg_t	msg;					///< 接口消息处理
 };
 
 
