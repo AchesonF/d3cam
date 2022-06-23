@@ -585,7 +585,7 @@ static void *csv_mvs_cam_loop (void *data)
 		log_debug("Cam SN:%s Frame[%d] = %d x %d", camSerialNumber, 
 			stImageInfo.nFrameNum, stImageInfo.nWidth, stImageInfo.nHeight);
 
-		//log_hex(pData, 1024, "SN:%s", camSerialNumber);
+		//log_hex(STREAM_DATA, pData, 1024, "SN:%s", camSerialNumber);
 		//break;
 		sleep(1);
 

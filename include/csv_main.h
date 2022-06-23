@@ -7,10 +7,21 @@ extern "C" {
 
 #define FILE_PID_LOCK			"/var/lock/"CONFIG_APP_NAME".pid"
 
+enum {
+	STREAM_TCP			= (1),		///< 显示 TCP 数据流
+	STREAM_TTY			= (2),		///< 显示 TTY 数据流
+	STREAM_UDP			= (3),		///< 显示 UDP 数据流
+	STREAM_SQL			= (4),		///< 显示 SQL 数据流
+
+	STREAM_DATA			= (9),		// just for data show
+
+	STREAM_ALL			= (255)		///< 显示全部数据流
+};
+
 struct csv_product_t {
 	uint8_t				tlog;					///< terminal 显示log日志0:不显示
 	uint8_t				tdata;					///< terminal 显示data数据
-												///< 1:tcp 2:tty 3:udp 4:sql ...255:all
+												///< 1:tcp 2:tty 3:udp 4:sql ...9:data 255:all
 	uint8_t				dis_daemon;				///< 禁用守护进程
 	char				WebCfg[256];			///< web 配置文件
 
