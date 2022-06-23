@@ -198,7 +198,7 @@ int csv_tcp_local_recv (uint8_t *buf, int nbytes)
 	return n_read;
 }
 
-static int csv_tcp_local_send (uint8_t *buf, int nbytes)
+int csv_tcp_local_send (uint8_t *buf, int nbytes)
 {
 	int ret;
 	uint32_t n_written = 0;
@@ -239,7 +239,7 @@ int csv_tcp_reading_trigger (struct csv_tcp_t *pTCPL)
 {
 	int nRead = 0;
 
-	nRead = csv_tcp_local_recv(pTCPL->buf_recv, MAX_LEN_TCP_FRAME);
+	nRead = csv_tcp_local_recv(pTCPL->buf_recv, MAX_LEN_TCP_RCV);
 	if (nRead < 0) {
 		log_err("ERROR : %s recv %d", pTCPL->name, nRead);
 		pTCPL->len_recv = 0;

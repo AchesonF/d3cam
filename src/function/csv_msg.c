@@ -5,24 +5,88 @@ extern "C" {
 #endif
 
 
-
-
-
-
-
-
-static int msg_enum_cameras (struct msg_package_t *pMP)
+static int csv_msg_ack_package (struct msg_package_t *pMP, char *content, int len, int retcode)
 {
-	int ret = 0;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
 
-	ret = csv_mvs_cams_enum();
+	uint8_t *pS = pACK->buf_send;
+	struct msg_head_t *pHDR = (struct msg_head_t *)pS;
+	pHDR->cmdtype = pMP->hdr.cmdtype;
+	pHDR->length = len+sizeof(retcode); // len;
+	pHDR->result = retcode;
 
+	if (NULL != content) {
+		memcpy(pS+sizeof(struct msg_head_t), content, len);
+	}
 
-	return 0;
+	pACK->len_send = len+sizeof(struct msg_head_t);
+
+	return pACK->len_send;
 }
 
 
 
+
+
+static int msg_cameras_enum (struct msg_package_t *pMP)
+{
+	int ret = 0;
+	int len_msg = 0;
+	char str_enums[1024] = {0};
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	pACK->len_send = 0;
+
+	ret = csv_mvs_cams_enum();
+	if (ret <= 0) {
+		csv_msg_ack_package(pMP, NULL, 0, -1);
+	} else {
+		memset(str_enums, 0, 1024);
+		switch (gCSV->cfg.device_param.device_type) {
+		case CAM1_LIGHT2:
+			len_msg = snprintf(str_enums, 1024, "%s", pMVS->cam[0].serialNum);
+			break;
+
+		case CAM4_LIGHT1:
+			len_msg = snprintf(str_enums, 1024, "%s,%s,%s,%s", pMVS->cam[0].serialNum, 
+				pMVS->cam[1].serialNum, pMVS->cam[2].serialNum, pMVS->cam[3].serialNum);
+			break;
+		case CAM2_LIGHT1:
+		case RDM_LIGHT:
+			len_msg = snprintf(str_enums, 1024, "%s,%s", pMVS->cam[0].serialNum, 
+				pMVS->cam[1].serialNum);
+		default:
+			break;
+		}
+
+		if (len_msg > 0) {
+			csv_msg_ack_package(pMP, str_enums, len_msg, 0);
+		}
+	}
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+static int msg_cameras_open (struct msg_package_t *pMP)
+{
+	int ret = 0;
+	int result = 0;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	pACK->len_send = 0;
+
+	ret = csv_mvs_cams_open();
+	if (ret < 0) {
+		result = -1;
+	} else {
+		result = 0;
+	}
+
+	csv_msg_ack_package(pMP, NULL, 0, result);
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
 
 
 static struct msg_command_list *msg_command_malloc (void)
@@ -55,7 +119,10 @@ static void msg_command_add (struct csv_msg_t *pMSG,
 
 static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 {
-	msg_command_add(pMSG, CONNECT_DEVICE_ENUM, msg_enum_cameras);
+	msg_command_add(pMSG, CAMERA_ENMU, msg_cameras_enum);
+	msg_command_add(pMSG, CAMERA_CONNECT, msg_cameras_open);
+
+
 
 	// todo add more cmd
 
@@ -318,6 +385,7 @@ int csv_msg_init (void)
 {
 	struct csv_msg_t *pMSG = &gCSV->msg;
 
+	pMSG->ack.len_send = 0;
 	pMSG->name_msg = NAME_THREAD_MSG;
 
 	INIT_LIST_HEAD(&pMSG->head_cmd.list);

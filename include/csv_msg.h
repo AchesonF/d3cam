@@ -39,11 +39,20 @@ struct msg_command_list {
 	struct list_head		list;
 };
 
+#define MAX_LEN_TCP_SND				(32*1024*1024)	// maybe need more for imgs
+
+struct msg_send_t {
+	uint32_t				len_send;
+	uint8_t					buf_send[MAX_LEN_TCP_SND];
+};
+
 /* 消息处理结构 */
 struct csv_msg_t {
 
 	struct msg_command_list	head_cmd;		///< 命令注册链表
 	struct msglist_t		head_msg;		///< 消息链表
+
+	struct msg_send_t		ack;			///< 应答数据
 
 	const char				*name_msg;		///< 消息
 	pthread_t				thr_msg;		///< ID
