@@ -42,8 +42,10 @@ extern void log_do (int priority, const char *fmt, ...);
   #define log_debug(fmt, ...) log_do(LOG_DEBUG, "%lld[_D_]: %s(%d): " fmt, \
 		utility_get_microsecond(), __func__, __LINE__, ##__VA_ARGS__)
 
-  #define log_hex(buff, len, fmt, ...) log_do(LOG_DEBUG, "%s(%d): " fmt, \
-		__func__, __LINE__, ##__VA_ARGS__); hex_printf(buff, len)
+  #define log_hex(type, buff, len, fmt, ...) do {\
+		if ((gPdct.tdata == type)||(gPdct.tdata == STREAM_ALL)) {	\
+  			log_do(LOG_DEBUG, "%s(%d): " fmt, __func__, __LINE__, ##__VA_ARGS__); \
+  			hex_printf(buff, len); } } while(0)
 
 #else
   #define log_alert(fmt, ...) log_do(LOG_ALERT, "[_A_]: " fmt, ##__VA_ARGS__)
@@ -58,7 +60,7 @@ extern void log_do (int priority, const char *fmt, ...);
 
   #define log_debug(fmt, ...)
 
-  #define log_hex(buff, len, fmt, ...)
+  #define log_hex(type, buff, len, fmt, ...)
 
 #endif
 

@@ -47,7 +47,7 @@ int csv_dlp_write (uint8_t idx)
 		return -1;
 	}
 
-	log_hex(rl_cmd_data[idx], ret, "DLP write");
+	log_hex(STREAM_TTY, rl_cmd_data[idx], ret, "DLP write");
 
 	return ret;
 }
@@ -69,7 +69,7 @@ int csv_dlp_read (void)
 
 	pDLP->rlen = ret;
 
-	log_hex(pDLP->rbuf, ret, "DLP read");
+	log_hex(STREAM_TTY, pDLP->rbuf, ret, "DLP read");
 
 	return ret;
 }
