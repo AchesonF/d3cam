@@ -1,6 +1,8 @@
 #ifndef __CSV_TYPE_H__
 #define __CSV_TYPE_H__
 
+
+
 typedef enum {
 	CONNECT_NULL					= (0x00000000),	// 空值
 	CONNECT_DEVICE_ENUM				= (0x00000001),	// 连接设备
@@ -104,8 +106,6 @@ typedef enum {
 	CAM1_LIGHT2						= (0x00000002),	// 单相机双光机
 	CAM4_LIGHT1						= (0x00000003),	// 四相机单光机
 } device_type;
-
-
 
 
 

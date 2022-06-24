@@ -9,7 +9,10 @@ extern "C" {
 #define CONFIG_APP_NAME			PROJECT_UPPER_NAME
 #define SOFTWARE_VERSION		PROJECT_VERSION
 
-#define SOFT_BUILDTIME			(__DATE__", "__TIME__)	///< 程序编译时间
+#define BUILD_DATE				__DATE__
+#define BUILD_TIME				__TIME__
+
+#define SOFT_BUILDTIME			(BUILD_DATE", "BUILD_TIME)	///< 程序编译时间
 #define COMPILER_VERSION		__VERSION__
 
 

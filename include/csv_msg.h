@@ -30,6 +30,7 @@ struct msglist_t {
 /* 单个命令结构 */
 struct msg_command_t {
 	csv_cmd_e				cmdtype;
+	char					*cmdname;
 	int 					(*func)(struct msg_package_t *pMP);
 };
 

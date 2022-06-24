@@ -34,10 +34,10 @@ static void csv_trace (int signum)
 
 	switch (signum) {
 	case SIGABRT:
-		strSIG = "SIGABRT";
+		strSIG = toSTR(SIGABRT);
 		break;
 	case SIGSEGV:
-		strSIG = "SIGSEGV";
+		strSIG = toSTR(SIGSEGV);
 		break;
 	default:
 		strSIG = "htop maybe help";
@@ -78,10 +78,10 @@ void csv_stop (int signum)
 
 	switch (signum) {
 	case SIGINT:
-		strSIG = "SIGINT";
+		strSIG = toSTR(SIGINT);
 		break;
 	case SIGSTOP:
-		strSIG = "SIGSTOP";
+		strSIG = toSTR(SIGSTOP);
 		break;
 	default:
 		strSIG = "htop maybe help";

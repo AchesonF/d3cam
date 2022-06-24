@@ -186,14 +186,14 @@ int csv_tcp_local_recv (uint8_t *buf, int nbytes)
 		return 0;
 	} else if (ret < 0) {
 		if (errno == EAGAIN) {
-			log_hex(STREAM_TCP, buf, n_read, "tcpl recv");
+			log_hex(STREAM_TCP, buf, n_read, "tcpl recv [%d]", n_read);
 
 			return n_read;
 		}
 		return -1;
 	}
 
-	log_hex(STREAM_TCP, buf, n_read, "tcpl recv");
+	log_hex(STREAM_TCP, buf, n_read, "tcpl recv [%d]", n_read);
 
 	return n_read;
 }
@@ -219,7 +219,7 @@ int csv_tcp_local_send (uint8_t *buf, int nbytes)
 			}
 
 			if (errno == EAGAIN) {
-				log_hex(STREAM_TCP, buf, n_written, "tcpl send");
+				log_hex(STREAM_TCP, buf, n_written, "tcpl send [%d]", n_written);
 				return n_written;
 			}
 			return ret;
@@ -229,7 +229,7 @@ int csv_tcp_local_send (uint8_t *buf, int nbytes)
 		n_written += ret;
 	}
 
-	log_hex(STREAM_TCP, buf, n_written, "tcpl send");
+	log_hex(STREAM_TCP, buf, n_written, "tcpl send [%d]", n_written);
 
 	return n_written;
 }
