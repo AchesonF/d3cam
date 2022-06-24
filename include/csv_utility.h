@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#define toSTR(_str)			#_str
+
 extern const char Hex2Ascii[17];
 extern const char Dec2Ascii[11];
 

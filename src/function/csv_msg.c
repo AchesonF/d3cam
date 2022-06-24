@@ -292,9 +292,47 @@ static int msg_cameras_name_set (struct msg_package_t *pMP)
 	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
 }
 
+static int msg_led_delay_set (struct msg_package_t *pMP)
+{
+	int ret = -1;
+	int result = -1;
+	int *delay = (int *)pMP->payload;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
 
+	pACK->len_send = 0;
 
+	if (pMP->hdr.length == sizeof(int)) {
+		ret = 0;
+		if (ret == 0) {
+			result = 0;
 
+			// TODO : delay var
+		}
+	}
+
+	csv_msg_ack_package(pMP, NULL, 0, result);
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+static int msg_sys_info_get (struct msg_package_t *pMP)
+{
+	int ret = 0;
+	int len_msg = 0;
+	char str_info[1024] = {0};
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	pACK->len_send = 0;
+
+	len_msg = snprintf(str_info, 1024, "gcc:%s, buildtime:%s %s, devicetype=%d",
+		COMPILER_VERSION, BUILD_DATE, BUILD_TIME, gCSV->cfg.device_param.device_type);
+
+	if (len_msg > 0) {
+		csv_msg_ack_package(pMP, str_info, len_msg, 0);
+	}
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
 
 
 static struct msg_command_list *msg_command_malloc (void)
@@ -312,13 +350,14 @@ static struct msg_command_list *msg_command_malloc (void)
 }
 
 static void msg_command_add (struct csv_msg_t *pMSG,
-	csv_cmd_e cmdtype, int (*func)(struct msg_package_t *pMP))
+	csv_cmd_e cmdtype, char *cmdname, int (*func)(struct msg_package_t *pMP))
 {
 	struct msg_command_list *cur = NULL;
 
 	cur = msg_command_malloc();
 	if (cur != NULL) {
 		cur->command.cmdtype = cmdtype;
+		cur->command.cmdname = cmdname;
 		cur->command.func = func,
 
 		list_add_tail(&cur->list, &pMSG->head_cmd.list);
@@ -327,18 +366,18 @@ static void msg_command_add (struct csv_msg_t *pMSG,
 
 static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 {
-	msg_command_add(pMSG, CAMERA_ENMU, msg_cameras_enum);
-	msg_command_add(pMSG, CAMERA_CONNECT, msg_cameras_open);
-	msg_command_add(pMSG, CAMERA_DISCONNECT, msg_cameras_close);
-	msg_command_add(pMSG, CAMERA_GET_EXPOSURE, msg_cameras_exposure_get);
-	msg_command_add(pMSG, CAMERA_GET_GAIN, msg_cameras_gain_get);
-	msg_command_add(pMSG, CAMERA_GET_CALIB_FILE, msg_cameras_calibrate_file_get);
-	msg_command_add(pMSG, CAMERA_SET_EXPOSURE, msg_cameras_exposure_set);
-	msg_command_add(pMSG, CAMERA_SET_GAIN, msg_cameras_gain_set);
-	msg_command_add(pMSG, CAMERA_SET_CALIB_FILE, msg_cameras_calibrate_file_set);
-	msg_command_add(pMSG, CAMERA_SET_CAMERA_NAME, msg_cameras_name_set);
-
-
+	msg_command_add(pMSG, CAMERA_ENMU, toSTR(CAMERA_ENMU), msg_cameras_enum);
+	msg_command_add(pMSG, CAMERA_CONNECT, toSTR(CAMERA_CONNECT), msg_cameras_open);
+	msg_command_add(pMSG, CAMERA_DISCONNECT, toSTR(CAMERA_DISCONNECT), msg_cameras_close);
+	msg_command_add(pMSG, CAMERA_GET_EXPOSURE, toSTR(CAMERA_GET_EXPOSURE), msg_cameras_exposure_get);
+	msg_command_add(pMSG, CAMERA_GET_GAIN, toSTR(CAMERA_GET_GAIN), msg_cameras_gain_get);
+	msg_command_add(pMSG, CAMERA_GET_CALIB_FILE, toSTR(CAMERA_GET_CALIB_FILE), msg_cameras_calibrate_file_get);
+	msg_command_add(pMSG, CAMERA_SET_EXPOSURE, toSTR(CAMERA_SET_EXPOSURE), msg_cameras_exposure_set);
+	msg_command_add(pMSG, CAMERA_SET_GAIN, toSTR(CAMERA_SET_GAIN), msg_cameras_gain_set);
+	msg_command_add(pMSG, CAMERA_SET_CALIB_FILE, toSTR(CAMERA_SET_CALIB_FILE), msg_cameras_calibrate_file_set);
+	msg_command_add(pMSG, CAMERA_SET_CAMERA_NAME, toSTR(CAMERA_SET_CAMERA_NAME), msg_cameras_name_set);
+	msg_command_add(pMSG, CAMERA_SET_LED_DELAY_TIME, toSTR(CAMERA_SET_LED_DELAY_TIME), msg_led_delay_set);
+	msg_command_add(pMSG, SYS_SOFT_INFO, toSTR(SYS_SOFT_INFO), msg_sys_info_get);
 
 
 
@@ -454,10 +493,11 @@ static int csv_msg_execute (struct msg_package_t *pMP)
 		pCMD = &task->command;
 
 		if (pMP->hdr.cmdtype == pCMD->cmdtype) {
+			log_debug("match '%s'", pCMD->cmdname);
+
 			return pCMD->func(pMP);
 		}
 	}
-
 
 	log_debug("WARN : unknown msg 0x%08X", pMP->hdr.cmdtype);
 
