@@ -434,7 +434,7 @@ static int csv_msg_push (struct csv_msg_t *pMSG, uint8_t *buf, uint32_t len)
 			return -1;
 		}
 
-		memcpy(pMP->payload, buf+pHDR->length, pHDR->length);
+		memcpy(pMP->payload, buf+sizeof(struct msg_head_t), pHDR->length);
 	}
 
 	pthread_mutex_lock(&pMSG->mutex_msg);
