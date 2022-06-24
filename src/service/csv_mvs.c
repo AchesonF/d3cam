@@ -4,9 +4,7 @@
 extern "C" {
 #endif
 
-MV_CC_DEVICE_INFO_LIST stDeviceList;
 
-HikvCamera hkcamera;
 
 /* 枚举相机 */
 int csv_mvs_cams_enum (void)
@@ -23,11 +21,15 @@ int csv_mvs_cams_enum (void)
 	//nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE|MV_USB_DEVICE, pDevList);
 	nRet = MV_CC_EnumDevices(MV_USB_DEVICE, pDevList);
 	if (MV_OK != nRet){
-		log_info("ERROR : EnumDevices failed [0x%08X]", nRet);
+		log_info("ERROR : EnumDevices failed. [0x%08X]", nRet);
 		return -1;
 	}
 
-	log_info("OK : found %d cam devices.", pDevList->nDeviceNum);
+	if (pDevList->nDeviceNum > 0) {
+		log_info("OK : found %d cam devices.", pDevList->nDeviceNum);
+	} else {
+		log_info("WARN : NO cam devices.");
+	}
 
 	pMVS->cnt_mvs = pDevList->nDeviceNum;
 
@@ -63,12 +65,52 @@ int csv_mvs_cams_enum (void)
 		}
 			break;
 		default:
-			log_info("WARN : not support [%d] 0x%08X", i, pDevInfo->nTLayerType);
+			log_info("WARN : [%d] not support type : 0x%08X", i, pDevInfo->nTLayerType);
 			break;
 		}
 	}
     
 	return pMVS->cnt_mvs;
+}
+
+int csv_mvs_cams_reset (void)
+{
+	int nRet = MV_OK, i = 0;
+	int errNum = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
+
+	for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &pMVS->cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
+			errNum++;
+			continue;
+		}
+
+		nRet = MV_CC_SetCommandValue(pCAM->cameraHandle, "DeviceReset");
+		nRet = MV_CC_CloseDevice(pCAM->cameraHandle);
+		if (MV_OK != nRet) {
+			log_info("ERROR : '%s' CloseDevice failed. [0x%08X]", pCAM->serialNum, nRet);
+			errNum++;
+			continue;
+        }
+
+		nRet = MV_CC_DestroyHandle(pCAM->cameraHandle);
+		if (MV_OK != nRet) {
+			log_info("ERROR : '%s' DestroyHandle failed. [0x%08X]", pCAM->serialNum, nRet);
+			errNum++;
+		} else {
+			pCAM->cameraHandle = NULL;
+			pCAM->opened = false;
+		}
+	}
+
+	if (errNum > 0) {
+		return -1;
+	}
+
+	return 0;
 }
 
 int csv_mvs_cams_open (void)
@@ -92,11 +134,12 @@ int csv_mvs_cams_open (void)
 			continue;
 		}
 
-		log_info("Opening '%s' : %s", pCAM->modelName, pCAM->serialNum);
+		log_info("Opening '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
 
 		nRet = MV_CC_CreateHandle(&pCAM->cameraHandle, pDevInfo);
-		if (MV_OK != nRet){
-			log_info("ERROR : CreateHandle failed [0x%08X]", nRet);
+		if (MV_OK != nRet) {
+			pCAM->cameraHandle = NULL;
+			log_info("ERROR : '%s' CreateHandle failed. [0x%08X]", pCAM->serialNum, nRet);
 			continue;
 		}
 
@@ -107,7 +150,7 @@ int csv_mvs_cams_open (void)
 			MV_CC_DestroyHandle(pCAM->cameraHandle);
 			pCAM->opened = false;
 			errNum++;
-			log_info("ERROR : OpenDevice failed. [0x%08X]", nRet);
+			log_info("ERROR : '%s' OpenDevice failed. [0x%08X]", pCAM->serialNum, nRet);
 			continue;
 		}
 
@@ -134,7 +177,7 @@ int csv_mvs_cams_open (void)
 		// todo
 		nRet = MV_CC_SetFloatValue(pCAM->cameraHandle, "ExposureTime", 20000);
 		if (MV_OK == nRet) {
-			log_info("OK : set exposure time = %f.", 20000);
+			log_info("OK : set ExposureTime : %f", 20000);
 		} else{
 			errNum++;
 		}
@@ -210,242 +253,269 @@ int csv_mvs_cams_open (void)
 
 int csv_mvs_cams_close (void)
 {
-    int nRet = MV_OK, i = 0;
-    int errNum = 0;
+	int nRet = MV_OK, i = 0;
+	int errNum = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
 
-    for (i = 0; i < MAX_CAMERA_NUM; i++){
+	for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &pMVS->cam[i];
 
-        //关闭handle
-        nRet = MV_CC_CloseDevice(hkcamera.cameraHandle[i]);
-        if (MV_OK != nRet){
-            log_info("MV_CC_CloseDevice fail! nRet=[0x%x]", nRet);
-            errNum++;
-        }
-        //释放句柄
-        nRet = MV_CC_DestroyHandle(hkcamera.cameraHandle[i]);
-        if (MV_OK != nRet){
-            log_info("MV_CC_DestroyHandle fail! nRet=[0x%x]", nRet);
-            errNum++;
-        }
-        hkcamera.cameraHandle[i] = NULL;
+		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
+			//errNum++;
+			continue;
+		}
+
+		nRet = MV_CC_CloseDevice(pCAM->cameraHandle);
+		if (MV_OK != nRet) {
+			log_info("ERROR : '%s' CloseDevice failed. [0x%08X]", pCAM->serialNum, nRet);
+			errNum++;
+		}
+
+		nRet = MV_CC_DestroyHandle(pCAM->cameraHandle);
+		if (MV_OK != nRet) {
+			log_info("ERROR : '%s' DestroyHandle failed. [0x%08X]", pCAM->serialNum, nRet);
+			errNum++;
+		}
+
+		pCAM->cameraHandle = NULL;
+		pCAM->opened = false;
     }
-    sleep(1);
-    if(errNum>0){
-        return -1;
-    }
-    return 0;
+
+	if (errNum > 0) {
+		return -1;
+	}
+
+	return 0;
 }
 
 /* 获取相机曝光参数 */
 int csv_mvs_cams_exposure_get (void)
 {
-    int nRet = MV_OK, i = 0;
-    int errNum = 0;
-    for (i = 0; i < MAX_CAMERA_NUM; i++){
-        nRet = MV_CC_GetFloatValue(hkcamera.cameraHandle[i], "ExposureTime", &hkcamera.exposureTime[i]);
-        if (MV_OK == nRet){
-            log_info("exposure time current value: %f [%f, %f]", 
-				hkcamera.exposureTime[i].fCurValue, hkcamera.exposureTime[i].fMin, hkcamera.exposureTime[i].fMax);
-        } else {
-            errNum++;
-        }
-    }
-    if(errNum>0){
-        return -1;
-    }
-    return 0;
+	int nRet = MV_OK, i = 0;
+	int errNum = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
+
+    for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &pMVS->cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
+			errNum++;
+			continue;
+		}
+
+		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "ExposureTime", &pCAM->exposureTime);
+		if (MV_OK == nRet){
+			log_info("OK：'%s' get ExposureTime : %f [%f, %f]", pCAM->serialNum, 
+				pCAM->exposureTime.fCurValue, pCAM->exposureTime.fMin, pCAM->exposureTime.fMax);
+		} else {
+			errNum++;
+		}
+	}
+
+	if (errNum > 0) {
+		return -1;
+	}
+
+	return 0;
 }
 
 /* 设置相机曝光参数 */
 int csv_mvs_cams_exposure_set (float fExposureTime)
 {
-    int nRet = MV_OK, i = 0;
-    int errNum = 0;
+	int nRet = MV_OK, i = 0;
+	int errNum = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
 
-    for (i = 0; i < MAX_CAMERA_NUM; i++){
-        if(hkcamera.exposureTime[i].fMax < fExposureTime){
-            fExposureTime = hkcamera.exposureTime[i].fMax;
-        }
-        if(hkcamera.exposureTime[i].fMin > fExposureTime){
-            fExposureTime = hkcamera.exposureTime[i].fMin;
-        }
+    for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &pMVS->cam[i];
 
-        nRet = MV_CC_SetFloatValue(hkcamera.cameraHandle[i], "ExposureTime", fExposureTime);
-        if (MV_OK == nRet) {
-            log_info("set exposure = %f time OK!", fExposureTime);
-        } else {
-            log_info("set exposure time failed! nRet=[0x%x][%s]", nRet, hkcamera.serialNum[i]);
-            errNum++;
-        }
-    }
-    if(errNum>0){
-        return -1;
-    }
-    return 0;
+		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
+			errNum++;
+			continue;
+		}
+
+		if (pCAM->exposureTime.fMax < fExposureTime) {
+			fExposureTime = pCAM->exposureTime.fMax;
+		}
+
+		if (pCAM->exposureTime.fMin > fExposureTime) {
+			fExposureTime = pCAM->exposureTime.fMin;
+		}
+
+		nRet = MV_CC_SetFloatValue(pCAM->cameraHandle, "ExposureTime", fExposureTime);
+		if (MV_OK == nRet) {
+			log_info("OK : '%s' set ExposureTime : %f", pCAM->serialNum, fExposureTime);
+		} else {
+			log_info("ERROR : '%s' set ExposureTime failed. [0x%08X]", pCAM->serialNum, nRet);
+			errNum++;
+		}
+	}
+
+	if (errNum > 0) {
+		return -1;
+	}
+
+	return 0;
 }
 
 /* 获取相机增益参数 */
 int csv_mvs_cams_gain_get (void)
 {
-    int nRet = MV_OK, i = 0;
-    int errNum = 0;
+	int nRet = MV_OK, i = 0;
+	int errNum = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
 
-    for (i = 0; i < MAX_CAMERA_NUM; i++){
-        nRet = MV_CC_GetFloatValue(hkcamera.cameraHandle[i], "Gain", &hkcamera.camGain[i]);
-        if (MV_OK != nRet) {
-            log_info("get camGain failed! nRet=[0x%x]", nRet);
-            errNum++;
-        }
-    }
-    if(errNum>0){
-        return -1;
-    }
-    return 0;
+    for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &pMVS->cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
+			errNum++;
+			continue;
+		}
+
+		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "Gain", &pCAM->camGain);
+		if (MV_OK != nRet) {
+			log_info("ERROR : '%s' get camGain failed. [0x%08X]", pCAM->serialNum, nRet);
+			errNum++;
+		}
+	}
+
+	if (errNum > 0) {
+		return -1;
+	}
+
+	return 0;
 }
 
 /* 设置相机增益参数 */
 int csv_mvs_cams_gain_set (float fGain)
 {
-    int nRet = MV_OK, i = 0;
-    int errNum = 0;
+	int nRet = MV_OK, i = 0;
+	int errNum = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
 
-    for (i = 0; i < MAX_CAMERA_NUM; i++){
-        if(hkcamera.camGain[i].fMax < fGain){
-            fGain = hkcamera.camGain[i].fMax;
-        }
-        if(hkcamera.camGain[i].fMin > fGain){
-            fGain = hkcamera.camGain[i].fMin;
-        }
-        nRet = MV_CC_SetFloatValue(hkcamera.cameraHandle[i], "Gain", fGain);
-        if (MV_OK != nRet){
-            log_info("set setCamGain failed! nRet=[0x%x]", nRet);
-            errNum++;
-        }
-    }
-    if(errNum>0){
-        return -1;
-    }
-    return 0;
+    for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &pMVS->cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
+			errNum++;
+			continue;
+		}
+
+		if (pCAM->camGain.fMax < fGain){
+			fGain = pCAM->camGain.fMax;
+		}
+
+		if(pCAM->camGain.fMin > fGain){
+			fGain = pCAM->camGain.fMin;
+		}
+
+		nRet = MV_CC_SetFloatValue(pCAM->cameraHandle, "Gain", fGain);
+		if (MV_OK != nRet){
+			log_info("ERROR : '%s' set camGain failed. [0x%08X]", pCAM->serialNum, nRet);
+			errNum++;
+		}
+	}
+
+	if (errNum > 0) {
+		return -1;
+	}
+
+	return 0;
 }
-/* 设置用户自定义的相机名称参数 */
-int csv_mvs_cams_userid_set (char *camSNum, char *strValue)
-{
-    int nRet = MV_OK, i = 0;
 
-    for (i = 0; i < MAX_CAMERA_NUM; i++){
-        if(strstr(hkcamera.serialNum[i], camSNum) != NULL){
-            nRet = MV_CC_SetStringValue(hkcamera.cameraHandle[i], "DeviceUserID", (char*)strValue);
-            if (MV_OK == nRet){
-                log_info("Set DeviceUserID OK!");
-                return 0;
-            }else{
-                log_info("Set DeviceUserID Failed! nRet=[0x%x]", nRet);
-                return -1;
-            }
-        }
-    }
-    log_info("not find [%s] Devices!", camSNum);
-    return -1;
+/* 设置用户自定义的相机名称参数 */
+int csv_mvs_cams_name_set (char *camSNum, char *strValue)
+{
+	int nRet = MV_OK, i = 0;
+	int errNum = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
+
+    for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &pMVS->cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
+			errNum++;
+			continue;
+		}
+
+		if (strstr(pCAM->serialNum, camSNum)) {
+			nRet = MV_CC_SetStringValue(pCAM->cameraHandle, "DeviceUserID", (char*)strValue);
+			if (MV_OK == nRet){
+				log_info("OK ： '%s' set DeviceUserID.", pCAM->serialNum);
+
+				return 0;
+            } else {
+				log_info("ERROR : '%s' set DeviceUserID Failed. [0x%08X]", pCAM->serialNum, nRet);
+
+				return -1;
+			}
+		}
+	}
+
+	log_info("WARN : '%s' not found.", camSNum);
+
+	return -1;
 }
 
 /* 抓取左右相机的图片 */
 int csv_mvs_cams_grab_both (void)
 {
-    int nRet = MV_OK, i = 0;
-    int errnum = 0;
-    MVCC_INTVALUE stParam;
+	int nRet = MV_OK, i = 0;
+	int errNum = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = &pMVS->cam[0];
+	MVCC_INTVALUE stParam;
 
-    memset(&stParam, 0, sizeof(MVCC_INTVALUE));
-    nRet = MV_CC_GetIntValue(hkcamera.cameraHandle[0], "PayloadSize", &stParam); //必须保证两个相机是一样的参数
-    if (MV_OK != nRet){
-        log_info("Get PayloadSize fail! nRet=[0x%x][%s]", nRet, hkcamera.serialNum[0]);
-        return -1;
-    }
-    for (i = 0; i < MAX_CAMERA_NUM; i++){
-        //下一次调用前将申请内存空间释放
-        if(hkcamera.imgData[i] != NULL){
-            //free(hkcamera.imgData[i]);
-            memset(hkcamera.imgData[i], 0x00, sizeof(unsigned char) * stParam.nCurValue);
-        }else{
-			hkcamera.imgData[i] = (unsigned char *)malloc(sizeof(unsigned char) * stParam.nCurValue);
-			if(hkcamera.imgData[i]==NULL){
-				printf("malloc error");
+	memset(&stParam, 0, sizeof(MVCC_INTVALUE));
+
+	// 前提是必须保证两个相机是一样的参数
+	nRet = MV_CC_GetIntValue(pCAM->cameraHandle, "PayloadSize", &stParam);
+	if (MV_OK != nRet) {
+		log_info("ERROR : '%s' get PayloadSize failed. [0x%08X]", pCAM->serialNum, nRet);
+		return -1;
+	}
+
+    for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &pMVS->cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
+			errNum++;
+			continue;
+		}
+
+		if (pCAM->imgData != NULL) {
+			memset(pCAM->imgData, 0x00, stParam.nCurValue);
+		} else {
+			pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
+			if (pCAM->imgData == NULL){
+				log_err("ERROR : malloc imgData");
 				return -1;
 			}
 		}
-        memset(&hkcamera.imageInfo[i], 0, sizeof(MV_FRAME_OUT_INFO_EX));
-        //hkcamera.imgData[i] = (unsigned char *)malloc(sizeof(unsigned char) * stParam.nCurValue);
-        nRet = MV_CC_GetOneFrameTimeout(hkcamera.cameraHandle[i], hkcamera.imgData[i], 
-        	stParam.nCurValue, &hkcamera.imageInfo[i], 3000);
-        if (nRet == MV_OK){
-            log_info("GetOneFrame W[%d], H[%d], nFrameNum[%d][%s]", 
-            	hkcamera.imageInfo[i].nWidth, hkcamera.imageInfo[i].nHeight, 
-            	hkcamera.imageInfo[i].nFrameNum, hkcamera.serialNum[i]);
-        } else {
-            errnum++;
-        }
-    }
-    if(errnum>0){
-        return -1;
-    }
-    return 0;
-}
 
-int csv_mvs_cams_reenum(void)
-{
-    int nRet = MV_OK, i = 0;
-    int errNum = 0;
-    sleep(6);
-    memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
-    // 枚举USB相机设备
-    nRet = MV_CC_EnumDevices(MV_USB_DEVICE, &stDeviceList);
-    if (MV_OK != nRet){
-        log_info("MV_CC_EnumDevices fail! nRet [%x]", nRet);
-        return -1;
-    }
-    log_info("camera_nDeviceNum = %d", stDeviceList.nDeviceNum);
-    for (i = 0; i < stDeviceList.nDeviceNum; i++){
-        MV_CC_DEVICE_INFO* pDeviceInfo = stDeviceList.pDeviceInfo[i];
-        if (NULL == pDeviceInfo){
-            continue;
-        }
-        if (pDeviceInfo->nTLayerType == MV_USB_DEVICE){
-            sprintf(hkcamera.modelName[i], "%s", (char *)pDeviceInfo->SpecialInfo.stUsb3VInfo.chModelName);
-            sprintf(hkcamera.serialNum[i], "%s", (char *)pDeviceInfo->SpecialInfo.stUsb3VInfo.chSerialNumber);
-        }
-        // 选择设备并创建句柄
-        nRet = MV_CC_CreateHandle(&hkcamera.cameraHandle[i], stDeviceList.pDeviceInfo[i]);
-        if (MV_OK != nRet){
-            log_info("MV_CC_CreateHandle fail! nRet [%x]", nRet);
-            errNum++;
-            continue;
-        }
-        //打开相机
-        nRet = MV_CC_OpenDevice(hkcamera.cameraHandle[i], MV_ACCESS_Exclusive, 0);
-        if (MV_OK != nRet){
-            log_info("MV_CC_OpenDevice fail! nRet [%x][%s]", nRet, hkcamera.serialNum[i]);
-            MV_CC_DestroyHandle(hkcamera.cameraHandle[i]);
-            errNum++;
-            continue;
-        }
-        nRet = MV_CC_SetCommandValue(hkcamera.cameraHandle[i], "DeviceReset");
-		nRet = MV_CC_CloseDevice(hkcamera.cameraHandle[i]);
-        if (MV_OK != nRet)
-        {
-            log_info("MV_CC_CloseDevice fail! nRet [%x]", nRet);
-            errNum++;
-            continue;
-        }
-        //释放句柄
-        nRet = MV_CC_DestroyHandle(hkcamera.cameraHandle[i]);
-        if (MV_OK != nRet){
-            log_info("MV_CC_DestroyHandle fail! nRet=[0x%x]", nRet);
-            errNum++;
-        }
-        hkcamera.cameraHandle[i] = NULL;
-    }
-    //sleep(6);
-    return errNum;
+		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+		nRet = MV_CC_GetOneFrameTimeout(pCAM->cameraHandle, pCAM->imgData, 
+			stParam.nCurValue, &pCAM->imageInfo, 3000);
+		if (nRet == MV_OK) {
+			log_info("OK : '%s' GetOneFrame[%d] %d x %d", pCAM->serialNum, 
+				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+		} else {
+			errNum++;
+		}
+	}
+
+	if (errNum > 0) {
+		return -1;
+	}
+
+	return 0;
 }
 
 

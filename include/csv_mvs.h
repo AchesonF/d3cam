@@ -7,27 +7,15 @@ extern "C" {
 
 #define NAME_THREAD_MVS			("'thr_mvs'")
 
-#define MAX_CAMERA_NUM			(2)
+#define MAX_CAMERA_NUM			(2) // 4
 
 
-typedef struct {
-	void *cameraHandle[MAX_CAMERA_NUM];
-	char serialNum[MAX_CAMERA_NUM][32];
-	char modelName[MAX_CAMERA_NUM][32];
-	MVCC_FLOATVALUE exposureTime[MAX_CAMERA_NUM];
-	MVCC_FLOATVALUE camGain[MAX_CAMERA_NUM];
-	unsigned char *imgData[MAX_CAMERA_NUM];
-	MV_FRAME_OUT_INFO_EX imageInfo[MAX_CAMERA_NUM];
-} HikvCamera;
-
-extern HikvCamera hkcamera;
-
-
+// (#define INFO_MAX_BUFFER_SIZE 64) in CameraParams.h
 struct cam_spec_t {
 	uint8_t					opened;
 	void					*cameraHandle;
-	char					serialNum[32];
-	char					modelName[32];
+	char					serialNum[64];
+	char					modelName[64];
 	MVCC_FLOATVALUE			exposureTime;
 	MVCC_FLOATVALUE			camGain;
 
@@ -54,6 +42,20 @@ struct csv_mvs_t {
 extern int csv_mvs_cams_enum (void);
 
 extern int csv_mvs_cams_open (void);
+
+extern int csv_mvs_cams_close (void);
+
+extern int csv_mvs_cams_exposure_get (void);
+
+extern int csv_mvs_cams_exposure_set (float fExposureTime);
+
+extern int csv_mvs_cams_gain_get (void);
+
+extern int csv_mvs_cams_gain_set (float fGain);
+
+extern int csv_mvs_cams_name_set (char *camSNum, char *strValue);
+
+extern int csv_mvs_cams_grab_both (void);
 
 extern int csv_mvs_init (void);
 

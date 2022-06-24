@@ -70,16 +70,14 @@ static int msg_cameras_enum (struct msg_package_t *pMP)
 
 static int msg_cameras_open (struct msg_package_t *pMP)
 {
-	int ret = 0;
-	int result = 0;
+	int ret = -1;
+	int result = -1;
 	struct msg_send_t *pACK = &gCSV->msg.ack;
 
 	pACK->len_send = 0;
 
 	ret = csv_mvs_cams_open();
-	if (ret < 0) {
-		result = -1;
-	} else {
+	if (ret == 0) {
 		result = 0;
 	}
 
@@ -87,6 +85,216 @@ static int msg_cameras_open (struct msg_package_t *pMP)
 
 	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
 }
+
+static int msg_cameras_close (struct msg_package_t *pMP)
+{
+	int ret = -1;
+	int result = -1;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	pACK->len_send = 0;
+
+	ret = csv_mvs_cams_close();
+	if (ret == 0) {
+		result = 0;
+	}
+
+	csv_msg_ack_package(pMP, NULL, 0, result);
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+
+static int msg_cameras_exposure_get (struct msg_package_t *pMP)
+{
+	int ret = 0;
+	int len_msg = 0;
+	char str_expo[1024] = {0};
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+	struct cam_spec_t *pCAM0 = &pMVS->cam[0], *pCAM1 = &pMVS->cam[1];
+
+	pACK->len_send = 0;
+
+	ret = csv_mvs_cams_exposure_get();
+	if (ret < 0) {
+		csv_msg_ack_package(pMP, NULL, 0, -1);
+	} else {
+		len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
+			pCAM0->serialNum, pCAM0->exposureTime.fCurValue,
+			pCAM0->serialNum, pCAM0->exposureTime.fCurValue);
+
+		if (len_msg > 0) {
+			csv_msg_ack_package(pMP, str_expo, len_msg, 0);
+		}
+	}
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+static int msg_cameras_exposure_set (struct msg_package_t *pMP)
+{
+	int ret = -1;
+	int result = -1;
+	float *ExpoTime = (float *)pMP->payload;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	pACK->len_send = 0;
+
+	if (pMP->hdr.length == sizeof(float)) {
+		ret = csv_mvs_cams_exposure_set(*ExpoTime);
+		if (ret == 0) {
+			result = 0;
+
+			// TODO :send to dlp
+		}
+	}
+
+	csv_msg_ack_package(pMP, NULL, 0, result);
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+static int msg_cameras_gain_get (struct msg_package_t *pMP)
+{
+	int ret = -1;
+	int len_msg = 0;
+	char str_gain[1024] = {0};
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+	struct cam_spec_t *pCAM0 = &pMVS->cam[0], *pCAM1 = &pMVS->cam[1];
+
+	pACK->len_send = 0;
+
+	ret = csv_mvs_cams_gain_get();
+	if (ret < 0) {
+		csv_msg_ack_package(pMP, NULL, 0, -1);
+	} else {
+		len_msg = snprintf(str_gain, 1024, "%s:%f;%s:%f", 
+			pCAM0->serialNum, pCAM0->camGain.fCurValue,
+			pCAM0->serialNum, pCAM0->camGain.fCurValue);
+
+		if (len_msg > 0) {
+			csv_msg_ack_package(pMP, str_gain, len_msg, 0);
+		}
+	}
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+static int msg_cameras_gain_set (struct msg_package_t *pMP)
+{
+	int ret = -1;
+	int result = -1;
+	float *fGain = (float *)pMP->payload;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	pACK->len_send = 0;
+
+	if (pMP->hdr.length == sizeof(float)) {
+		ret = csv_mvs_cams_gain_set(*fGain);
+		if (ret == 0) {
+			result = 0;
+		}
+	}
+
+	csv_msg_ack_package(pMP, NULL, 0, result);
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+
+static int msg_cameras_calibrate_file_get (struct msg_package_t *pMP)
+{
+	int ret = -1;
+	int len_msg = 0;
+	char *str_cali = NULL;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	pACK->len_send = 0;
+	ret = csv_file_get_size(FILE_CAMERA_CALIBRATE, &len_msg);
+	if (ret == 0) {
+		if (len_msg > 0) {
+			str_cali = (char *)malloc(len_msg);
+			if (NULL == str_cali) {
+				log_err("ERROR : malloc cali");
+				ret = -1;
+			}
+
+			if (ret == 0) {
+				ret = csv_file_read_string(FILE_CAMERA_CALIBRATE, str_cali, len_msg);
+			}
+		}
+	}
+
+	if (ret < 0) {
+		csv_msg_ack_package(pMP, NULL, 0, -1);
+	} else {
+		if (len_msg > 0) {
+			csv_msg_ack_package(pMP, str_cali, len_msg, 0);
+			if (NULL != str_cali) {
+				free(str_cali);
+			}
+		}
+	}
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+static int msg_cameras_calibrate_file_set (struct msg_package_t *pMP)
+{
+	int ret = -1;
+	int result = -1;
+	uint8_t *str_cali = pMP->payload;
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	if (pMP->hdr.length > 0) {
+		if (strstr((char *)str_cali, "cam_Q")) {
+			ret = csv_file_write_data(FILE_CAMERA_CALIBRATE, str_cali, pMP->hdr.length);
+			if (ret == 0) {
+				result = 0;
+				// TODO source it
+			}
+		}
+	}
+
+	pACK->len_send = 0;
+
+	csv_msg_ack_package(pMP, NULL, 0, result);
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+static int msg_cameras_name_set (struct msg_package_t *pMP)
+{
+	int ret = -1;
+	int result = -1;
+	char str_sn[32] = {0}, str_name[32]= {0};
+	struct msg_send_t *pACK = &gCSV->msg.ack;
+
+	if (pMP->hdr.length > 10) {	// string like: "${sn}:${name}"
+		if (strstr(pMP->payload, ":")) {
+			int nget = 0;
+			nget = sscanf(pMP->payload, "%[^:]:%[^:]", str_sn, str_name);
+			if (2 == nget) {
+				ret = csv_mvs_cams_name_set(str_sn, str_name);
+				if (ret == 0) {
+					result = 0;
+				}
+			}
+		}
+	}
+
+	pACK->len_send = 0;
+
+	csv_msg_ack_package(pMP, NULL, 0, result);
+
+	return csv_tcp_local_send(pACK->buf_send, pACK->len_send);
+}
+
+
+
+
 
 
 static struct msg_command_list *msg_command_malloc (void)
@@ -121,6 +329,16 @@ static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 {
 	msg_command_add(pMSG, CAMERA_ENMU, msg_cameras_enum);
 	msg_command_add(pMSG, CAMERA_CONNECT, msg_cameras_open);
+	msg_command_add(pMSG, CAMERA_DISCONNECT, msg_cameras_close);
+	msg_command_add(pMSG, CAMERA_GET_EXPOSURE, msg_cameras_exposure_get);
+	msg_command_add(pMSG, CAMERA_GET_GAIN, msg_cameras_gain_get);
+	msg_command_add(pMSG, CAMERA_GET_CALIB_FILE, msg_cameras_calibrate_file_get);
+	msg_command_add(pMSG, CAMERA_SET_EXPOSURE, msg_cameras_exposure_set);
+	msg_command_add(pMSG, CAMERA_SET_GAIN, msg_cameras_gain_set);
+	msg_command_add(pMSG, CAMERA_SET_CALIB_FILE, msg_cameras_calibrate_file_set);
+	msg_command_add(pMSG, CAMERA_SET_CAMERA_NAME, msg_cameras_name_set);
+
+
 
 
 
