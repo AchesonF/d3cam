@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define FILE_PID_LOCK			"/var/lock/"CONFIG_APP_NAME".pid"
+#define FILE_PID_LOCK			"/var/lock/" CONFIG_APP_NAME ".pid"
 
 enum {
 	STREAM_TCP			= (1),		///< 显示 TCP 数据流

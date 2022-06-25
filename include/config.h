@@ -12,7 +12,7 @@ extern "C" {
 #define BUILD_DATE				__DATE__
 #define BUILD_TIME				__TIME__
 
-#define SOFT_BUILDTIME			(BUILD_DATE", "BUILD_TIME)	///< 程序编译时间
+#define SOFT_BUILDTIME			(BUILD_DATE ", " BUILD_TIME)	///< 程序编译时间
 #define COMPILER_VERSION		__VERSION__
 
 
