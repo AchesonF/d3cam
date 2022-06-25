@@ -5,12 +5,23 @@
 extern "C" {
 #endif
 
-#define FILE_PID_LOCK			"/var/lock/"CONFIG_APP_NAME".pid"
+#define FILE_PID_LOCK			"/var/lock/" CONFIG_APP_NAME ".pid"
+
+enum {
+	STREAM_TCP			= (1),		///< 显示 TCP 数据流
+	STREAM_TTY			= (2),		///< 显示 TTY 数据流
+	STREAM_UDP			= (3),		///< 显示 UDP 数据流
+	STREAM_SQL			= (4),		///< 显示 SQL 数据流
+
+	STREAM_DATA			= (9),		// just for data show
+
+	STREAM_ALL			= (255)		///< 显示全部数据流
+};
 
 struct csv_product_t {
 	uint8_t				tlog;					///< terminal 显示log日志0:不显示
 	uint8_t				tdata;					///< terminal 显示data数据
-												///< 1:tcp 2:tty 3:udp 4:sql ...255:all
+												///< 1:tcp 2:tty 3:udp 4:sql ...9:data 255:all
 	uint8_t				dis_daemon;				///< 禁用守护进程
 	char				WebCfg[256];			///< web 配置文件
 
@@ -44,6 +55,7 @@ struct csv_info_t {
 	struct csv_uevent_t	uevent;					///< 探测内核事件
 	struct csv_mvs_t	mvs;					///< 支持海康工业相机
 	struct csv_gvcp_t	gvcp;					///< GVCP
+	struct csv_dlp_t	dlp;					///< 光机控制通道
 
 	struct csv_so_t		so;						///< 挂载算法so 
 
@@ -51,6 +63,8 @@ struct csv_info_t {
 	struct csv_web_t	web;					///< WEB 服务
 
 	struct csv_tick_t	tick;					///< 轮询时钟
+
+	struct csv_msg_t	msg;					///< 接口消息处理
 };
 
 

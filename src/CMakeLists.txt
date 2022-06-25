@@ -38,6 +38,7 @@ target_link_libraries(${EXE_TARGET}
 	dl
 	MvCameraControl
 	json-c
+	opencv_world
 	${LIB_WEB_SERVER}
 )
 

@@ -37,7 +37,7 @@ struct csv_tty_param_t {
 	char				parity;						///< 校验位
 	uint8_t				flowcontrol;				///< 流控制
 
-	uint8_t				delay;						///< 接收延时 单位 100ms
+	uint8_t				delay;						///< 接收阻塞(延时返回) 单位 100ms
 };
 /** @} */
 

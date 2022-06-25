@@ -115,7 +115,7 @@ static void parse_event (const char *kmsg)
 	kuevent.minor = -1;
 
 	while (*kmsg) {
-		log_debug("%s", kmsg);
+//		log_debug("%s", kmsg);
 		if (!strncmp(kmsg, "ACTION=", 7)) {
 			kmsg += 7;
 			kuevent.action = kmsg;

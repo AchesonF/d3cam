@@ -14,7 +14,7 @@ extern "C" {
 #define PORT_TCP_LISTEN					(26666)
 #define MAX_TCP_CONNECT					(1)
 
-#define MAX_LEN_FRAME					(1024*1024)
+#define MAX_LEN_TCP_RCV					(20*1024*1024)
 
 
 struct csv_tcp_t {
@@ -28,10 +28,13 @@ struct csv_tcp_t {
 
 	struct csv_beat_t	beat;
 
-	uint8_t				rbuf[MAX_LEN_FRAME];
-	uint32_t			rlen;
+	uint8_t				buf_recv[MAX_LEN_TCP_RCV];
+	uint32_t			len_recv;
 };
 
+extern int csv_tcp_local_recv (uint8_t *buf, int nbytes);
+
+extern int csv_tcp_local_send (uint8_t *buf, int nbytes);
 
 extern int csv_tcp_reading_trigger (struct csv_tcp_t *pTCP);
 

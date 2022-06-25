@@ -63,9 +63,10 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 	case 2000000:
 		baudrate=B2000000;
 		break;
-	default:		
+	default:
+		baudrate = B9600;
 		log_info("ERROR : invalid baudrate(%d)", speed);
-		return -1;
+		//return -1;
 	}
 	
 	if (-1 == cfsetispeed(&tio, baudrate)) {
@@ -87,9 +88,10 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 	case 8:
 		tio.c_cflag |= CS8;
 		break;
-	default:		
+	default:
 		log_info("ERROR : invalid databits(%d)", databits);
-		return -1;
+		tio.c_cflag |= CS8;
+//		return -1;
 	}
 	
 	/* 奇偶校验 */
@@ -107,9 +109,10 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 		tio.c_cflag |= PARENB;
 		tio.c_cflag &= ~PARODD;		
 		break;
-	default:		
+	default:
 		log_info("ERROR : invalid parity(%c)", parity);
-		return -1;
+		tio.c_cflag &= ~PARENB;
+//		return -1;
 	}
 	
 	/* 停止位 */
@@ -122,7 +125,8 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 		break;
 	default:		
 		log_info("ERROR : invalid stopbits(%d)", stopbits);
-		return -1;
+		tio.c_cflag &= ~CSTOPB;
+		//return -1;
 	}
 
 	tio.c_iflag = IGNPAR;
@@ -211,10 +215,15 @@ int csv_tty_init (char *tty_name, struct csv_tty_param_t *pPARAM)
 {
 	int ret = 0;
 
+	if (NULL == tty_name) {
+		return -1;
+	}
+
+
 	int fd = open(tty_name, O_RDWR | O_NOCTTY);
 	if (fd < 0) {
-		log_err("ERROR : open");
-		return fd;
+		log_err("ERROR : open '%s'", tty_name);
+		return -1;
 	}
 
 	ret = csv_tty_config(fd, pPARAM->baudrate, pPARAM->databits, 

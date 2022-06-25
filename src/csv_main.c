@@ -34,10 +34,10 @@ static void csv_trace (int signum)
 
 	switch (signum) {
 	case SIGABRT:
-		strSIG = "SIGABRT";
+		strSIG = toSTR(SIGABRT);
 		break;
 	case SIGSEGV:
-		strSIG = "SIGSEGV";
+		strSIG = toSTR(SIGSEGV);
 		break;
 	default:
 		strSIG = "htop maybe help";
@@ -78,10 +78,10 @@ void csv_stop (int signum)
 
 	switch (signum) {
 	case SIGINT:
-		strSIG = "SIGINT";
+		strSIG = toSTR(SIGINT);
 		break;
 	case SIGSTOP:
-		strSIG = "SIGSTOP";
+		strSIG = toSTR(SIGSTOP);
 		break;
 	default:
 		strSIG = "htop maybe help";
@@ -89,6 +89,10 @@ void csv_stop (int signum)
 	}
 
 	csv_gvcp_deinit();
+
+	csv_dlp_deinit();
+
+	csv_msg_deinit();
 
 	csv_tcp_deinit();
 
@@ -167,7 +171,8 @@ static void print_usage (const char *prog)
 {
 	printf("\nUsage: %s [-dmhvt] [-D opt]\n", prog);
 	puts("  -d --debug    Debug mode.\n"
-		"  -D --Data     Show data flow. opt: \n\t\t1:tcp 2:tty 3:udp 4:sql ...255:all\n"
+		"  -D --Data     Show data flow. opt: \n\t\t1:tcp 2:tty "\
+						"3:udp 4:sql ...9: data 255:all\n"
 		"  -m --daemon   Disable daemon.\n"
 		"  -h --help     Show this info.\n"
 		"  -v --version  Build version.\n"
@@ -248,7 +253,7 @@ static void startup_opts (int argc, char **argv)
 
 	utility_calibrate_clock();
 
-	log_info("%s via GCC %s", pPdct->app_info, pPdct->compiler_version);
+	log_info("%s via GCC/GXX %s", pPdct->app_info, pPdct->compiler_version);
 	log_info("%s (%s)", pPdct->kernel_version, pPdct->kernel_buildtime);
 
 	if (!pPdct->dis_daemon) {
@@ -264,9 +269,13 @@ int csv_init (struct csv_info_t *pCSV)
 
 	csv_eth_init();
 
+	csv_dlp_init();
+
 	csv_gvcp_init();
 
 	csv_tcp_init();
+
+	csv_msg_init();
 
 	csv_uevent_init();
 

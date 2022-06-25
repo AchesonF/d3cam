@@ -160,10 +160,11 @@ int csv_tcp_local_accept (void)
 	return 0;
 }
 
-static int csv_tcp_local_recv (uint8_t *buf, int nbytes)
+int csv_tcp_local_recv (uint8_t *buf, int nbytes)
 {
 	int ret = 0;
 	uint32_t n_read = 0;
+	uint32_t timeo = 0;
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
 
 	if (pTCPL->fd <= 0) {
@@ -175,25 +176,29 @@ static int csv_tcp_local_recv (uint8_t *buf, int nbytes)
 		if (ret <= 0)
 			break;
 		n_read += ret;
+
+		if (++timeo >= 100) { // timeout, maybe more
+			return -2;
+		}
 	}
 
 	if (ret == 0) {	/* EOF */
 		return 0;
 	} else if (ret < 0) {
 		if (errno == EAGAIN) {
-			log_hex(buf, n_read, "tcpl recv");
+			log_hex(STREAM_TCP, buf, n_read, "tcpl recv [%d]", n_read);
 
 			return n_read;
 		}
 		return -1;
 	}
 
-	log_hex(buf, n_read, "tcpl recv");
+	log_hex(STREAM_TCP, buf, n_read, "tcpl recv [%d]", n_read);
 
 	return n_read;
 }
 
-static int csv_tcp_local_send (uint8_t *buf, int nbytes)
+int csv_tcp_local_send (uint8_t *buf, int nbytes)
 {
 	int ret;
 	uint32_t n_written = 0;
@@ -214,7 +219,7 @@ static int csv_tcp_local_send (uint8_t *buf, int nbytes)
 			}
 
 			if (errno == EAGAIN) {
-				log_hex(buf, n_written, "tcpl send");
+				log_hex(STREAM_TCP, buf, n_written, "tcpl send [%d]", n_written);
 				return n_written;
 			}
 			return ret;
@@ -224,7 +229,7 @@ static int csv_tcp_local_send (uint8_t *buf, int nbytes)
 		n_written += ret;
 	}
 
-	log_hex(buf, n_written, "tcpl send");
+	log_hex(STREAM_TCP, buf, n_written, "tcpl send [%d]", n_written);
 
 	return n_written;
 }
@@ -234,21 +239,21 @@ int csv_tcp_reading_trigger (struct csv_tcp_t *pTCPL)
 {
 	int nRead = 0;
 
-	nRead = csv_tcp_local_recv(pTCPL->rbuf, MAX_LEN_FRAME);
+	nRead = csv_tcp_local_recv(pTCPL->buf_recv, MAX_LEN_TCP_RCV);
 	if (nRead < 0) {
 		log_err("ERROR : %s recv %d", pTCPL->name, nRead);
-		pTCPL->rlen = 0;
+		pTCPL->len_recv = 0;
 		return -1;
 	} else if (nRead == 0) {
 		log_info("WARN : %s EOF.", pTCPL->name);
 		csv_tcp_local_close();
-		pTCPL->rlen = 0;
-	} else {
-		// todo queue msg
-		pTCPL->rlen = nRead;
+		pTCPL->len_recv = 0;
+		return 0;
 	}
 
-	return 0;
+	pTCPL->len_recv = nRead;
+
+	return csv_msg_check(pTCPL->buf_recv, pTCPL->len_recv);
 }
 
 int csv_tcp_init (void)

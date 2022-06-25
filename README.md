@@ -1,4 +1,4 @@
-# How to compile
+# How to compile & run
 
 ## 系统环境
 
@@ -19,7 +19,9 @@ make -p build && cd build
 ccmake ..
 'c' -> select opencv_world ON
 make -j
-make package
+# make package
+make install  # install to `/usr/local/lib`
+# append `/usr/local/lib` to `/etc/ld.so.conf` and than `sudo ldconfig`
 ```
 
 
@@ -29,7 +31,7 @@ make package
 ```sh
 mkdir build && cd build
 cmake ..
-# change some options
+# change some options. using web or not
 ccmake ..
 # 'c' -> ('e' ->) 'g'
 make -j
@@ -38,3 +40,14 @@ make install
 make package
 ```
 
+## run
+
+```sh
+cd build/src
+# show help
+./d3cam -h
+# run 
+sudo ./d3cam # add 'sudo' for use '/dev/ttyTHS0'
+# log in /var/log/syslog
+# grep d3cam /var/log/syslog
+```

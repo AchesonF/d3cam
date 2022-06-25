@@ -14,7 +14,9 @@ extern "C" {
 #define FILE_PATH_UUID				("/home/rfid/uuid")
 
 
-#define FILE_PATH_BACKTRACE			"log.log"
+#define FILE_PATH_BACKTRACE			"backtrace.log"
+#define FILE_CAMERA_CALIBRATE		"camera_param.yml"
+
 
 /** @}*/
 

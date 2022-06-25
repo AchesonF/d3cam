@@ -32,7 +32,7 @@ int csv_gvcp_trigger (struct csv_gvcp_t *pGVCP)
 		(struct sockaddr *)&pGVCP->from_addr, &from_len);
 
 	if (pGVCP->Recv.nRx < sizeof(struct gvcp_cmd_header_t)) {
-		log_hex(pBuf, pGVCP->Recv.nRx, "wrong gvcp head length.");
+		log_hex(STREAM_UDP, pBuf, pGVCP->Recv.nRx, "wrong gvcp head length.");
 		return -1;
 	}
 

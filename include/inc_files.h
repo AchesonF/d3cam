@@ -62,10 +62,11 @@ extern "C" {
 
 #include "list.h"
 #include "queue.h"
-#include "log.h"
 #include "crc.h"
 
 #include "csv_utility.h"
+#include "csv_type.h"
+
 #include "csv_hb.h"
 #include "csv_file.h"
 #include "csv_json.h"
@@ -77,7 +78,8 @@ extern "C" {
 #include "csv_tick.h"
 #include "csv_tty.h"
 #include "csv_uevent.h"
-
+#include "csv_msg.h"
+#include "csv_dlp.h"
 #include "csv_web.h"
 #include "csv_gvcp.h"
 
@@ -85,6 +87,7 @@ extern "C" {
 #include "csv_so.h"
 #include "csv_main.h"
 
+#include "log.h"
 
 #ifdef __cplusplus
 }

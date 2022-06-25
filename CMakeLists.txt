@@ -69,8 +69,10 @@ endif ()
 include_directories(
 	"include"
 	"include/mvs"
+	"include/so"
 	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}
+	"/usr/local/include/opencv4/"
 )
 
 add_subdirectory(src)
