@@ -42,6 +42,8 @@ int csv_dlp_read (struct csv_dlp_t *pDLP)
 {
 	int ret = 0;
 
+	pDLP->rlen = 0;
+
 	if (pDLP->fd <= 0) {
 		return -1;
 	}

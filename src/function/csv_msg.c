@@ -338,6 +338,126 @@ static int msg_sys_info_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
+static int cameras_save_to_bmp_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
+	uint8_t *pData, int idx, int r_l)
+{
+	int nRet = MV_OK;
+	int ret = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	uint8_t *pDataForSaveImage = NULL;
+	char img_filename[128] = {0};
+	memset(img_filename, 0, 128);
+
+	if (idx == 0) {
+		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%d.bmp", pMVS->groupDemarcate, r_l+1);
+	} else {
+		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%dS00P%03d.bmp", pMVS->groupDemarcate, r_l+1, idx);
+	}
+
+	pDataForSaveImage = (uint8_t*)malloc(stImageInfo->nWidth * stImageInfo->nHeight * 4 + 2048);
+	if (NULL == pDataForSaveImage) {
+		log_err("ERROR : malloc DataForSaveImage");
+		return -1;
+	}
+
+	// 填充存图参数
+	// fill in the parameters of save image
+	MV_SAVE_IMAGE_PARAM_EX stSaveParam;
+	memset(&stSaveParam, 0, sizeof(MV_SAVE_IMAGE_PARAM_EX));
+	// 从上到下依次是：输出图片格式，输入数据的像素格式，提供的输出缓冲区大小，图像宽，
+	// 图像高，输入数据缓存，输出图片缓存，JPG编码质量
+	// Top to bottom are：
+	stSaveParam.enImageType = MV_Image_Bmp; 
+	stSaveParam.enPixelType = stImageInfo->enPixelType; 
+	stSaveParam.nBufferSize = stImageInfo->nWidth * stImageInfo->nHeight * 4 + 2048;
+	stSaveParam.nWidth      = stImageInfo->nWidth; 
+	stSaveParam.nHeight     = stImageInfo->nHeight; 
+	stSaveParam.pData       = pData;
+	stSaveParam.nDataLen    = stImageInfo->nFrameLen;
+	stSaveParam.pImageBuffer = pDataForSaveImage;
+	stSaveParam.nJpgQuality = 80;
+
+	nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
+	if (MV_OK != nRet) {
+		log_info("ERROR : SaveImage failed. [0x%08X]", nRet);
+		return -1;
+	}
+
+	ret = csv_file_write_data(img_filename, pDataForSaveImage, stSaveParam.nImageLen);
+	if (ret < 0) {
+		log_info("ERROR : write file.");
+	}
+
+	return ret;
+}
+
+static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int ret = 0, i = 0;
+	int nRet = MV_OK;
+	int nFrames = 23;
+	int idx = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
+
+	if (!csv_file_isExist("data/calibImage")) {
+		system("mkdir -p data/calibImage");
+	}
+
+	ret = csv_dlp_write_and_read(DLP_BRIGHT);
+	ret |= csv_dlp_write_and_read(DLP_DEMARCATE);
+	if (ret < 0) {
+		return -1;
+	}
+
+	MVCC_INTVALUE stParam;
+	memset(&stParam, 0, sizeof(MVCC_INTVALUE));
+
+	// 前提是必须保证两个相机是一样的参数
+	nRet = MV_CC_GetIntValue(pCAM->pHandle, "PayloadSize", &stParam);
+	if (MV_OK != nRet) {
+		log_info("ERROR : CAM '%s' get PayloadSize failed. [0x%08X]", pCAM->serialNum, nRet);
+		return -1;
+	}
+
+	while (idx < nFrames) {
+
+		for (i = 0; pMVS->cnt_mvs; i++) {
+			pCAM = &Cam[i];
+			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
+				continue;
+			}
+
+			if (pCAM->imgData != NULL) {
+				memset(pCAM->imgData, 0x00, stParam.nCurValue);
+			} else {
+				pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
+				if (pCAM->imgData == NULL){
+					log_err("ERROR : malloc imgData");
+					return -1;
+				}
+			}
+
+			memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+			nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
+				stParam.nCurValue, &pCAM->imageInfo, 3000);
+			if (nRet == MV_OK) {
+				log_info("OK : CAM '%s' GetOneFrame[%d] %d x %d", pCAM->serialNum, 
+					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+			}
+
+			ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+
+		}
+
+		idx++;
+	}
+
+
+	pMVS->groupDemarcate++;
+
+	return ret;
+}
 
 static struct msg_command_list *msg_command_malloc (void)
 {
@@ -388,9 +508,10 @@ static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 	//msg_command_add(pMSG, CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), msg_cameras_grab_img_depth);
 	msg_command_add(pMSG, CAMERA_GET_GRAB_LEDOFF, toSTR(CAMERA_GET_GRAB_LEDOFF), msg_cameras_grab_gray);
 	msg_command_add(pMSG, CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), msg_cameras_grab_gray);
-	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_rgb);
+	//msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_rgb);
 	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), msg_cameras_grab_rgb);
 	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), msg_cameras_grab_rgb);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_demarcate);
 
 	// todo add more cmd
 

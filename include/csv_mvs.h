@@ -20,7 +20,7 @@ enum {
 // (#define INFO_MAX_BUFFER_SIZE 64) in CameraParams.h
 struct cam_spec_t {
 	uint8_t					opened;
-	void					*cameraHandle;
+	void					*pHandle;
 	char					serialNum[64];
 	char					modelName[64];
 	MVCC_FLOATVALUE			exposureTime;
@@ -33,8 +33,9 @@ struct cam_spec_t {
 extern struct cam_spec_t	Cam[TOTAL_CAMS];
 
 struct csv_mvs_t {
-	uint8_t					cnt_mvs;
+	uint8_t					cnt_mvs;		///< used cams
 	uint8_t					bExit;
+	uint16_t				groupDemarcate;	///< 标定次数, need to save for next boot
 
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
 
