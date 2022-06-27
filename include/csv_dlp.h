@@ -11,20 +11,23 @@ extern "C" {
 #define SIZE_DLP_BUFF			(1024)
 #define DEFAULT_DLP_BAUDRATE	(9600)
 
+#define LEN_DLP_CTRL			(12)
+
 typedef enum {
-	OPEN_LOGO_LED			= (0),
-	CLOSE_LOGO_LED			= (1),
-	OPEN_LASER_LED			= (2),
-	CLOSE_LASER_LED			= (3),
-	OPEN_SYNC				= (4),
-	CLOSE_SYNC				= (5),
-	OPEN_FAN				= (6),
-	CLOSE_FAN				= (7),
+	PINSTRIPE				= (0),		// 细条纹
+	DEMARCATE				= (1),		// 标定
+	WIDISTRIPE				= (2),		// 宽条纹
+	FOCUS					= (3),		// 调焦
+	BRIGHT					= (4),		// 亮光
+	SINGLE_SINE				= (5),		// 单张正弦
+	SINGLE_WIDESTRIPE_SINE	= (6),		// 单张宽条纹正弦
+	FOCUS_BRIGHT			= (7),		// 调焦常亮
+	LIGHT_BRIGHT			= (8),		// 亮光常亮
+	PINSTRIPE_SINE_BRIGHT	= (9),		// 细纹正弦常亮
+	WIDESTRIPE_SINE_BRIGHT	= (10),		// 宽纹正弦常亮
 
-	RL_CMD_NUM
-}rl_cmd_index;
-
-
+	TOTAL_DLP_CMD;
+} dlp_ctrl_idx;
 
 
 struct csv_dlp_t {

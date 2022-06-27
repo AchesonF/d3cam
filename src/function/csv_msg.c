@@ -8,7 +8,6 @@ extern "C" {
 static int csv_msg_ack_package (struct msg_package_t *pMP, struct msg_ack_t *pACK, 
 	char *content, int len, int retcode)
 {
-	//pACK->len_send = len+sizeof(retcode)+sizeof(struct msg_head_t);
 	pACK->len_send = len+sizeof(struct msg_head_t);
 	pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 	if (NULL == pACK->buf_send) {
@@ -16,11 +15,12 @@ static int csv_msg_ack_package (struct msg_package_t *pMP, struct msg_ack_t *pAC
 		return -1;
 	}
 
+	memset(pACK->buf_send, 0, pACK->len_send+1);
+
 	uint8_t *pS = pACK->buf_send;
 	struct msg_head_t *pHDR = (struct msg_head_t *)pS;
 	pHDR->cmdtype = pMP->hdr.cmdtype;
-	//pHDR->length = len+sizeof(retcode);
-	pHDR->length = len;
+	pHDR->length = len+sizeof(retcode);
 	pHDR->result = retcode;
 
 	if (NULL != content) {

@@ -27,8 +27,7 @@ struct msglist_t {
 	struct list_head		list;
 };
 
-//#define MAX_LEN_TCP_SND				(32*1024*1024)	// maybe need more for imgs
-
+/* tcp 应答原始数据 */
 struct msg_ack_t {
 	uint32_t				len_send;
 	uint8_t					*buf_send;
