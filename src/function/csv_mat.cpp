@@ -76,8 +76,9 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	default:
 		return -1;
 	}
-//csv_dlp_write(CLOSE_LOGO_LED);
-//csv_dlp_write(OPEN_SYNC);
+
+//csv_dlp_write_and_read(DLP_BRIGHT);
+//csv_dlp_write_and_read(DLP_DEMARCATE);
 
 	ret = csv_mvs_cams_grab_both();
 	if (ret == 0) {
@@ -151,8 +152,8 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
     int leftsize = 0, rightsize = 0;	// 左右图像的大小
 	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
 
-//csv_dlp_write(CLOSE_LOGO_LED);
-//csv_dlp_write(OPEN_SYNC);
+//csv_dlp_write_and_read(DLP_BRIGHT);
+//csv_dlp_write_and_read(DLP_DEMARCATE);
 
 	ret = csv_mvs_cams_grab_both();
 	if (ret == 0) {
