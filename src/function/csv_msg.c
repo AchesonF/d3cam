@@ -354,6 +354,8 @@ static int cameras_save_to_bmp_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* ha
 		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%dS00P%03d.bmp", pMVS->groupDemarcate, r_l+1, idx);
 	}
 
+	log_debug("To file : '%s'", img_filename);
+
 	pDataForSaveImage = (uint8_t*)malloc(stImageInfo->nWidth * stImageInfo->nHeight * 4 + 2048);
 	if (NULL == pDataForSaveImage) {
 		log_err("ERROR : malloc DataForSaveImage");
@@ -408,7 +410,7 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 	struct cam_spec_t *pCAM = NULL;
 
 	if (!csv_file_isExist("data/calibImage")) {
-		system("mkdir -p data/calibImage");
+		ret = system("mkdir -p data/calibImage");
 	}
 
 	ret = csv_dlp_write_and_read(DLP_BRIGHT);
@@ -421,7 +423,7 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 	memset(&stParam, 0, sizeof(MVCC_INTVALUE));
 
 	// 前提是必须保证两个相机是一样的参数
-	nRet = MV_CC_GetIntValue(pCAM->pHandle, "PayloadSize", &stParam);
+	nRet = MV_CC_GetIntValue(Cam[CAM_LEFT].pHandle, "PayloadSize", &stParam);
 	if (MV_OK != nRet) {
 		log_info("ERROR : CAM '%s' get PayloadSize failed. [0x%08X]", pCAM->serialNum, nRet);
 		return -1;
@@ -429,7 +431,7 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 
 	while (idx < nFrames) {
 
-		for (i = 0; pMVS->cnt_mvs; i++) {
+		for (i = 0; i < pMVS->cnt_mvs; i++) {
 			pCAM = &Cam[i];
 			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 				continue;
@@ -451,12 +453,12 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 			if (nRet == MV_OK) {
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+
+				ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->serialNum, idx, i, nRet);
 			}
-
-			ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
 
 		}
 

@@ -18,8 +18,8 @@ int csv_mvs_cams_enum (void)
 
 	memset(pDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
 
-	//nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE|MV_USB_DEVICE, pDevList);
-	nRet = MV_CC_EnumDevices(MV_USB_DEVICE, pDevList);
+	nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE|MV_USB_DEVICE, pDevList);
+	//nRet = MV_CC_EnumDevices(MV_USB_DEVICE, pDevList);
 	if (MV_OK != nRet) {
 		log_info("ERROR : EnumDevices failed. [0x%08X]", nRet);
 		return -1;
