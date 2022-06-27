@@ -7,7 +7,14 @@ extern "C" {
 
 #define NAME_THREAD_MVS			("'thr_mvs'")
 
-#define MAX_CAMERA_NUM			(2) // 4
+enum {
+	CAM_LEFT				= (0),
+	CAM_RIGHT				= (1),
+//	CAM_FRONT				= (2),
+//	CAM_BACK				= (3),
+
+	TOTAL_CAMS
+};
 
 
 // (#define INFO_MAX_BUFFER_SIZE 64) in CameraParams.h
@@ -17,18 +24,19 @@ struct cam_spec_t {
 	char					serialNum[64];
 	char					modelName[64];
 	MVCC_FLOATVALUE			exposureTime;
-	MVCC_FLOATVALUE			camGain;
+	MVCC_FLOATVALUE			gain;
 
 	MV_FRAME_OUT_INFO_EX	imageInfo;
 	uint8_t					*imgData;
 };
+
+extern struct cam_spec_t	Cam[TOTAL_CAMS];
 
 struct csv_mvs_t {
 	uint8_t					cnt_mvs;
 	uint8_t					bExit;
 
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
-	struct cam_spec_t		cam[MAX_CAMERA_NUM];
 
 	// todo bind dev
 

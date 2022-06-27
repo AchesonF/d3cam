@@ -61,6 +61,9 @@ struct csv_msg_t {
 	pthread_cond_t			cond_msg;		///< 条件
 };
 
+extern int csv_msg_ack_package (struct msg_package_t *pMP, struct msg_ack_t *pACK, 
+	char *content, int len, int retcode);
+
 extern int csv_msg_send (struct msg_ack_t *pACK);
 
 extern int csv_msg_check (uint8_t *buf, uint32_t len);

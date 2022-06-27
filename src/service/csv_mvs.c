@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-
+struct cam_spec_t Cam[TOTAL_CAMS];
 
 /* 枚举相机 */
 int csv_mvs_cams_enum (void)
@@ -26,16 +26,16 @@ int csv_mvs_cams_enum (void)
 	}
 
 	if (pDevList->nDeviceNum > 0) {
-		log_info("OK : found %d cam devices.", pDevList->nDeviceNum);
+		log_info("OK : found %d CAM devices.", pDevList->nDeviceNum);
 	} else {
-		log_info("WARN : NO cam devices.");
+		log_info("WARN : NO CAM devices.");
 	}
 
 	pMVS->cnt_mvs = pDevList->nDeviceNum;
 
-	if (pDevList->nDeviceNum > MAX_CAMERA_NUM) {
-		pMVS->cnt_mvs = MAX_CAMERA_NUM;
-		log_info("only use first %d cam devices.", MAX_CAMERA_NUM);
+	if (pDevList->nDeviceNum > TOTAL_CAMS) {
+		pMVS->cnt_mvs = TOTAL_CAMS;
+		log_info("only use first %d CAM devices.", TOTAL_CAMS);
 	}
 
 	for (i = 0; i < pMVS->cnt_mvs; i++){
@@ -44,7 +44,7 @@ int csv_mvs_cams_enum (void)
 			break;
 		}
 
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		switch (pDevInfo->nTLayerType) {
 		case MV_USB_DEVICE: {
@@ -81,7 +81,7 @@ int csv_mvs_cams_reset (void)
 	struct cam_spec_t *pCAM = NULL;
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
 			errNum++;
@@ -129,7 +129,7 @@ int csv_mvs_cams_open (void)
 			break;
 		}
 
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 		if (pCAM->opened) {
 			continue;
 		}
@@ -169,7 +169,7 @@ int csv_mvs_cams_open (void)
 		}
 
 		// 获取相机的增益数据
-		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "Gain", &pCAM->camGain);
+		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "Gain", &pCAM->gain);
 		if (MV_OK != nRet){
 			errNum++;
 		}
@@ -259,7 +259,7 @@ int csv_mvs_cams_close (void)
 	struct cam_spec_t *pCAM = NULL;
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
 			//errNum++;
@@ -298,7 +298,7 @@ int csv_mvs_cams_exposure_get (void)
 	struct cam_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
 			errNum++;
@@ -330,7 +330,7 @@ int csv_mvs_cams_exposure_set (float fExposureTime)
 	struct cam_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
 			errNum++;
@@ -370,16 +370,16 @@ int csv_mvs_cams_gain_get (void)
 	struct cam_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
 			errNum++;
 			continue;
 		}
 
-		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "Gain", &pCAM->camGain);
+		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "Gain", &pCAM->gain);
 		if (MV_OK != nRet) {
-			log_info("ERROR : '%s' get camGain failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' get gain failed. [0x%08X]", pCAM->serialNum, nRet);
 			errNum++;
 		}
 	}
@@ -400,24 +400,24 @@ int csv_mvs_cams_gain_set (float fGain)
 	struct cam_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
 			errNum++;
 			continue;
 		}
 
-		if (pCAM->camGain.fMax < fGain){
-			fGain = pCAM->camGain.fMax;
+		if (pCAM->gain.fMax < fGain) {
+			fGain = pCAM->gain.fMax;
 		}
 
-		if(pCAM->camGain.fMin > fGain){
-			fGain = pCAM->camGain.fMin;
+		if (pCAM->gain.fMin > fGain) {
+			fGain = pCAM->gain.fMin;
 		}
 
 		nRet = MV_CC_SetFloatValue(pCAM->cameraHandle, "Gain", fGain);
 		if (MV_OK != nRet){
-			log_info("ERROR : '%s' set camGain failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' set gain failed. [0x%08X]", pCAM->serialNum, nRet);
 			errNum++;
 		}
 	}
@@ -438,7 +438,7 @@ int csv_mvs_cams_name_set (char *camSNum, char *strValue)
 	struct cam_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
 			errNum++;
@@ -470,7 +470,7 @@ int csv_mvs_cams_grab_both (void)
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAM = &pMVS->cam[0];
+	struct cam_spec_t *pCAM = &Cam[0];
 	MVCC_INTVALUE stParam;
 
 	memset(&stParam, 0, sizeof(MVCC_INTVALUE));
@@ -483,7 +483,7 @@ int csv_mvs_cams_grab_both (void)
 	}
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &pMVS->cam[i];
+		pCAM = &Cam[i];
 
 		if ((!pCAM->opened)||(NULL == pCAM->cameraHandle)) {
 			errNum++;
@@ -733,10 +733,10 @@ static int csv_mvs_device_prepare (struct csv_mvs_t *pMVS)
 	if (pDevList->nDeviceNum > 0) {
 		log_info("Found Cam nDeviceNum : %d", pDevList->nDeviceNum);
 		for (i = 0; i < pDevList->nDeviceNum; i++) {
-			log_debug("[cam device %d]: ", i);
+			log_debug("[CAM device %d]: ", i);
 			pDevInfo = pDevList->pDeviceInfo[i];
 			if (NULL == pDevInfo) {
-				log_info("ERROR : cam device info");
+				log_info("ERROR : CAM device info");
 				return -2;
 			}
 			csv_mvs_show_device_info(pDevInfo);
@@ -784,7 +784,7 @@ static void *csv_mvs_loop (void *data)
 				log_err("ERROR : pthread_create Cam[%d] failed. ret = %d", idx, ret);
 				continue;
 			}
-			log_info("OK : create pthread 'cam%d' @ (%p)", idx, tid);
+			log_info("OK : create pthread 'CAM%d' @ (%p)", idx, tid);
 		}
 
 wait:
@@ -875,6 +875,19 @@ int csv_mvs_init (void)
 
 int csv_mvs_deinit (void)
 {
+	int i = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = NULL;
+
+    for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &Cam[i];
+
+		if (NULL != pCAM->imgData) {
+			free(pCAM->imgData);
+			pCAM->imgData = NULL;
+		}
+	}
+
 	//return csv_mvs_thread_cancel(&gCSV->mvs);
 	return 0;
 }

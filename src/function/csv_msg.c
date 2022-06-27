@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 
-static int csv_msg_ack_package (struct msg_package_t *pMP, struct msg_ack_t *pACK, 
+int csv_msg_ack_package (struct msg_package_t *pMP, struct msg_ack_t *pACK, 
 	char *content, int len, int retcode)
 {
 	pACK->len_send = len+sizeof(struct msg_head_t);
@@ -51,7 +51,9 @@ static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int ret = 0;
 	int len_msg = 0;
 	char str_enums[1024] = {0};
-	struct csv_mvs_t *pMVS = &gCSV->mvs;
+
+	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
+	//struct cam_spec_t *pCAMFRONT = &Cam[CAM_FRONT], *pCAMBACK = &Cam[CAM_BACK];
 
 	pACK->len_send = 0;
 
@@ -62,17 +64,17 @@ static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		memset(str_enums, 0, 1024);
 		switch (gCSV->cfg.device_param.device_type) {
 		case CAM1_LIGHT2:
-			len_msg = snprintf(str_enums, 1024, "%s", pMVS->cam[0].serialNum);
+			len_msg = snprintf(str_enums, 1024, "%s", pCAMLEFT->serialNum);
 			break;
-
+/*
 		case CAM4_LIGHT1:
-			len_msg = snprintf(str_enums, 1024, "%s,%s,%s,%s", pMVS->cam[0].serialNum, 
-				pMVS->cam[1].serialNum, pMVS->cam[2].serialNum, pMVS->cam[3].serialNum);
+			len_msg = snprintf(str_enums, 1024, "%s,%s,%s,%s", pCAMLEFT->serialNum, 
+				pCAMRIGHT->serialNum, pCAMFRONT->serialNum, pCAMBACK->serialNum);
 			break;
+*/
 		case CAM2_LIGHT1:
 		case RDM_LIGHT:
-			len_msg = snprintf(str_enums, 1024, "%s,%s", pMVS->cam[0].serialNum, 
-				pMVS->cam[1].serialNum);
+			len_msg = snprintf(str_enums, 1024, "%s,%s", pCAMLEFT->serialNum, pCAMRIGHT->serialNum);
 		default:
 			break;
 		}
@@ -126,7 +128,7 @@ static int msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t
 	int len_msg = 0;
 	char str_expo[1024] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAM0 = &pMVS->cam[0], *pCAM1 = &pMVS->cam[1];
+	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
 
 	pACK->len_send = 0;
 
@@ -135,8 +137,8 @@ static int msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
 		len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
-			pCAM0->serialNum, pCAM0->exposureTime.fCurValue,
-			pCAM0->serialNum, pCAM0->exposureTime.fCurValue);
+			pCAMLEFT->serialNum, pCAMLEFT->exposureTime.fCurValue,
+			pCAMRIGHT->serialNum, pCAMRIGHT->exposureTime.fCurValue);
 
 		if (len_msg > 0) {
 			csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
@@ -174,7 +176,7 @@ static int msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 	int len_msg = 0;
 	char str_gain[1024] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAM0 = &pMVS->cam[0], *pCAM1 = &pMVS->cam[1];
+	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
 
 	pACK->len_send = 0;
 
@@ -183,8 +185,8 @@ static int msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
 		len_msg = snprintf(str_gain, 1024, "%s:%f;%s:%f", 
-			pCAM0->serialNum, pCAM0->camGain.fCurValue,
-			pCAM0->serialNum, pCAM0->camGain.fCurValue);
+			pCAMLEFT->serialNum, pCAMLEFT->gain.fCurValue,
+			pCAMRIGHT->serialNum, pCAMRIGHT->gain.fCurValue);
 
 		if (len_msg > 0) {
 			csv_msg_ack_package(pMP, pACK, str_gain, len_msg, 0);
@@ -386,7 +388,10 @@ static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 	msg_command_add(pMSG, CAMERA_SET_LED_DELAY_TIME, toSTR(CAMERA_SET_LED_DELAY_TIME), msg_led_delay_set);
 	msg_command_add(pMSG, SYS_SOFT_INFO, toSTR(SYS_SOFT_INFO), msg_sys_info_get);
 
-
+	//msg_command_add(pMSG, CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), msg_cameras_grab_img_flash);
+	//msg_command_add(pMSG, CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), msg_cameras_grab_img_depth);
+	//msg_command_add(pMSG, CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), msg_cameras_grab_img_ledon);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_image);
 
 	// todo add more cmd
 
