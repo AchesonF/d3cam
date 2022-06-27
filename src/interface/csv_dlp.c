@@ -19,6 +19,28 @@ static uint8_t dlp_ctrl_cmd[TOTAL_DLP_CMD][LEN_DLP_CTRL] = {
 	{0x36, 0xAA, 0x21, 0x07, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA}	// WIDESTRIPE_SINE_BRIGHT
 };
 
+int csv_dlp_just_write (uint8_t idx)
+{
+	int ret = 0;
+	struct csv_dlp_t *pDLP = &gCSV->dlp;
+
+	if (pDLP->fd <= 0) {
+		return -1;
+	}
+
+	ret = csv_tty_write(pDLP->fd, dlp_ctrl_cmd[idx], sizeof(dlp_ctrl_cmd[idx]));
+	if (ret < 0) {
+		log_err("ERROR : %s write failed.", pDLP->name);
+		return -1;
+	}
+
+	if (ret > 0) {
+		log_hex(STREAM_TTY, dlp_ctrl_cmd[idx], ret, "DLP write");
+	}
+
+	return ret;
+}
+
 static int csv_dlp_write (struct csv_dlp_t *pDLP, uint8_t idx)
 {
 	int ret = 0;

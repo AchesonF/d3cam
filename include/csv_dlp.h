@@ -47,6 +47,7 @@ struct csv_dlp_t {
 	pthread_cond_t			cond_dlp;		///< 条件
 };
 
+extern int csv_dlp_just_write (uint8_t idx);
 
 extern int csv_dlp_write_and_read (uint8_t idx);
 

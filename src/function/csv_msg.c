@@ -413,12 +413,6 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 		ret = system("mkdir -p data/calibImage");
 	}
 
-	ret = csv_dlp_write_and_read(DLP_BRIGHT);
-	ret |= csv_dlp_write_and_read(DLP_DEMARCATE);
-	if (ret < 0) {
-		return -1;
-	}
-
 	MVCC_INTVALUE stParam;
 	memset(&stParam, 0, sizeof(MVCC_INTVALUE));
 
@@ -429,22 +423,50 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 		return -1;
 	}
 
-	while (idx < nFrames) {
+	// 1 亮光
+	ret = csv_dlp_just_write(DLP_BRIGHT);
 
+	for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &Cam[i];
+		if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
+			continue;
+		}
+
+		if (pCAM->imgData != NULL) {
+			memset(pCAM->imgData, 0x00, stParam.nCurValue);
+		} else {
+			pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
+			if (pCAM->imgData == NULL){
+				log_err("ERROR : malloc imgData");
+				return -1;
+			}
+		}
+
+		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
+			stParam.nCurValue, &pCAM->imageInfo, 3000);
+		if (nRet == MV_OK) {
+			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
+				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+
+			ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+		} else {
+			log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
+				pCAM->serialNum, idx, i, nRet);
+		}
+
+	}
+
+	idx++;
+
+	// 22 标定
+	ret = csv_dlp_just_write(DLP_DEMARCATE);
+
+	while (idx < nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
 			pCAM = &Cam[i];
 			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 				continue;
-			}
-
-			if (pCAM->imgData != NULL) {
-				memset(pCAM->imgData, 0x00, stParam.nCurValue);
-			} else {
-				pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
-				if (pCAM->imgData == NULL){
-					log_err("ERROR : malloc imgData");
-					return -1;
-				}
 			}
 
 			memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
