@@ -27,11 +27,17 @@ struct msglist_t {
 	struct list_head		list;
 };
 
+/* tcp 应答原始数据 */
+struct msg_ack_t {
+	uint32_t				len_send;
+	uint8_t					*buf_send;
+};
+
 /* 单个命令结构 */
 struct msg_command_t {
 	csv_cmd_e				cmdtype;
 	char					*cmdname;
-	int 					(*func)(struct msg_package_t *pMP);
+	int 					(*func)(struct msg_package_t *pMP, struct msg_ack_t *pACK);
 };
 
 /* 命令列表 */
@@ -40,12 +46,6 @@ struct msg_command_list {
 	struct list_head		list;
 };
 
-#define MAX_LEN_TCP_SND				(32*1024*1024)	// maybe need more for imgs
-
-struct msg_send_t {
-	uint32_t				len_send;
-	uint8_t					buf_send[MAX_LEN_TCP_SND];
-};
 
 /* 消息处理结构 */
 struct csv_msg_t {
@@ -53,13 +53,18 @@ struct csv_msg_t {
 	struct msg_command_list	head_cmd;		///< 命令注册链表
 	struct msglist_t		head_msg;		///< 消息链表
 
-	struct msg_send_t		ack;			///< 应答数据
+	struct msg_ack_t		ack;			///< 应答数据
 
 	const char				*name_msg;		///< 消息
 	pthread_t				thr_msg;		///< ID
 	pthread_mutex_t			mutex_msg;		///< 锁
 	pthread_cond_t			cond_msg;		///< 条件
 };
+
+extern int csv_msg_ack_package (struct msg_package_t *pMP, struct msg_ack_t *pACK, 
+	char *content, int len, int retcode);
+
+extern int csv_msg_send (struct msg_ack_t *pACK);
 
 extern int csv_msg_check (uint8_t *buf, uint32_t len);
 
