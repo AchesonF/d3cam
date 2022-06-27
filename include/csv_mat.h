@@ -13,7 +13,9 @@ struct img_hdr_t {
 };
 
 
-extern int msg_cameras_grab_image (struct msg_package_t *pMP, struct msg_ack_t *pACK);
+extern int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK);
+
+extern int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK);
 
 
 #ifdef __cplusplus

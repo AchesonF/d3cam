@@ -20,7 +20,7 @@ int csv_mvs_cams_enum (void)
 
 	//nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE|MV_USB_DEVICE, pDevList);
 	nRet = MV_CC_EnumDevices(MV_USB_DEVICE, pDevList);
-	if (MV_OK != nRet){
+	if (MV_OK != nRet) {
 		log_info("ERROR : EnumDevices failed. [0x%08X]", nRet);
 		return -1;
 	}
@@ -38,7 +38,7 @@ int csv_mvs_cams_enum (void)
 		log_info("only use first %d CAM devices.", TOTAL_CAMS);
 	}
 
-	for (i = 0; i < pMVS->cnt_mvs; i++){
+	for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pDevInfo = pDevList->pDeviceInfo[i];
 		if (NULL == pDevInfo) {
 			break;
@@ -134,12 +134,12 @@ int csv_mvs_cams_open (void)
 			continue;
 		}
 
-		log_info("Opening '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
+		log_info("Opening CAM '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
 
 		nRet = MV_CC_CreateHandle(&pCAM->cameraHandle, pDevInfo);
 		if (MV_OK != nRet) {
 			pCAM->cameraHandle = NULL;
-			log_info("ERROR : '%s' CreateHandle failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' CreateHandle failed. [0x%08X]", pCAM->serialNum, nRet);
 			continue;
 		}
 
@@ -150,7 +150,7 @@ int csv_mvs_cams_open (void)
 			MV_CC_DestroyHandle(pCAM->cameraHandle);
 			pCAM->opened = false;
 			errNum++;
-			log_info("ERROR : '%s' OpenDevice failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' OpenDevice failed. [0x%08X]", pCAM->serialNum, nRet);
 			continue;
 		}
 
@@ -164,41 +164,43 @@ int csv_mvs_cams_open (void)
         
         // 获取相机的曝光时间
 		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "ExposureTime", &pCAM->exposureTime);
-		if (MV_OK != nRet){
+		if (MV_OK != nRet) {
 			errNum++;
 		}
 
 		// 获取相机的增益数据
 		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "Gain", &pCAM->gain);
-		if (MV_OK != nRet){
+		if (MV_OK != nRet) {
 			errNum++;
 		}
 
 		// todo
+/*
 		nRet = MV_CC_SetFloatValue(pCAM->cameraHandle, "ExposureTime", 20000);
 		if (MV_OK == nRet) {
-			log_info("OK : set ExposureTime : %f", 20000);
+			log_info("OK : CAM set ExposureTime : %f", 20000);
 		} else{
 			errNum++;
 		}
+*/
 
 		// 设置抓取图片的像素格式
 		uint32_t enValue = PixelType_Gvsp_Mono8;	// 黑白相机
-		if (strstr(pCAM->modelName, "UC") != NULL){	// 彩色相机
+		if (strstr(pCAM->modelName, "UC") != NULL) {	// 彩色相机
 			enValue = PixelType_Gvsp_RGB8_Packed;
 		}
 
 		nRet = MV_CC_SetPixelFormat(pCAM->cameraHandle, enValue);
 		if (MV_OK != nRet) {
 			if (enValue == PixelType_Gvsp_RGB8_Packed) {
-				log_info("ERROR : SetPixelFormat failed PixelType_Gvsp_RGB8_Packed");
+				log_info("ERROR : SetPixelFormat failed PixelType_Gvsp_RGB8_Packed. [0x%08X]", nRet);
 			} else if (enValue == PixelType_Gvsp_Mono8) {
-				log_info("ERROR : SetPixelFormat failed PixelType_Gvsp_Mono8");
+				log_info("ERROR : SetPixelFormat failed PixelType_Gvsp_Mono8. [0x%08X]", nRet);
 			}
 		}
 
 		nRet = MV_CC_SetBoolValue(pCAM->cameraHandle, "AcquisitionFrameRateEnable", false);
-		if (MV_OK != nRet){
+		if (MV_OK != nRet) {
 			log_info("ERROR : AcquisitionFrameRateEnable failed.[0x%08X]", nRet);
 			errNum++;
 		}
@@ -213,33 +215,33 @@ int csv_mvs_cams_open (void)
 			int img_cut_off = struIntValue.nCurValue%16;
 			if (img_cut_off > 0) {	// 图像为非16Bytes对齐图像
 			    nRet = MV_CC_SetIntValue(pCAM->cameraHandle, "OffsetX", img_cut_off/2);
-			    nRet = MV_CC_SetIntValue(pCAM->cameraHandle, "Width", struIntValue.nCurValue-img_cut_off);
+			    nRet |= MV_CC_SetIntValue(pCAM->cameraHandle, "Width", struIntValue.nCurValue-img_cut_off);
 			}
 
 			if (MV_OK != nRet) {
-				log_info("ERROR : SetOffsetX failed. [0x%08X]", nRet);
+				log_info("ERROR : CAM SetOffsetX failed. [0x%08X]", nRet);
 				errNum++;
 			}
 		}
 
 		// 设置触发模式为 ON
 		nRet = MV_CC_SetEnumValue(pCAM->cameraHandle, "TriggerMode", MV_TRIGGER_MODE_ON);
-		if (MV_OK != nRet){
-			log_info("ERROR : SetTriggerMode failed. [0x%08X]", nRet);
+		if (MV_OK != nRet) {
+			log_info("ERROR : CAM SetTriggerMode failed. [0x%08X]", nRet);
 			errNum++;
 		}
 
 		// 设置触发源 line0
 		nRet = MV_CC_SetEnumValue(pCAM->cameraHandle, "TriggerSource", MV_TRIGGER_SOURCE_LINE0);
-		if (MV_OK != nRet){
-			log_info("ERROR : SetTriggerSource failed. [0x%08X]", nRet);
+		if (MV_OK != nRet) {
+			log_info("ERROR : CAM SetTriggerSource failed. [0x%08X]", nRet);
 			errNum++;
 		}
 
         // 准备开始取数据流
 		nRet = MV_CC_StartGrabbing(pCAM->cameraHandle);
-		if (MV_OK != nRet){
-			log_info("ERROR : StartGrabbing failed. [0x%08X]", nRet);
+		if (MV_OK != nRet) {
+			log_info("ERROR : CAM StartGrabbing failed. [0x%08X]", nRet);
 			errNum++;
         }
     }
@@ -268,13 +270,13 @@ int csv_mvs_cams_close (void)
 
 		nRet = MV_CC_CloseDevice(pCAM->cameraHandle);
 		if (MV_OK != nRet) {
-			log_info("ERROR : '%s' CloseDevice failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' CloseDevice failed. [0x%08X]", pCAM->serialNum, nRet);
 			errNum++;
 		}
 
 		nRet = MV_CC_DestroyHandle(pCAM->cameraHandle);
 		if (MV_OK != nRet) {
-			log_info("ERROR : '%s' DestroyHandle failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' DestroyHandle failed. [0x%08X]", pCAM->serialNum, nRet);
 			errNum++;
 		}
 
@@ -306,8 +308,8 @@ int csv_mvs_cams_exposure_get (void)
 		}
 
 		nRet = MV_CC_GetFloatValue(pCAM->cameraHandle, "ExposureTime", &pCAM->exposureTime);
-		if (MV_OK == nRet){
-			log_info("OK：'%s' get ExposureTime : %f [%f, %f]", pCAM->serialNum, 
+		if (MV_OK == nRet) {
+			log_info("OK：CAM '%s' get ExposureTime : %f [%f, %f]", pCAM->serialNum, 
 				pCAM->exposureTime.fCurValue, pCAM->exposureTime.fMin, pCAM->exposureTime.fMax);
 		} else {
 			errNum++;
@@ -347,9 +349,9 @@ int csv_mvs_cams_exposure_set (float fExposureTime)
 
 		nRet = MV_CC_SetFloatValue(pCAM->cameraHandle, "ExposureTime", fExposureTime);
 		if (MV_OK == nRet) {
-			log_info("OK : '%s' set ExposureTime : %f", pCAM->serialNum, fExposureTime);
+			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->serialNum, fExposureTime);
 		} else {
-			log_info("ERROR : '%s' set ExposureTime failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->serialNum, nRet);
 			errNum++;
 		}
 	}
@@ -416,7 +418,7 @@ int csv_mvs_cams_gain_set (float fGain)
 		}
 
 		nRet = MV_CC_SetFloatValue(pCAM->cameraHandle, "Gain", fGain);
-		if (MV_OK != nRet){
+		if (MV_OK != nRet) {
 			log_info("ERROR : CAM '%s' set gain failed. [0x%08X]", pCAM->serialNum, nRet);
 			errNum++;
 		}
@@ -447,19 +449,19 @@ int csv_mvs_cams_name_set (char *camSNum, char *strValue)
 
 		if (strstr(pCAM->serialNum, camSNum)) {
 			nRet = MV_CC_SetStringValue(pCAM->cameraHandle, "DeviceUserID", (char*)strValue);
-			if (MV_OK == nRet){
-				log_info("OK ： '%s' set DeviceUserID.", pCAM->serialNum);
+			if (MV_OK == nRet) {
+				log_info("OK ：CAM '%s' set DeviceUserID.", pCAM->serialNum);
 
 				return 0;
             } else {
-				log_info("ERROR : '%s' set DeviceUserID Failed. [0x%08X]", pCAM->serialNum, nRet);
+				log_info("ERROR : CAM '%s' set DeviceUserID Failed. [0x%08X]", pCAM->serialNum, nRet);
 
 				return -1;
 			}
 		}
 	}
 
-	log_info("WARN : '%s' not found.", camSNum);
+	log_info("WARN : CAM '%s' not found.", camSNum);
 
 	return -1;
 }
@@ -478,7 +480,7 @@ int csv_mvs_cams_grab_both (void)
 	// 前提是必须保证两个相机是一样的参数
 	nRet = MV_CC_GetIntValue(pCAM->cameraHandle, "PayloadSize", &stParam);
 	if (MV_OK != nRet) {
-		log_info("ERROR : '%s' get PayloadSize failed. [0x%08X]", pCAM->serialNum, nRet);
+		log_info("ERROR : CAM '%s' get PayloadSize failed. [0x%08X]", pCAM->serialNum, nRet);
 		return -1;
 	}
 
@@ -504,7 +506,7 @@ int csv_mvs_cams_grab_both (void)
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->cameraHandle, pCAM->imgData, 
 			stParam.nCurValue, &pCAM->imageInfo, 3000);
 		if (nRet == MV_OK) {
-			log_info("OK : '%s' GetOneFrame[%d] %d x %d", pCAM->serialNum, 
+			log_info("OK : CAM '%s' GetOneFrame[%d] %d x %d", pCAM->serialNum, 
 				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 		} else {
 			errNum++;
@@ -615,7 +617,6 @@ static void *csv_mvs_cam_loop (void *data)
 		log_info("ERROR : MV_CC_StartGrabbing Cam[%d] failed. 0x%08X", idx, nRet);
 		goto out;
 	}
-
 
 	MVCC_STRINGVALUE stStringValue = {0};
 	char camSerialNumber[256] = {0};

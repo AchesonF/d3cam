@@ -55,8 +55,6 @@ static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
 	//struct cam_spec_t *pCAMFRONT = &Cam[CAM_FRONT], *pCAMBACK = &Cam[CAM_BACK];
 
-	pACK->len_send = 0;
-
 	ret = csv_mvs_cams_enum();
 	if (ret <= 0) {
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
@@ -91,8 +89,6 @@ static int msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
-
-	pACK->len_send = 0;
 
 	ret = csv_mvs_cams_open();
 	if (ret == 0) {
@@ -388,10 +384,13 @@ static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 	msg_command_add(pMSG, CAMERA_SET_LED_DELAY_TIME, toSTR(CAMERA_SET_LED_DELAY_TIME), msg_led_delay_set);
 	msg_command_add(pMSG, SYS_SOFT_INFO, toSTR(SYS_SOFT_INFO), msg_sys_info_get);
 
-	//msg_command_add(pMSG, CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), msg_cameras_grab_img_flash);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), msg_cameras_grab_gray);
 	//msg_command_add(pMSG, CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), msg_cameras_grab_img_depth);
-	//msg_command_add(pMSG, CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), msg_cameras_grab_img_ledon);
-	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_image);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_LEDOFF, toSTR(CAMERA_GET_GRAB_LEDOFF), msg_cameras_grab_gray);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), msg_cameras_grab_gray);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_rgb);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), msg_cameras_grab_rgb);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), msg_cameras_grab_rgb);
 
 	// todo add more cmd
 
