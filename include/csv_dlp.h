@@ -26,7 +26,7 @@ typedef enum {
 	PINSTRIPE_SINE_BRIGHT	= (9),		// 细纹正弦常亮
 	WIDESTRIPE_SINE_BRIGHT	= (10),		// 宽纹正弦常亮
 
-	TOTAL_DLP_CMD;
+	TOTAL_DLP_CMD
 } dlp_ctrl_idx;
 
 
