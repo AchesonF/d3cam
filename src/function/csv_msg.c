@@ -379,13 +379,20 @@ static int cameras_save_to_bmp_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* ha
 
 	nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
 	if (MV_OK != nRet) {
-		log_info("ERROR : SaveImage failed. [0x%08X]", nRet);
-		return -1;
+		log_info("ERROR : %d_%02d SaveImage failed. [0x%08X]", idx, r_l, nRet);
+		ret = -1;
+		goto exit;
 	}
 
 	ret = csv_file_write_data(img_filename, pDataForSaveImage, stSaveParam.nImageLen);
 	if (ret < 0) {
-		log_info("ERROR : write file.");
+		log_info("ERROR : write file. %d_%02d", idx, r_l);
+	}
+
+exit:
+
+	if (NULL != pDataForSaveImage) {
+		free(pDataForSaveImage);
 	}
 
 	return ret;
@@ -442,8 +449,11 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 			nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
 				stParam.nCurValue, &pCAM->imageInfo, 3000);
 			if (nRet == MV_OK) {
-				log_info("OK : CAM '%s' GetOneFrame[%d] %d x %d", pCAM->serialNum, 
+				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+			} else {
+				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
+					pCAM->serialNum, idx, i, nRet);
 			}
 
 			ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
