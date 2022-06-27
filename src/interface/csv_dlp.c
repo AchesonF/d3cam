@@ -33,7 +33,9 @@ static int csv_dlp_write (struct csv_dlp_t *pDLP, uint8_t idx)
 		return -1;
 	}
 
-	log_hex(STREAM_TTY, dlp_ctrl_cmd[idx], ret, "DLP write");
+	if (ret > 0) {
+		log_hex(STREAM_TTY, dlp_ctrl_cmd[idx], ret, "DLP write");
+	}
 
 	return ret;
 }
@@ -56,7 +58,9 @@ int csv_dlp_read (struct csv_dlp_t *pDLP)
 
 	pDLP->rlen = ret;
 
-	log_hex(STREAM_TTY, pDLP->rbuf, ret, "DLP read");
+	if (ret > 0) {
+		log_hex(STREAM_TTY, pDLP->rbuf, ret, "DLP read");
+	}
 
 	return ret;
 }
@@ -75,7 +79,7 @@ int csv_dlp_write_and_read (uint8_t idx)
 
 	do {
 		ret = csv_dlp_write(pDLP, idx);
-	} while ((ret < 0)||(++cnt_snd < 3));
+	} while ((ret < 0)&&(++cnt_snd < 3));
 
 	if (ret < 0) {
 		return -1;
