@@ -65,6 +65,13 @@ if (USING_WEB_SERVER)
 	)
 endif ()
 
+option(USING_POINTCLOUD "Add point 3d cloud" ON)
+if (USING_POINTCLOUD)
+	set(INC_POINTCLOUD
+		"src/libpointcloud3d"
+	)
+endif ()
+
 # add include directories here
 include_directories(
 	"include"
@@ -73,6 +80,7 @@ include_directories(
 	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}
 	"/usr/local/include/opencv4/"
+	${INC_POINTCLOUD}
 )
 
 add_subdirectory(src)

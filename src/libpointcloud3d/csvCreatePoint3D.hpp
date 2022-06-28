@@ -1,14 +1,16 @@
 #ifndef __CSV_CREATE_POINT3D_HPP__
 #define __CSV_CREATE_POINT3D_HPP__
+
+#include <string>
 #include "csvPoint3DCloud.hpp"
 
 namespace CSV {
-	//Jetson 框架与算法so交互接口
+	//interface between Jetson and 3D measure
 	class CsvCreatePoint3DParam
 	{
 	public:
-		std::string calibXml; //相机标定文件
-		CSV_DataFormatType type; //出点云类型
+		std::string calibXml; // calibration file (xml) of cameras
+		CSV_DataFormatType type; //type of output point cloud
 
 		CsvCreatePoint3DParam() {
 			calibXml = "";
@@ -35,9 +37,8 @@ namespace CSV {
 		unsigned int  m_widthStep;
 	};
 
-
-
-	bool csvSetCreatePoint3DParam(const CsvCreatePoint3DParam &param); //设置标定文件（开机设置一次）
+	std::string csvGetCreatePoint3DALgVersion();
+	bool csvSetCreatePoint3DParam(const CsvCreatePoint3DParam &param); //setting only one time after power on
 	bool csvGetCreatePoint3DParam(CsvCreatePoint3DParam &param);
 	bool csvCreatePoint3D(
 		const std::vector<std::vector<CsvImageSimple>>& inImages,

@@ -1,5 +1,7 @@
 #include "inc_files.h"
 
+#include "csv_pointcloud.hpp"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -264,6 +266,9 @@ static void startup_opts (int argc, char **argv)
 int csv_init (struct csv_info_t *pCSV)
 {
 	csv_file_init();
+
+// for test
+	testPoint3DCloud();
 
 	csv_json_init();
 
