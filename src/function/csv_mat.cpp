@@ -1,11 +1,7 @@
 #include "CameraParams.h"
 #include "CsvStereoMatch.hpp"
 
-#include "list.h"
-#include "csv_type.h"
-#include "csv_msg.h"
-#include "csv_mvs.h"
-#include "csv_mat.h"
+#include "inc_files.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +12,13 @@ extern "C" {
 static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo, 
 	unsigned char *pData, Mat& outImgMat, bool needRGB)
 {
+	int ret = 0;
+
+	if ((NULL == pstImageInfo)||(NULL == pData)) {
+		printf("ERROR : null point.\n");
+		return -1;
+	}
+
 	switch (pstImageInfo->enPixelType) {
 	case PixelType_Gvsp_Mono8:
 		outImgMat = cv::Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC1, pData);
@@ -29,18 +32,23 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 		}
 		break;
 	default:
-		//log_info("ERROR : not support PixelType[%08X]", pstImageInfo->enPixelType);
-		return -1;
+		log_info("ERROR : not support PixelType[%08X]", pstImageInfo->enPixelType);
+		ret = -1;
 		break;
 	}
 
-	if ( NULL == outImgMat.data ){
-		//log_info("ERROR : null image out.");
+	if (NULL == outImgMat.data){
+		log_info("ERROR : null image out.");
 
-		return -1;
+		ret = -1;
 	}
 
-	return 0;
+	if (NULL != pData) {
+		free(pData);
+		pData = NULL;
+	}
+
+	return ret;
 }
 
 /* 左右灰度图 */
@@ -52,33 +60,7 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
     int leftsize = 0, rightsize = 0;	// 左右图像的大小
 	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
 
-	switch (pMP->hdr.cmdtype) {
-	case CAMERA_GET_GRAB_FLASH:
-		// OPEN_LOGO_LED
-		// OPEN_SYNC
-		ret = csv_mvs_cams_grab_both();
-		// CLOSE_LOGO_LED
-		break;
-
-	case CAMERA_GET_GRAB_LEDOFF:
-		// OPEN_LOGO_LED
-		// OPEN_SYNC
-		ret = csv_mvs_cams_grab_both();
-		break;
-
-	case CAMERA_GET_GRAB_LEDON:
-		// OPEN_LOGO_LED
-		// OPEN_SYNC
-		ret = csv_mvs_cams_grab_both();
-		// CLOSE_LOGO_LED
-		break;
-
-	default:
-		return -1;
-	}
-
-//csv_dlp_write_and_read(DLP_BRIGHT);
-//csv_dlp_write_and_read(DLP_DEMARCATE);
+	csv_dlp_just_write(DLP_BRIGHT);
 
 	ret = csv_mvs_cams_grab_both();
 	if (ret == 0) {
@@ -102,7 +84,7 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			pACK->len_send = sizeof(struct msg_head_t) + len_msg;
 			pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 			if (NULL == pACK->buf_send) {
-				//log_err("ERROR : malloc send");
+				log_err("ERROR : malloc send");
 				return -1;
 			}
 
@@ -152,8 +134,7 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
     int leftsize = 0, rightsize = 0;	// 左右图像的大小
 	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
 
-//csv_dlp_write_and_read(DLP_BRIGHT);
-//csv_dlp_write_and_read(DLP_DEMARCATE);
+	csv_dlp_just_write(DLP_BRIGHT);
 
 	ret = csv_mvs_cams_grab_both();
 	if (ret == 0) {
@@ -183,7 +164,7 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			pACK->len_send = sizeof(struct msg_head_t) + len_msg;
 			pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 			if (NULL == pACK->buf_send) {
-				//log_err("ERROR : malloc send");
+				log_err("ERROR : malloc send");
 				return -1;
 			}
 

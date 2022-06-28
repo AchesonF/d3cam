@@ -1,4 +1,7 @@
 #include <iostream>
+
+#if (USING_POINTCLOUD3D==1)
+
 #include "csvCreatePoint3D.hpp"
 
 #ifdef __cplusplus
@@ -25,7 +28,10 @@ int testPoint3DCloud (void)
 	return 0;
 }
 
+
+
 #ifdef __cplusplus
 }
 #endif
 
+#endif

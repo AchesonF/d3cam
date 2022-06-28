@@ -267,8 +267,10 @@ int csv_init (struct csv_info_t *pCSV)
 {
 	csv_file_init();
 
+#if (USING_POINTCLOUD3D==1)
 // for test
 	testPoint3DCloud();
+#endif
 
 	csv_json_init();
 

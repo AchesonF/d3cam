@@ -432,15 +432,12 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 			continue;
 		}
 
-		if (pCAM->imgData != NULL) {
-			memset(pCAM->imgData, 0x00, stParam.nCurValue);
-		} else {
-			pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
-			if (pCAM->imgData == NULL){
-				log_err("ERROR : malloc imgData");
-				return -1;
-			}
+		pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
+		if (pCAM->imgData == NULL){
+			log_err("ERROR : malloc imgData");
+			return -1;
 		}
+		memset(pCAM->imgData, 0x00, stParam.nCurValue);
 
 		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
@@ -468,7 +465,7 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 				continue;
 			}
-
+			//memset(pCAM->imgData, 0x00, stParam.nCurValue);
 			memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 			nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
 				stParam.nCurValue, &pCAM->imageInfo, 3000);
@@ -487,6 +484,14 @@ static int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *p
 		idx++;
 	}
 
+	for (i = 0; i < pMVS->cnt_mvs; i++) {
+		pCAM = &Cam[i];
+
+		if (NULL != pCAM->imgData){
+			free(pCAM->imgData);
+			pCAM->imgData = NULL;
+		}
+	}
 
 	pMVS->groupDemarcate++;
 

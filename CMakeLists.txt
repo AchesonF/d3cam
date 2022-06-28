@@ -51,6 +51,7 @@ endif ()
 
 link_directories(
 	${DIR_LIBS_MVS}
+	"libs"
 )
 
 option(USING_WEB_SERVER "Add web thread" OFF)

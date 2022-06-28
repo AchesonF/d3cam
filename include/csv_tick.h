@@ -37,7 +37,7 @@ extern int csv_tick_deinit (void);
 
 
 #ifdef __cplusplus
-extern "C" {
+}
 #endif
 
 #endif	/* __CSV_TICK_H__ */

@@ -492,15 +492,12 @@ int csv_mvs_cams_grab_both (void)
 			continue;
 		}
 
-		if (pCAM->imgData != NULL) {
-			memset(pCAM->imgData, 0x00, stParam.nCurValue);
-		} else {
-			pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
-			if (pCAM->imgData == NULL){
-				log_err("ERROR : malloc imgData");
-				return -1;
-			}
+		pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
+		if (pCAM->imgData == NULL){
+			log_err("ERROR : malloc imgData");
+			return -1;
 		}
+		memset(pCAM->imgData, 0x00, stParam.nCurValue);
 
 		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
