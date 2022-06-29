@@ -6,9 +6,9 @@ extern "C" {
 
 
 //Guard against infinite recursion
-#define MAX_RECURSION_COUNT 50
+#define MAX_RECURSION_COUNT 50		// 递归深度
 
-void recursion_guard_increment (int *count)
+void csv_json_recursion_increment (int *count)
 {
 	int tmp = *count;
 
@@ -16,124 +16,142 @@ void recursion_guard_increment (int *count)
 	*count = tmp;
 }
 
-int csv_json_parse (json_object * jobj, int *recursion_guard_count)
+int csv_json_parse (json_object *jobj, int *cnt_recursion)
 {
-	recursion_guard_increment(recursion_guard_count);
+	csv_json_recursion_increment(cnt_recursion);
 
-	if (*recursion_guard_count > MAX_RECURSION_COUNT) {
-		log_warn("JSON CFG MAX RECURSION LIMIT HIT");
+	if (*cnt_recursion > MAX_RECURSION_COUNT) {
+		log_warn("JSON CFG MAX RECURSION LIMIT HIT %d", cnt_recursion);
 
 		return -1;
     }
 
+	int ret = 0;
 	enum json_type type;
+	json_bool j_ret = FALSE;
+	json_object *j_object = NULL, *j_array = NULL, *j_value = NULL;
 
 	json_object_object_foreach(jobj, key, val) {
 		type = json_object_get_type(val);
 
 		switch (type) {
         case json_type_null: {
-			json_object *tmp_null = NULL;
-			json_object_object_get_ex(jobj, key, &tmp_null);
-			printf("null key: \"%s\" : ", key);
-			printf("%s\n", json_object_get_string(tmp_null));
-			json_object_put(tmp_null);
-			break;
-		}
-
-		case json_type_object: {
-			json_object *tmp_object = NULL;
-			printf("obj key: \"%s\"\n", key);
-			json_object_object_get_ex(jobj, key, &tmp_object);
-			csv_json_parse(tmp_object, recursion_guard_count);
-			json_object_put(tmp_object);
-			break;
-		}
-
-		case json_type_array: {
-			json_object *tmp_array = NULL;
-			json_object_object_get_ex(jobj, key, &tmp_array);
-			printf("array key: \"%s\"\n", key);
-			int arraylen = json_object_array_length(tmp_array);
-			printf("Array Length: %d\n", arraylen);
-			int i;
-			json_object * jvalue;
-			for (i = 0; i< arraylen; i++) {
-				jvalue = json_object_array_get_idx(tmp_array, i);
-				printf("[%d] : \"%s\"\n",i, json_object_get_string(jvalue));
-				enum json_type type0 = json_object_get_type(jvalue);
-
-				switch(type0) {
-				case json_type_object:
-				case json_type_array:
-					csv_json_parse(jvalue, recursion_guard_count);
-					break;
-				default:
-					break;
-				}
+			j_ret = json_object_object_get_ex(jobj, key, &j_object);
+			if (j_ret && (NULL != j_object)) {
+				log_debug("null ['%s' : '%s']", key, json_object_get_string(j_object));
+				// todo 
+				json_object_put(j_object);
 			}
-
-			json_object_put(jvalue);
-			json_object_put(tmp_array);
-			break;
-		}
-
-		case json_type_string: {
-			json_object *tmp_string = NULL;
-			json_object_object_get_ex(jobj, key, &tmp_string);
-			printf("str key: \"%s\" : ",key);
-			printf("\"%s\"\n",json_object_get_string(tmp_string));
-			json_object_put(tmp_string);
 			break;
 		}
 
 		case json_type_boolean: {
-			json_object *tmp_boolean = NULL;
-			json_object_object_get_ex(jobj, key, &tmp_boolean);
-			printf("boolean key: \"%s\" : ", key);
-			printf("%s\n", json_object_get_boolean(tmp_boolean)? "true" : "false");
-			json_object_put(tmp_boolean);
-			break;
-		}
-
-		case json_type_int: {
-			json_object *tmp_int = NULL;
-			json_object_object_get_ex(jobj, key, &tmp_int);
-			printf("int key: \"%s\" : ",key);
-			printf("%d\n",json_object_get_int(tmp_int));
-			json_object_put(tmp_int);
+			json_object_object_get_ex(jobj, key, &j_object);
+			if (NULL != j_object) {
+				log_debug("boolean ['%s' : '%s']", key, 
+					json_object_get_boolean(j_object)? "true" : "false");
+				// todo 
+				json_object_put(j_object);
+			}
 			break;
 		}
 
 		case json_type_double: {
-			json_object *tmp_double = NULL;
-			json_object_object_get_ex(jobj, key, &tmp_double);
-			printf("double key: \"%s\" : ",key);
-			printf("%f\n",json_object_get_double(tmp_double));
-			json_object_put(tmp_double);
+			json_object_object_get_ex(jobj, key, &j_object);
+			if (NULL != j_object) {
+				log_debug("double ['%s' : '%f']", key, json_object_get_double(j_object));
+				// todo 
+				json_object_put(j_object);
+			}
+			break;
+		}
+
+		case json_type_int: {
+			json_object_object_get_ex(jobj, key, &j_object);
+			if (NULL != j_object) {
+				log_debug("int ['%s' : '%d']", key, json_object_get_int(j_object));
+				// todo 
+				json_object_put(j_object);
+			}
+			break;
+		}
+
+		case json_type_object: {
+			json_object_object_get_ex(jobj, key, &j_object);
+			if (NULL != j_object) {
+				log_debug("object ['%s']", key);
+				ret |= csv_json_parse(j_object, cnt_recursion);
+				json_object_put(j_object);
+			}
+			break;
+		}
+
+		case json_type_array: {
+			json_object_object_get_ex(jobj, key, &j_array);
+			if (NULL != j_array) {
+				int arraylen = json_object_array_length(j_array);
+				log_debug("array '%s[%d]'", key, arraylen);
+
+				int i = 0;
+				for (i = 0; i < arraylen; i++) {
+					j_value = json_object_array_get_idx(j_array, i);
+					if (NULL != j_value) {
+						log_debug("[%d] : %s", i, json_object_get_string(j_value));
+
+						enum json_type a_type;
+						switch (a_type) {
+						case json_type_object:
+						case json_type_array:
+							ret |= csv_json_parse(j_value, cnt_recursion);
+							break;
+						default:
+							break;
+						}
+					}
+				}
+
+				json_object_put(j_value);
+				json_object_put(j_array);
+			}
+			break;
+		}
+
+		case json_type_string: {
+			json_object_object_get_ex(jobj, key, &j_object);
+			if (NULL != j_object) {
+				log_debug("string ['%s' : '%s']", key, json_object_get_string(j_object));
+				// todo 
+				json_object_put(j_object);
+			}
 			break;
 		}
 
         default:
-        	printf("type: unknown\n");
+        	log_info("WARN : unknown type");
 			break;
 		}
 	}
 
-	return 0;
+	return ret;
 }
 
 static int csv_json_cfg_get (char *buffer)
 {
-	int recursion_guard_count = 0;
-	json_object *jobj_parse;
+	int ret = 0;
+	int cnt_recursion = 0;
+	json_object *jobj_parse = NULL;
 
 	jobj_parse = json_tokener_parse(buffer);
+	if (NULL == jobj_parse) {
+		log_info("ERROR : json tokener parse");
+		return -1;
+	}
 
-	csv_json_parse(jobj_parse, &recursion_guard_count);
+	ret = csv_json_parse(jobj_parse, &cnt_recursion);
+
 	json_object_put(jobj_parse);
 
-	return 0;
+	return ret;
 }
 
 
@@ -145,31 +163,18 @@ int csv_json_init (void)
 
 	pCFG->name = FILE_NAME_CJSON;
 
-	if (csv_file_isExist(pCFG->name)) {
-		ret = csv_file_get_size(pCFG->name, &len_cfg);
-		if ((0 == ret)&&(0 < len_cfg)) {
-			uint8_t *cfg_data = (uint8_t *)malloc(len_cfg);
-			if (cfg_data == NULL) {
-				log_err("ERROR : malloc");
-				goto cfg_default;
-			}
-			memset(cfg_data, 0, len_cfg);
-			ret = csv_file_read_data(pCFG->name, cfg_data, len_cfg);
-			if (ret < 0) {
-				goto cfg_default;
-			}
+	json_object *j_cfg = NULL;
+	int cnt = 0;
 
-			ret = csv_json_cfg_get((char *)cfg_data);
-			free(cfg_data);
-
-			if (ret < 0) {
-				goto cfg_default;
-			}
-
-			return 0;
-		}
+	j_cfg = json_object_from_file(pCFG->name);
+	if (NULL != j_cfg) {
+		ret = csv_json_parse(j_cfg, &cnt);
+		json_object_put(j_cfg);
+		log_info("OK : parse cfg");
+		return 0;
+	} else {
+		//log_info("ERROR : %s", json_util_get_last_err());
 	}
-
 
 cfg_default:
 
