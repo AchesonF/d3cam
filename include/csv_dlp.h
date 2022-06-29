@@ -22,10 +22,11 @@ typedef enum {
 	DLP_BRIGHT					= (4),		// 1 亮光
 	DLP_SINGLE_SINE				= (5),		// 1 单张正弦
 	DLP_SINGLE_WIDESTRIPE_SINE	= (6),		// 1 单张宽条纹正弦
-	DLP_FOCUS_BRIGHT			= (7),		// 调焦常亮
-	DLP_LIGHT_BRIGHT			= (8),		// 亮光常亮
-	DLP_PINSTRIPE_SINE_BRIGHT	= (9),		// 细纹正弦常亮
-	DLP_WIDESTRIPE_SINE_BRIGHT	= (10),		// 宽纹正弦常亮
+	DLP_HIGH_SPEED				= (7),		// 13 高速光
+	DLP_FOCUS_BRIGHT,						// 调焦常亮
+	DLP_LIGHT_BRIGHT,						// 亮光常亮
+	DLP_PINSTRIPE_SINE_BRIGHT,				// 细纹正弦常亮
+	DLP_WIDESTRIPE_SINE_BRIGHT,				// 宽纹正弦常亮
 
 	TOTAL_DLP_CMD
 } dlp_ctrl_idx;
