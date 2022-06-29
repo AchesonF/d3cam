@@ -160,11 +160,11 @@ int csv_json_init (void)
 			}
 
 			ret = csv_json_cfg_get((char *)cfg_data);
+			free(cfg_data);
+
 			if (ret < 0) {
 				goto cfg_default;
 			}
-
-			free(cfg_data);
 
 			return 0;
 		}
