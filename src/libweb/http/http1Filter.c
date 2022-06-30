@@ -461,7 +461,7 @@ PUBLIC void httpCreateHeaders1(HttpQueue *q, HttpPacket *packet)
     Http        *http;
     HttpStream  *stream;
     HttpTx      *tx;
-    HttpUri     *parsedUri;
+    HttpUri     *parsedUri = NULL;
     MprKey      *kp;
     MprBuf      *buf;
 
@@ -504,13 +504,15 @@ PUBLIC void httpCreateHeaders1(HttpQueue *q, HttpPacket *packet)
                     httpGetProtocol(stream->net));
             }
         } else {
-            if (parsedUri->query && *parsedUri->query) {
-                mprPutToBuf(buf, "%s?%s %s", parsedUri->path, parsedUri->query, httpGetProtocol(stream->net));
-            } else {
-                mprPutStringToBuf(buf, parsedUri->path);
-                mprPutCharToBuf(buf, ' ');
-                mprPutStringToBuf(buf, httpGetProtocol(stream->net));
-            }
+        	if (NULL != parsedUri) {
+	            if (parsedUri->query && *parsedUri->query) {
+	                mprPutToBuf(buf, "%s?%s %s", parsedUri->path, parsedUri->query, httpGetProtocol(stream->net));
+	            } else {
+	                mprPutStringToBuf(buf, parsedUri->path);
+	                mprPutCharToBuf(buf, ' ');
+	                mprPutStringToBuf(buf, httpGetProtocol(stream->net));
+	            }
+			}
         }
     }
     mprPutStringToBuf(buf, "\r\n");
@@ -520,12 +522,14 @@ PUBLIC void httpCreateHeaders1(HttpQueue *q, HttpPacket *packet)
             httpLog(stream->trace, "tx.http.status", "result", "@%s %d %s",
                 httpGetProtocol(stream->net), tx->status, httpLookupStatus(tx->status));
         } else {
-            if (parsedUri->query && *parsedUri->query) {
-                httpLog(stream->trace, "tx.http.status", "request", "@%s %s?%s %s", tx->method, tx->parsedUri->path,
-                    tx->parsedUri->query, httpGetProtocol(stream->net));
-            } else {
-                httpLog(stream->trace, "tx.http.status", "request", "@%s %s %s", tx->method, tx->parsedUri->path, httpGetProtocol(stream->net));
-            }
+			if (NULL != parsedUri) {
+	            if (parsedUri->query && *parsedUri->query) {
+	                httpLog(stream->trace, "tx.http.status", "request", "@%s %s?%s %s", tx->method, tx->parsedUri->path,
+	                    tx->parsedUri->query, httpGetProtocol(stream->net));
+	            } else {
+	                httpLog(stream->trace, "tx.http.status", "request", "@%s %s %s", tx->method, tx->parsedUri->path, httpGetProtocol(stream->net));
+	            }
+			}
         }
         httpLog(stream->trace, "tx.http.headers", "headers", "@%s", httpTraceHeaders(tx->headers));
     }

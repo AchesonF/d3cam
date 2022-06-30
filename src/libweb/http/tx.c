@@ -916,7 +916,7 @@ PUBLIC bool httpFileExists(HttpStream *stream)
  */
 PUBLIC ssize httpWriteBlock(HttpQueue *q, cchar *buf, ssize len, int flags)
 {
-    HttpNet     *net;
+    //HttpNet     *net;
     HttpPacket  *packet;
     HttpStream  *stream;
     HttpTx      *tx;
@@ -928,7 +928,7 @@ PUBLIC ssize httpWriteBlock(HttpQueue *q, cchar *buf, ssize len, int flags)
     if (!stream) {
         return 0;
     }
-    net = stream->net;
+    //net = stream->net;
     tx = stream->tx;
 
     if (flags == 0) {

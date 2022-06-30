@@ -14,12 +14,11 @@ message(STATUS "PROJECT_VERSION: " ${PROJECT_VERSION})
 include(cmake/project_version.cmake)
 include(GNUInstallDirs)
 
-#if (NOT CMAKE_BUILD_TYPE)
-#	set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "Build type: DEBUG or RELEASE" FORCE)
-#endif ()
+if (NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type: Debug or Release" FORCE)
+endif ()
 
 message(STATUS "CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
-
 
 #set(PREFIX_WORK_MACHINE "arm-linux-" CACHE STRING "Compiler's prefix for working machine.")
 
@@ -27,6 +26,9 @@ set(CMAKE_C_COMPILER ${PREFIX_WORK_MACHINE}gcc)
 set(CMAKE_CXX_COMPILER ${PREFIX_WORK_MACHINE}g++)
 set(CMAKE_OBJCOPY ${PREFIX_WORK_MACHINE}objcopy)
 set(CMAKE_LINKER ${GNU_MAPREFIX_WORK_MACHINECHINE}ld)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX "./usr/local" CACHE PATH "Set default install prefix." FORCE)
@@ -49,8 +51,19 @@ else ()
 	message(FATAL_ERROR "Not support machine: " ${ARCHITECTURE})
 endif ()
 
+find_package(OpenCV REQUIRED)
+if (OpenCV_FOUND)
+	message(STATUS "OpenCV library status:")
+	message(STATUS "    version: ${OpenCV_VERSION}")
+	message(STATUS "    libraries: ${OpenCV_LIBS}")
+	message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
+else (OpenCV_FOUND)
+	message(FATAL_ERROR "OpenCV not found. Please install first.")
+endif ()
+
 link_directories(
 	${DIR_LIBS_MVS}
+	"libs"
 )
 
 option(USING_WEB_SERVER "Add web thread" OFF)
@@ -65,6 +78,13 @@ if (USING_WEB_SERVER)
 	)
 endif ()
 
+option(USING_POINTCLOUD "Add point 3d cloud" ON)
+if (USING_POINTCLOUD)
+	set(INC_POINTCLOUD
+		"include/cloud"
+	)
+endif ()
+
 # add include directories here
 include_directories(
 	"include"
@@ -72,7 +92,8 @@ include_directories(
 	"include/so"
 	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}
-	"/usr/local/include/opencv4/"
+	${OpenCV_INCLUDE_DIRS}
+	${INC_POINTCLOUD}
 )
 
 add_subdirectory(src)

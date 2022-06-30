@@ -54,7 +54,7 @@ extern void utility_read_values (const char *buffer, const char *prefix, uint32_
 
 
 #ifdef __cplusplus
-extern "C" {
+}
 #endif
 
 #endif /* __CSV_UTILITY_H__ */

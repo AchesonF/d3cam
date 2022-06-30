@@ -38,7 +38,7 @@ struct csv_mvs_t {
 	uint16_t				groupDemarcate;	///< 标定次数, need to save for next boot
 
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
-
+	struct cam_spec_t		Cam[TOTAL_CAMS];
 	// todo bind dev
 
 	const char				*name_mvs;		///< 消息

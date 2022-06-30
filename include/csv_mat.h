@@ -17,6 +17,8 @@ extern int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *p
 
 extern int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK);
 
+extern int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK);
+
 
 #ifdef __cplusplus
 }

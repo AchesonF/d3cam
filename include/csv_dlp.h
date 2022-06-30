@@ -15,17 +15,18 @@ extern "C" {
 #define LEN_DLP_CTRL			(12)
 
 typedef enum {
-	DLP_PINSTRIPE				= (0),		// 细条纹
-	DLP_DEMARCATE				= (1),		// 标定
-	DLP_WIDISTRIPE				= (2),		// 宽条纹
-	DLP_FOCUS					= (3),		// 调焦
-	DLP_BRIGHT					= (4),		// 亮光
-	DLP_SINGLE_SINE				= (5),		// 单张正弦
-	DLP_SINGLE_WIDESTRIPE_SINE	= (6),		// 单张宽条纹正弦
-	DLP_FOCUS_BRIGHT			= (7),		// 调焦常亮
-	DLP_LIGHT_BRIGHT			= (8),		// 亮光常亮
-	DLP_PINSTRIPE_SINE_BRIGHT	= (9),		// 细纹正弦常亮
-	DLP_WIDESTRIPE_SINE_BRIGHT	= (10),		// 宽纹正弦常亮
+	DLP_PINSTRIPE				= (0),		// 12 细条纹
+	DLP_DEMARCATE				= (1),		// 22 标定
+	DLP_WIDISTRIPE				= (2),		// 12 宽条纹
+	DLP_FOCUS					= (3),		// 1 调焦
+	DLP_BRIGHT					= (4),		// 1 亮光
+	DLP_SINGLE_SINE				= (5),		// 1 单张正弦
+	DLP_SINGLE_WIDESTRIPE_SINE	= (6),		// 1 单张宽条纹正弦
+	DLP_HIGH_SPEED				= (7),		// 13 高速光
+	DLP_FOCUS_BRIGHT,						// 调焦常亮
+	DLP_LIGHT_BRIGHT,						// 亮光常亮
+	DLP_PINSTRIPE_SINE_BRIGHT,				// 细纹正弦常亮
+	DLP_WIDESTRIPE_SINE_BRIGHT,				// 宽纹正弦常亮
 
 	TOTAL_DLP_CMD
 } dlp_ctrl_idx;
@@ -47,6 +48,7 @@ struct csv_dlp_t {
 	pthread_cond_t			cond_dlp;		///< 条件
 };
 
+extern int csv_dlp_just_write (uint8_t idx);
 
 extern int csv_dlp_write_and_read (uint8_t idx);
 

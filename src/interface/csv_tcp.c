@@ -7,7 +7,7 @@ extern "C" {
 
 
 
-static int csv_tcp_local_beat_open (void)
+int csv_tcp_local_beat_open (void)
 {
 	return csv_beat_timer_open(&gCSV->tcpl.beat);
 }
@@ -140,6 +140,10 @@ int csv_tcp_local_accept (void)
     setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, (void*)&keepinterval, sizeof(keepinterval));
     setsockopt(fd, SOL_TCP, TCP_KEEPCNT, (void*)&keepcount, sizeof(keepcount));
 
+	int opt = 10*1024*1024;	// for send big data
+	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(int));
+
+
 	int err = fcntl(fd, F_SETFL, O_NONBLOCK);
 	if (err < 0) {
 		log_err("ERROR : fcntl %s", pTCPL->name);
@@ -212,7 +216,7 @@ int csv_tcp_local_send (uint8_t *buf, int nbytes)
 	while (n_written < nbytes) {
 		ret = send(pTCPL->fd, buf+n_written, nbytes-n_written, 0);
 		if (ret < 0) {
-			if (++snd_err <= 3) {
+			if (++snd_err <= 10) {
 				log_err("ERROR : <%d> send", snd_err);
 			} else {
 				pTCPL->accepted = false;
@@ -287,9 +291,9 @@ int csv_tcp_deinit (void)
 
 	ret = csv_tcp_local_close();
 
-	return csv_tcp_local_release(&gCSV->tcpl);
+	ret |= csv_tcp_local_release(&gCSV->tcpl);
 
-	return 0;
+	return ret;
 }
 
 #ifdef __cplusplus

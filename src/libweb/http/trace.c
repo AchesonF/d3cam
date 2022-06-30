@@ -181,11 +181,11 @@ PUBLIC void httpLogRxPacket(HttpNet *net, cchar *buf, ssize len)
 PUBLIC void httpLogTxPacket(HttpNet *net, ssize len)
 {
     HttpTrace   *trace;
-    HttpQueue   *q;
+    //HttpQueue   *q;
     ssize       bytes;
     int         flags, i;
 
-    q = net->socketq;
+    //q = net->socketq;
     flags = HTTP_TRACE_CONT;
     trace = net->trace;
 
@@ -392,7 +392,7 @@ static void traceData(HttpTrace *trace, cchar *data, ssize len, int flags)
         end = mprGetBufEnd(buf);
         digits = "0123456789ABCDEF";
 
-        for (i = 0, cp = data, ep = end; cp < &data[len]; ) {
+        for (i = 0, cp = data, ep = end; cp < &data[len]; i++) {
             sol = cp;
             for (j = 0; j < 16 && cp < &data[len]; j++, cp++) {
                 *ep++ = digits[(*cp >> 4) & 0x0f];
@@ -862,10 +862,10 @@ static void traceQueues(HttpStream *stream, MprBuf *buf)
 {
     HttpNet     *net;
     HttpQueue   *q;
-    HttpTrace   *trace;
+    //HttpTrace   *trace;
 
     net = stream->net;
-    trace = stream->trace;
+    //trace = stream->trace;
 
     mprPutToBuf(buf, "  Rx: ");
     mprPutToBuf(buf, "%s[%d, %d, 0x%x] < ",

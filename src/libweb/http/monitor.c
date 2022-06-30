@@ -146,11 +146,11 @@ PUBLIC void httpPruneMonitors()
 {
     Http        *http;
     HttpAddress *address;
-    MprTicks    period;
+    //MprTicks    period;
     MprKey      *kp;
 
     http = HTTP;
-    period = max(http->monitorPeriod, ME_HTTP_MONITOR_PERIOD);
+    //period = max(http->monitorPeriod, ME_HTTP_MONITOR_PERIOD);
     lock(http->addresses);
     for (ITERATE_KEY_DATA(http->addresses, kp, address)) {
         if (address->banUntil && address->banUntil < http->now) {

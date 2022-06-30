@@ -9,6 +9,13 @@ if (USING_WEB_SERVER)
 	set(LIB_WEB_SERVER "web")
 endif ()
 
+if (USING_POINTCLOUD)
+	add_definitions(-DUSING_POINTCLOUD3D=1)
+	add_subdirectory(libpointcloud3d)
+
+	set(LIB_POINTCLOUD "pointcloud3d")
+endif ()
+
 # add some include directories
 #include_directories()
 
@@ -30,7 +37,7 @@ add_executable(${EXE_TARGET}
 	${DIR_UTILITY}
 )
 
-
+target_compile_features(${EXE_TARGET} PUBLIC cxx_std_11)
 
 target_link_libraries(${EXE_TARGET}
 	pthread
@@ -39,7 +46,9 @@ target_link_libraries(${EXE_TARGET}
 	MvCameraControl
 	json-c
 	opencv_world
+#	${OpenCV_LIBS}
 	${LIB_WEB_SERVER}
+	${LIB_POINTCLOUD}
 )
 
 

@@ -134,11 +134,11 @@ PUBLIC void httpSetState(HttpStream *stream, int targetState)
 static int processFirst(HttpStream *stream)
 {
     HttpNet     *net;
-    HttpRx      *rx;
+    //HttpRx      *rx;
     int64       value;
 
     net = stream->net;
-    rx = stream->rx;
+    //rx = stream->rx;
 
     if (httpIsServer(net)) {
         stream->startMark = mprGetHiResTicks();
@@ -681,10 +681,10 @@ static void processComplete(HttpStream *stream, MprEvent *event)
 static void routeRequest(HttpStream *stream)
 {
     HttpRx      *rx;
-    HttpTx      *tx;
+    //HttpTx      *tx;
 
     rx = stream->rx;
-    tx = stream->tx;
+    //tx = stream->tx;
 
     if (!rx->route) {
         httpRouteRequest(stream);

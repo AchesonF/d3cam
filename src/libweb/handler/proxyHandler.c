@@ -191,7 +191,7 @@ PUBLIC int httpProxyInit(Http *http, MprModule *module)
  */
 static int proxyOpenRequest(HttpQueue *q)
 {
-    Http            *http;
+    //Http            *http;
     HttpNet         *proxyNet;
     HttpStream      *stream;
     Proxy           *proxy;
@@ -199,7 +199,7 @@ static int proxyOpenRequest(HttpQueue *q)
     ProxyRequest    *req;
 
     stream = q->stream;
-    http = stream->http;
+    //http = stream->http;
 
     /*
         Get a Proxy instance for this route. First time, this will allocate a new Proxy instance. Second and
@@ -405,12 +405,12 @@ static Proxy *getProxy(HttpRoute *route)
  */
 static void proxyFrontNotifier(HttpStream *stream, int event, int arg)
 {
-    HttpNet         *net;
+    //HttpNet         *net;
     ProxyRequest    *req;
     HttpStream      *proxyStream;
 
-    net = stream->net;
-    assert(net->endpoint);
+    //net = stream->net;
+    //assert(net->endpoint);
 
     if ((req = stream->writeq->queueData) == 0) {
         return;
@@ -483,7 +483,7 @@ static void proxyBackNotifier(HttpStream *proxyStream, int event, int arg)
 {
     ProxyRequest    *req;
     HttpNet         *net;
-    int             complete;
+    //int             complete;
 
     net = proxyStream->net;
     assert(net->endpoint == 0);
@@ -491,7 +491,7 @@ static void proxyBackNotifier(HttpStream *proxyStream, int event, int arg)
     if ((req = proxyStream->writeq->queueData) == 0) {
         return;
     }
-    complete = 0;
+    //complete = 0;
     switch (event) {
     case HTTP_EVENT_READABLE:
     case HTTP_EVENT_WRITABLE:
@@ -624,12 +624,12 @@ static void proxyClientIncoming(HttpQueue *q, HttpPacket *packet)
 static void proxyClientOutgoingService(HttpQueue *q)
 {
     HttpPacket      *packet;
-    HttpStream      *stream;
+    //HttpStream      *stream;
     HttpStream      *proxyStream;
     ProxyRequest    *req;
 
     req = q->queueData;
-    stream = q->stream;
+    //stream = q->stream;
     proxyStream = req->proxyStream;
 
     for (packet = httpGetPacket(q); packet; packet = httpGetPacket(q)) {
@@ -988,11 +988,11 @@ static HttpNet *getProxyNetwork(ProxyApp *app, MprDispatcher *dispatcher)
 static ProxyApp *startProxyApp(Proxy *proxy, HttpStream *stream)
 {
     ProxyApp    *app;
-    HttpRoute   *route;
+    //HttpRoute   *route;
     cchar       **argv, *command;
     int         i;
 
-    route = stream->rx->route;
+    //route = stream->rx->route;
     app = allocProxyApp(proxy);
 
     if (proxy->launch) {

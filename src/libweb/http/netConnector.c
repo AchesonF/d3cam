@@ -431,7 +431,7 @@ static void freeNetPackets(HttpQueue *q, ssize bytes)
 {
     HttpNet     *net;
     HttpPacket  *packet;
-    HttpStream  *stream;
+    HttpStream  *stream = NULL;
     ssize       len;
 
     net = q->net;
@@ -740,12 +740,12 @@ PUBLIC void httpSetupWaitHandler(HttpNet *net, int eventMask)
 static void closeStreams(HttpNet *net)
 {
     HttpStream  *stream;
-    HttpRx      *rx;
+    //HttpRx      *rx;
     HttpTx      *tx;
     int         next;
 
     for (ITERATE_ITEMS(net->streams, stream, next)) {
-        rx = stream->rx;
+        //rx = stream->rx;
         tx = stream->tx;
         httpSetEof(stream);
 
