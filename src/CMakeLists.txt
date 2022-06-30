@@ -46,6 +46,7 @@ target_link_libraries(${EXE_TARGET}
 	MvCameraControl
 	json-c
 	opencv_world
+#	${OpenCV_LIBS}
 	${LIB_WEB_SERVER}
 	${LIB_POINTCLOUD}
 )
