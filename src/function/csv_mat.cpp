@@ -52,7 +52,7 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int ret = -1;
 	int len_msg = 0;
 	Mat left, right;
-    int leftsize = 0, rightsize = 0;	// 左右图像的大小
+    int leftsize = 0, rightsize = 0;
 	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
 
 	csv_dlp_just_write(DLP_BRIGHT);

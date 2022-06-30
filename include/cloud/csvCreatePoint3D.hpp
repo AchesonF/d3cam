@@ -34,7 +34,7 @@ namespace CSV {
 		unsigned int  m_height;
 		unsigned int  m_width;
 		unsigned int  m_channel;
-		unsigned int  m_widthStep;
+		unsigned int  m_widthStep; // number of bytes in a line
 	};
 
 	std::string csvGetCreatePoint3DALgVersion();

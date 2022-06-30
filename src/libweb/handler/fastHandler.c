@@ -259,17 +259,17 @@ PUBLIC int httpFastInit(Http *http, MprModule *module)
  */
 static int fastOpenRequest(HttpQueue *q)
 {
-    Http        *http;
-    HttpNet     *net;
+    //Http        *http;
+    //HttpNet     *net;
     HttpStream  *stream;
     MprSocket   *socket;
     Fast        *fast;
     FastApp     *app;
     FastRequest *req;
 
-    net = q->net;
+    //net = q->net;
     stream = q->stream;
-    http = stream->http;
+    //http = stream->http;
 
     httpTrimExtraPath(stream);
     httpMapFile(stream);
@@ -489,11 +489,11 @@ static void fastIncomingRequestPacket(HttpQueue *q, HttpPacket *packet)
 static void fastOutgoingService(HttpQueue *q)
 {
     HttpPacket      *packet;
-    HttpStream      *stream;
+    //HttpStream      *stream;
     FastRequest     *req;
 
     req = q->queueData;
-    stream = q->stream;
+    //stream = q->stream;
 
     for (packet = httpGetPacket(q); packet; packet = httpGetPacket(q)) {
         if (!httpWillNextQueueAcceptPacket(q, packet)) {
@@ -519,14 +519,14 @@ static void fastHandlerReapResponse(FastRequest *req)
  */
 static void fastHandlerResponse(FastRequest *req, int type, HttpPacket *packet)
 {
-    FastApp     *app;
+    //FastApp     *app;
     HttpStream  *stream;
     HttpRx      *rx;
     MprBuf      *buf;
     int         status, protoStatus;
 
     stream = req->stream;
-    app = req->app;
+    //app = req->app;
 
     if (stream->state <= HTTP_STATE_BEGIN || stream->rx->route == NULL) {
         /* Request already complete and stream has been recycled (prepared for next request) */
@@ -688,7 +688,7 @@ static bool parseFastHeaders(HttpPacket *packet)
 static bool parseFastResponseLine(HttpPacket *packet)
 {
     MprBuf      *buf;
-    char        *protocol, *status, *msg;
+    char        *protocol, *status;//, *msg;
 
     buf = packet->content;
     protocol = getFastToken(buf, " ");
@@ -705,8 +705,9 @@ static bool parseFastResponseLine(HttpPacket *packet)
         httpError(packet->stream, HTTP_CODE_BAD_GATEWAY, "Bad FCGI header response");
         return 0;
     }
-    msg = getFastToken(buf, "\n");
-    mprDebug("http cgi", 4, "FCGI response status: %s %s %s", protocol, status, msg);
+    //msg = getFastToken(buf, "\n");
+    //mprDebug("http cgi", 4, "FCGI response status: %s %s %s", protocol, status, msg);
+	mprDebug("http cgi", 4, "FCGI response status: %s %s %s", protocol, status, getFastToken(buf, "\n"));
     return 1;
 }
 
@@ -857,14 +858,14 @@ static FastApp *getFastApp(Fast *fast, HttpStream *stream)
 static FastApp *startFastApp(Fast *fast, HttpStream *stream)
 {
     FastApp     *app;
-    HttpRoute   *route;
+    //HttpRoute   *route;
     HttpRx      *rx;
     MprSocket   *listen;
     cchar       **argv, *command, **envv;
     int         argc, i, count;
 
     rx = stream->rx;
-    route = stream->rx->route;
+    //route = stream->rx->route;
     app = allocFastApp(fast, stream);
 
     if (fast->launch) {
@@ -1053,12 +1054,12 @@ static MprSocket *getFastSocket(FastApp *app)
 {
     MprSocket   *socket;
     MprTicks    timeout;
-    Fast        *fast;
-    int         backoff, retries, connected;
+    //Fast        *fast;
+    int         backoff, /*retries, */connected;
 
-    fast = app->fast;
+    //fast = app->fast;
     connected = 0;
-    retries = 1;
+    //retries = 1;
     backoff = 1;
 
     while ((socket = mprPopItem(app->sockets)) != 0) {
@@ -1284,7 +1285,7 @@ static void fastConnectorIncomingService(HttpQueue *q)
         len = contentLength + padLength;
 
         if (version != FAST_VERSION) {
-            httpLog(app->trace, "fast", "error", "msg:Bad FastCGI response version");
+            httpLog(app->trace, "fast", "error", "msg:Bad FastCGI response version id %d", requestID);
             break;
         }
         if (contentLength < 0 || contentLength > 65535) {

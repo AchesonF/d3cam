@@ -10,7 +10,7 @@ extern "C" {
 
 
 
-static int csv_gvcp_sendto (struct csv_gvcp_t *pGVCP)
+int csv_gvcp_sendto (struct csv_gvcp_t *pGVCP)
 {
 	socklen_t from_len = sizeof(struct sockaddr_in);
 

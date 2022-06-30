@@ -105,7 +105,7 @@ PUBLIC void httpCreateTxPipeline(HttpStream *stream, HttpRoute *route)
     HttpQueue   *q;
     HttpStage   *stage, *filter;
     cchar       *pattern;
-    int         next, simple;
+    int         next;//, simple;
 
     assert(stream);
     if (!route) {
@@ -133,7 +133,7 @@ PUBLIC void httpCreateTxPipeline(HttpStream *stream, HttpRoute *route)
         //  No handler callbacks needed for the client side
         tx->started = 1;
     }
-    simple = 1;
+    //simple = 1;
     if (route->outputStages) {
         for (next = 0; (filter = mprGetNextItem(route->outputStages, &next)) != 0; ) {
             if (filter->flags & HTTP_STAGE_INTERNAL) {

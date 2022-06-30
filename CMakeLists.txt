@@ -27,7 +27,8 @@ set(CMAKE_CXX_COMPILER ${PREFIX_WORK_MACHINE}g++)
 set(CMAKE_OBJCOPY ${PREFIX_WORK_MACHINE}objcopy)
 set(CMAKE_LINKER ${GNU_MAPREFIX_WORK_MACHINECHINE}ld)
 set(CMAKE_CXX_STANDARD 11)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 	set(CMAKE_INSTALL_PREFIX "./usr/local" CACHE PATH "Set default install prefix." FORCE)
@@ -80,7 +81,7 @@ endif ()
 option(USING_POINTCLOUD "Add point 3d cloud" ON)
 if (USING_POINTCLOUD)
 	set(INC_POINTCLOUD
-		"src/libpointcloud3d"
+		"include/cloud"
 	)
 endif ()
 

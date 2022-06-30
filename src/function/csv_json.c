@@ -98,7 +98,7 @@ int csv_json_parse (json_object *jobj, int *cnt_recursion)
 					if (NULL != j_value) {
 						log_debug("[%d] : %s", i, json_object_get_string(j_value));
 
-						enum json_type a_type;
+						enum json_type a_type = json_object_get_type(j_value);
 						switch (a_type) {
 						case json_type_object:
 						case json_type_array:
@@ -135,30 +135,10 @@ int csv_json_parse (json_object *jobj, int *cnt_recursion)
 	return ret;
 }
 
-static int csv_json_cfg_get (char *buffer)
-{
-	int ret = 0;
-	int cnt_recursion = 0;
-	json_object *jobj_parse = NULL;
-
-	jobj_parse = json_tokener_parse(buffer);
-	if (NULL == jobj_parse) {
-		log_info("ERROR : json tokener parse");
-		return -1;
-	}
-
-	ret = csv_json_parse(jobj_parse, &cnt_recursion);
-
-	json_object_put(jobj_parse);
-
-	return ret;
-}
-
 
 int csv_json_init (void)
 {
-	uint32_t len_cfg = 0;
-	int ret = 0;
+	int ret = -1;
 	struct csv_json_t *pCFG = &gCSV->cfg;
 
 	pCFG->name = FILE_NAME_CJSON;
@@ -176,15 +156,13 @@ int csv_json_init (void)
 		//log_info("ERROR : %s", json_util_get_last_err());
 	}
 
-cfg_default:
-
 	log_warn("WARN : using default config.");
 
 	// todo
 
 	// try to save cfg file
 
-	return 0;
+	return ret;
 }
 
 

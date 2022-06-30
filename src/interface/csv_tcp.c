@@ -7,7 +7,7 @@ extern "C" {
 
 
 
-static int csv_tcp_local_beat_open (void)
+int csv_tcp_local_beat_open (void)
 {
 	return csv_beat_timer_open(&gCSV->tcpl.beat);
 }
@@ -291,9 +291,9 @@ int csv_tcp_deinit (void)
 
 	ret = csv_tcp_local_close();
 
-	return csv_tcp_local_release(&gCSV->tcpl);
+	ret |= csv_tcp_local_release(&gCSV->tcpl);
 
-	return 0;
+	return ret;
 }
 
 #ifdef __cplusplus

@@ -403,11 +403,11 @@ static void outgoingHttp2Service(HttpQueue *q)
  */
 static void setLastPacket(HttpQueue *q, HttpPacket *packet)
 {
-    HttpNet     *net;
+    //HttpNet     *net;
     HttpPacket  *next;
     int         last;
 
-    net = q->net;
+    //net = q->net;
     next = q->first;
     last = (
         (packet->flags & HTTP_PACKET_HEADER && !(!next || next->flags & HTTP_PACKET_HEADER)) ||
@@ -1173,12 +1173,12 @@ static bool validateHeader(cchar *key, cchar *value)
 static void parsePriorityFrame(HttpQueue *q, HttpPacket *packet)
 {
     HttpFrame   *frame;
-    HttpStream  *stream;
+    //HttpStream  *stream;
     MprBuf      *buf;
     int         value;
 
     frame = packet->data;
-    stream = frame->stream;
+    //stream = frame->stream;
 
     //  Firefox sends priority before stream allocated (has streamID)
     if (/* !stream || */ q->net->parsingHeaders || httpGetPacketLength(packet) != HTTP2_PRIORITY_SIZE) {
@@ -1542,10 +1542,10 @@ static void resetStream(HttpStream *stream, cchar *msg, int error)
 static void sendSettings(HttpQueue *q)
 {
     HttpNet     *net;
-    HttpStream  *stream;
+    //HttpStream  *stream;
 
     net = q->net;
-    stream = q->stream;
+    //stream = q->stream;
 
     if (!net->init) {
         sendSettingsFrame(q);

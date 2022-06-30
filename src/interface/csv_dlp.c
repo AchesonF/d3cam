@@ -153,7 +153,7 @@ static void *csv_dlp_loop (void *data)
 	while (1) {
 		csv_dlp_read(pDLP);
 
-		if (strstr(pDLP->rbuf, "alive")) {
+		if (strstr((char *)pDLP->rbuf, "alive")) {
 			// dlp alive. do nothing
 		} else {
 			pthread_cond_broadcast(&pDLP->cond_dlp);

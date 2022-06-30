@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-extern int testPoint3DCloud (void);
+extern int point_cloud_calc (void);
 
 
 

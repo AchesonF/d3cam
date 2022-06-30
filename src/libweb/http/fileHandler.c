@@ -321,7 +321,7 @@ static void incomingFile(HttpQueue *q, HttpPacket *packet)
 static void outgoingFileService(HttpQueue *q)
 {
     HttpStream  *stream;
-    HttpRx      *rx;
+    //HttpRx      *rx;
     HttpTx      *tx;
     HttpPacket  *data, *packet;
     ssize       size, nbytes;
@@ -330,7 +330,7 @@ static void outgoingFileService(HttpQueue *q)
     if (stream->state >= HTTP_STATE_COMPLETE) {
         return;
     }
-    rx = stream->rx;
+    //rx = stream->rx;
     tx = stream->tx;
 
     /*

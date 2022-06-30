@@ -528,13 +528,13 @@ static int csv_mvs_show_device_info (MV_CC_DEVICE_INFO *pDevInfo)
 	case MV_GIGE_DEVICE:
 	{
 		MV_GIGE_DEVICE_INFO *pstGigEInfo = &pDevInfo->SpecialInfo.stGigEInfo;
-        log_debug("Model Name: %s", pstGigEInfo->chModelName);
+        log_info("Model Name: %s", pstGigEInfo->chModelName);
 	}
 		break;
 	case MV_USB_DEVICE:
 	{
 		MV_USB3_DEVICE_INFO *pstUsb3VInfo = &pDevInfo->SpecialInfo.stUsb3VInfo;
-        log_debug("Model Name: %s", pstUsb3VInfo->chModelName);
+        log_info("Model Name: %s", pstUsb3VInfo->chModelName);
 	}
 		break;
 	default:
@@ -568,7 +568,7 @@ static void csv_mvs_end_grab (void *pUser)
 	}
 }
 
-static void *csv_mvs_cam_loop (void *data)
+void *csv_mvs_cam_loop (void *data)
 {
 	int nRet = MV_OK;
 	int *index = (int *)data;
@@ -576,7 +576,6 @@ static void *csv_mvs_cam_loop (void *data)
 
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	void* handle = NULL;
-	//void **handle = &pMVS->handle[idx];
 	MV_CC_DEVICE_INFO *pDevInfo = pMVS->stDeviceList.pDeviceInfo[idx];
 
 	nRet = MV_CC_CreateHandle(&handle, pDevInfo);
@@ -657,49 +656,6 @@ static void *csv_mvs_cam_loop (void *data)
 		//break;
 		sleep(1);
 
-unsigned char *pDataForSaveImage = NULL;
-char img_filename[64] = {0};
-memset(img_filename, 0, 64);
-snprintf(img_filename, 64, "SN_%s_%ld.bmp", camSerialNumber, utility_get_millisecond());
-
-pDataForSaveImage = (unsigned char*)malloc(stImageInfo.nWidth * stImageInfo.nHeight * 4 + 2048);
-if (NULL == pDataForSaveImage) {
-	break;
-}
-// 填充存图参数
-// fill in the parameters of save image
-MV_SAVE_IMAGE_PARAM_EX stSaveParam;
-memset(&stSaveParam, 0, sizeof(MV_SAVE_IMAGE_PARAM_EX));
-// 从上到下依次是：输出图片格式，输入数据的像素格式，提供的输出缓冲区大小，图像宽，
-// 图像高，输入数据缓存，输出图片缓存，JPG编码质量
-// Top to bottom are：
-stSaveParam.enImageType = MV_Image_Bmp; 
-stSaveParam.enPixelType = stImageInfo.enPixelType; 
-stSaveParam.nBufferSize = stImageInfo.nWidth * stImageInfo.nHeight * 4 + 2048;
-stSaveParam.nWidth      = stImageInfo.nWidth; 
-stSaveParam.nHeight     = stImageInfo.nHeight; 
-stSaveParam.pData       = pData;
-stSaveParam.nDataLen    = stImageInfo.nFrameLen;
-stSaveParam.pImageBuffer = pDataForSaveImage;
-stSaveParam.nJpgQuality = 80;
-
-nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
-if(MV_OK != nRet) {
-    printf("failed in MV_CC_SaveImage,nRet[%x]\n", nRet);
-    break;
-}
-
-FILE* fp = fopen(img_filename, "wb");
-if (NULL == fp) {
-    printf("fopen failed\n");
-    break;
-}
-
-fwrite(pDataForSaveImage, 1, stSaveParam.nImageLen, fp);
-fclose(fp);
-printf("save image succeed\n");
-
-break;
     }
 
 out:
@@ -721,10 +677,12 @@ static int csv_mvs_device_prepare (struct csv_mvs_t *pMVS)
 
 	memset(pDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
 
+	// TODO init inside
+
 	// enum device
 	nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, pDevList);
 	if (MV_OK != nRet) {
-		log_debug("MV_CC_EnumDevices fail! nRet [%x]", nRet);
+		log_debug("ERROR : EnumDevices failed [0x%08X]", nRet);
 		return -1;
 	}
 
@@ -758,32 +716,16 @@ static void *csv_mvs_loop (void *data)
 	}
 
 	int ret = 0;
-    int i = 0;
 
 	struct csv_mvs_t *pMVS = (struct csv_mvs_t *)data;
 
 	do {
-		sleep(2);	// waiting for stable.
+		sleep(5);	// waiting for stable.
 		ret = csv_mvs_device_prepare(pMVS);
 		if (ret < 0) {
 			goto wait;
 		}
 
-
-		// TODO 不开线程处理
-
-		pMVS->bExit = 0;
-		for (i = 0; i < pMVS->cnt_mvs; i++) {
-			pthread_t tid;
-
-			int idx = i;
-			ret = pthread_create(&tid, NULL, csv_mvs_cam_loop, &idx);
-			if (ret != 0) {
-				log_err("ERROR : pthread_create Cam[%d] failed. ret = %d", idx, ret);
-				continue;
-			}
-			log_info("OK : create pthread 'CAM%d' @ (%p)", idx, tid);
-		}
 
 wait:
 
@@ -838,7 +780,7 @@ int csv_mvs_thread (struct csv_mvs_t *pMVS)
 	return ret;
 }
 
-static int csv_mvs_thread_cancel (struct csv_mvs_t *pMVS)
+int csv_mvs_thread_cancel (struct csv_mvs_t *pMVS)
 {
 	int ret = 0;
 	void *retval = NULL;

@@ -1,7 +1,5 @@
 #include "inc_files.h"
 
-#include "csv_pointcloud.hpp"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -167,6 +165,8 @@ static int csv_lock_pid (void)
 	}
 
 	log_info("My pid id %d.", getpid());
+
+	return 0;
 }
 
 static void print_usage (const char *prog)
@@ -267,11 +267,6 @@ int csv_init (struct csv_info_t *pCSV)
 {
 	csv_file_init();
 
-#if (USING_POINTCLOUD3D==1)
-// for test
-	testPoint3DCloud();
-#endif
-
 	csv_json_init();
 
 	csv_eth_init();
@@ -309,7 +304,7 @@ int csv_init (struct csv_info_t *pCSV)
 
 int main (int argc, char **argv)
 {
-	int ret = 0, i = 0;
+	int ret = 0;
 	int maxfd = 0;
 	struct timeval tv;
 	fd_set readset, writeset;
