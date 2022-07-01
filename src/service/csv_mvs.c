@@ -155,6 +155,13 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 
     }
 
+	if (pMVS->Cam[CAM_LEFT].stParam.nCurValue != pMVS->Cam[CAM_RIGHT].stParam.nCurValue) {
+		log_info("ERROR : CAMS cannot be coupled. PayloadSize : %d vs %d", 
+			pMVS->Cam[CAM_LEFT].stParam.nCurValue,
+			pMVS->Cam[CAM_RIGHT].stParam.nCurValue);
+		return -1;
+	}
+
 	return 0;
 }
 
