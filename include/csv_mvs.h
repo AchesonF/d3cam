@@ -25,16 +25,13 @@ struct cam_spec_t {
 	char					modelName[64];
 	MVCC_FLOATVALUE			exposureTime;
 	MVCC_FLOATVALUE			gain;
-
+	MVCC_INTVALUE			stParam;		// PayloadSize
 	MV_FRAME_OUT_INFO_EX	imageInfo;
 	uint8_t					*imgData;
 };
 
-extern struct cam_spec_t	Cam[TOTAL_CAMS];
-
 struct csv_mvs_t {
 	uint8_t					cnt_mvs;		///< used cams
-	uint8_t					bExit;
 	uint16_t				groupDemarcate;	///< 标定次数, need to save for next boot
 
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
@@ -48,23 +45,25 @@ struct csv_mvs_t {
 };
 
 
-extern int csv_mvs_cams_enum (void);
+extern int csv_mvs_cams_enum (struct csv_mvs_t *pMVS);
 
-extern int csv_mvs_cams_open (void);
+extern int csv_mvs_cams_reset (struct csv_mvs_t *pMVS);
 
-extern int csv_mvs_cams_close (void);
+extern int csv_mvs_cams_open (struct csv_mvs_t *pMVS);
 
-extern int csv_mvs_cams_exposure_get (void);
+extern int csv_mvs_cams_close (struct csv_mvs_t *pMVS);
 
-extern int csv_mvs_cams_exposure_set (float fExposureTime);
+extern int csv_mvs_cams_exposure_get (struct csv_mvs_t *pMVS);
 
-extern int csv_mvs_cams_gain_get (void);
+extern int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime);
 
-extern int csv_mvs_cams_gain_set (float fGain);
+extern int csv_mvs_cams_gain_get (struct csv_mvs_t *pMVS);
 
-extern int csv_mvs_cams_name_set (char *camSNum, char *strValue);
+extern int csv_mvs_cams_gain_set (struct csv_mvs_t *pMVS, float fGain);
 
-extern int csv_mvs_cams_grab_both (void);
+extern int csv_mvs_cams_name_set (struct csv_mvs_t *pMVS, char *camSNum, char *strValue);
+
+extern int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS);
 
 extern int csv_mvs_init (void);
 

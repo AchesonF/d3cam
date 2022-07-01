@@ -53,15 +53,15 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int len_msg = 0;
 	Mat left, right;
     int leftsize = 0, rightsize = 0;
-	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
+    struct csv_mvs_t *pMVS = &gCSV->mvs;
 
 	csv_dlp_just_write(DLP_BRIGHT);
 
-	ret = csv_mvs_cams_grab_both();
+	ret = csv_mvs_cams_grab_both(pMVS);
 	if (ret == 0) {
 		// TODO change side
-		ret = Convert2Mat(&pCAMLEFT->imageInfo, pCAMLEFT->imgData, left, false);
-		ret |= Convert2Mat(&pCAMRIGHT->imageInfo, pCAMRIGHT->imgData, right, false);
+		ret = Convert2Mat(&pMVS->Cam[CAM_LEFT].imageInfo, pMVS->Cam[CAM_LEFT].imgData, left, false);
+		ret |= Convert2Mat(&pMVS->Cam[CAM_RIGHT].imageInfo, pMVS->Cam[CAM_RIGHT].imgData, right, false);
 
 		if (ret == 0) {
 			if (left.channels() > 1){
@@ -115,16 +115,6 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		}
 	}
 
-	if (NULL != pCAMLEFT->imgData) {
-		free(pCAMLEFT->imgData);
-		pCAMLEFT->imgData = NULL;
-	}
-
-	if (NULL != pCAMRIGHT->imgData) {
-		free(pCAMRIGHT->imgData);
-		pCAMRIGHT->imgData = NULL;
-	}
-
 	csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 
 	return csv_msg_send(pACK);
@@ -136,16 +126,16 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int ret = -1;
 	int len_msg = 0;
 	Mat left, right;
-    int leftsize = 0, rightsize = 0;	// 左右图像的大小
-	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
+    int leftsize = 0, rightsize = 0;
+    struct csv_mvs_t *pMVS = &gCSV->mvs;
 
 	csv_dlp_just_write(DLP_BRIGHT);
 
-	ret = csv_mvs_cams_grab_both();
+	ret = csv_mvs_cams_grab_both(pMVS);
 	if (ret == 0) {
 		// TODO change side
-		ret = Convert2Mat(&pCAMLEFT->imageInfo, pCAMLEFT->imgData, left, true);
-		ret |= Convert2Mat(&pCAMRIGHT->imageInfo, pCAMRIGHT->imgData, right, true);
+		ret = Convert2Mat(&pMVS->Cam[CAM_LEFT].imageInfo, pMVS->Cam[CAM_LEFT].imgData, left, true);
+		ret |= Convert2Mat(&pMVS->Cam[CAM_RIGHT].imageInfo, pMVS->Cam[CAM_RIGHT].imgData, right, true);
 
 		if (ret == 0) {
 			leftsize = left.cols * left.rows * left.channels();
@@ -230,16 +220,6 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 			return csv_msg_send(pACK);
 		}
-	}
-
-	if (NULL != pCAMLEFT->imgData) {
-		free(pCAMLEFT->imgData);
-		pCAMLEFT->imgData = NULL;
-	}
-
-	if (NULL != pCAMRIGHT->imgData) {
-		free(pCAMRIGHT->imgData);
-		pCAMRIGHT->imgData = NULL;
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, -1);

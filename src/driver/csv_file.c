@@ -237,6 +237,11 @@ static int csv_file_get (struct csv_file_t *pFILE)
 		pFILE->uuid[SIZE_UUID] = 0x00;
 	}
 */
+
+	if (!csv_file_isExist("data/calibImage")) {
+		ret = system("mkdir -p data/calibImage");
+	}
+
 	return ret;
 }
 

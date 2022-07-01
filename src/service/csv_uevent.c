@@ -155,7 +155,7 @@ static void parse_event (const char *kmsg)
 
 // hik plug in/out event
 
-			//pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
+			pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
 		}
 	}
 

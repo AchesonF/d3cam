@@ -53,11 +53,13 @@ static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int ret = 0;
 	int len_msg = 0;
 	char str_enums[1024] = {0};
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
+	//struct cam_spec_t *pCAMFRONT = &pMVS->Cam[CAM_FRONT];
+	//struct cam_spec_t *pCAMBACK = &pMVS->Cam[CAM_BACK];
 
-	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
-	//struct cam_spec_t *pCAMFRONT = &Cam[CAM_FRONT], *pCAMBACK = &Cam[CAM_BACK];
-
-	ret = csv_mvs_cams_enum();
+	ret = csv_mvs_cams_enum(pMVS);
 	if (ret <= 0) {
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
@@ -92,7 +94,7 @@ static int msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int ret = -1;
 	int result = -1;
 
-	ret = csv_mvs_cams_open();
+	ret = csv_mvs_cams_open(&gCSV->mvs);
 	if (ret == 0) {
 		result = 0;
 	}
@@ -109,7 +111,7 @@ static int msg_cameras_close (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 	pACK->len_send = 0;
 
-	ret = csv_mvs_cams_close();
+	ret = csv_mvs_cams_close(&gCSV->mvs);
 	if (ret == 0) {
 		result = 0;
 	}
@@ -125,12 +127,13 @@ static int msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t
 	int ret = 0;
 	int len_msg = 0;
 	char str_expo[1024] = {0};
-	//struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	pACK->len_send = 0;
 
-	ret = csv_mvs_cams_exposure_get();
+	ret = csv_mvs_cams_exposure_get(pMVS);
 	if (ret < 0) {
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
@@ -155,7 +158,7 @@ static int msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t
 	pACK->len_send = 0;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		ret = csv_mvs_cams_exposure_set(*ExpoTime);
+		ret = csv_mvs_cams_exposure_set(&gCSV->mvs, *ExpoTime);
 		if (ret == 0) {
 			result = 0;
 
@@ -173,12 +176,13 @@ static int msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 	int ret = -1;
 	int len_msg = 0;
 	char str_gain[1024] = {0};
-	//struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	pACK->len_send = 0;
 
-	ret = csv_mvs_cams_gain_get();
+	ret = csv_mvs_cams_gain_get(pMVS);
 	if (ret < 0) {
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
@@ -203,7 +207,7 @@ static int msg_cameras_gain_set (struct msg_package_t *pMP, struct msg_ack_t *pA
 	pACK->len_send = 0;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		ret = csv_mvs_cams_gain_set(*fGain);
+		ret = csv_mvs_cams_gain_set(&gCSV->mvs, *fGain);
 		if (ret == 0) {
 			result = 0;
 		}
@@ -285,7 +289,7 @@ static int msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t *pA
 			int nget = 0;
 			nget = sscanf((char *)pMP->payload, "%[^:]:%[^:]", str_sn, str_name);
 			if (2 == nget) {
-				ret = csv_mvs_cams_name_set(str_sn, str_name);
+				ret = csv_mvs_cams_name_set(&gCSV->mvs, str_sn, str_name);
 				if (ret == 0) {
 					result = 0;
 				}
@@ -411,39 +415,18 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct cam_spec_t *pCAM = NULL;
 
-	if (!csv_file_isExist("data/calibImage")) {
-		ret = system("mkdir -p data/calibImage");
-	}
-
-	MVCC_INTVALUE stParam;
-	memset(&stParam, 0, sizeof(MVCC_INTVALUE));
-
-	// 前提是必须保证两个相机是一样的参数
-	nRet = MV_CC_GetIntValue(Cam[CAM_LEFT].pHandle, "PayloadSize", &stParam);
-	if (MV_OK != nRet) {
-		log_info("ERROR : CAM '%s' get PayloadSize failed. [0x%08X]", pCAM->serialNum, nRet);
-		return -1;
-	}
-
 	// 1 亮光
 	ret = csv_dlp_just_write(DLP_BRIGHT);
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &Cam[i];
+		pCAM = &pMVS->Cam[i];
 		if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 			continue;
 		}
 
-		pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
-		if (pCAM->imgData == NULL){
-			log_err("ERROR : malloc imgData");
-			return -1;
-		}
-		memset(pCAM->imgData, 0x00, stParam.nCurValue);
-
 		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-			stParam.nCurValue, &pCAM->imageInfo, 3000);
+			pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
 		if (nRet == MV_OK) {
 			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
@@ -463,14 +446,14 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 	while (idx < nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
-			pCAM = &Cam[i];
+			pCAM = &pMVS->Cam[i];
 			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 				continue;
 			}
-			//memset(pCAM->imgData, 0x00, stParam.nCurValue);
+
 			memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 			nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-				stParam.nCurValue, &pCAM->imageInfo, 3000);
+				pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
 			if (nRet == MV_OK) {
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
@@ -486,14 +469,6 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		idx++;
 	}
 
-	for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &Cam[i];
-
-		if (NULL != pCAM->imgData){
-			free(pCAM->imgData);
-			pCAM->imgData = NULL;
-		}
-	}
 
 	pMVS->groupDemarcate++;
 
@@ -509,47 +484,19 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct cam_spec_t *pCAM = NULL;
 
-	if (!csv_file_isExist("data/calibImage")) {
-		ret = system("mkdir -p data/calibImage");
-	}
-
-	MVCC_INTVALUE stParam;
-	memset(&stParam, 0, sizeof(MVCC_INTVALUE));
-
-	// 前提是必须保证两个相机是一样的参数
-	nRet = MV_CC_GetIntValue(Cam[CAM_LEFT].pHandle, "PayloadSize", &stParam);
-	if (MV_OK != nRet) {
-		log_info("ERROR : CAM '%s' get PayloadSize failed. [0x%08X]", pCAM->serialNum, nRet);
-		return -1;
-	}
-
-	for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &Cam[i];
-		if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
-			continue;
-		}
-
-		pCAM->imgData = (uint8_t *)malloc(stParam.nCurValue);
-		if (pCAM->imgData == NULL){
-			log_err("ERROR : malloc imgData");
-			return -1;
-		}
-		memset(pCAM->imgData, 0x00, stParam.nCurValue);
-	}
-
 	// 13 高速光
 	ret = csv_dlp_just_write(DLP_HIGH_SPEED);
 
 	while (idx <= nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
-			pCAM = &Cam[i];
+			pCAM = &pMVS->Cam[i];
 			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 				continue;
 			}
-			//memset(pCAM->imgData, 0x00, stParam.nCurValue);
+
 			memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 			nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-				stParam.nCurValue, &pCAM->imageInfo, 3000);
+				pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
 			if (nRet == MV_OK) {
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
@@ -563,15 +510,6 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 		}
 
 		idx++;
-	}
-
-	for (i = 0; i < pMVS->cnt_mvs; i++) {
-		pCAM = &Cam[i];
-
-		if (NULL != pCAM->imgData){
-			free(pCAM->imgData);
-			pCAM->imgData = NULL;
-		}
 	}
 
 	point_cloud_calc();
