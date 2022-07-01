@@ -109,6 +109,7 @@ static void parse_event (const char *kmsg)
 	kuevent.action = "";
 	kuevent.devpath = "";
 	kuevent.subsystem = "";
+	kuevent.devname = "";
 	kuevent.devtype = "";
 	kuevent.product = "";
 	kuevent.major = -1;
@@ -124,6 +125,9 @@ static void parse_event (const char *kmsg)
 			kuevent.devpath = kmsg;
 		} else if (!strncmp(kmsg, "SUBSYSTEM=", 10)) {
 			kmsg += 10;
+			kuevent.subsystem = kmsg;
+		} else if (!strncmp(kmsg, "DEVNAME=", 8)) {
+			kmsg += 8;
 			kuevent.subsystem = kmsg;
 		} else if (!strncmp(kmsg, "DEVTYPE=", 8)) {
 			kmsg += 8;
@@ -142,6 +146,8 @@ static void parse_event (const char *kmsg)
 		while (*kmsg++) ; // 以 \n 分割字段
 	}
 
+	log_debug("%s : %s %s %s", kuevent.action, kuevent.subsystem, 
+		kuevent.devname, kuevent.devtype, kuevent.product);
 	if ((strncasecmp(kuevent.devtype, "usb_device", 10) == 0)
 		&&(strncasecmp(kuevent.product, "2bdf", 4) == 0)) { // hik
 		if ((strncasecmp(kuevent.action, "add", 3) == 0)
@@ -149,7 +155,7 @@ static void parse_event (const char *kmsg)
 
 // hik plug in/out event
 
-			pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
+			//pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
 		}
 	}
 
@@ -188,22 +194,28 @@ static int csv_uevent_open (struct csv_uevent_t *pUE)
 
 	fd = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT);
 	if (fd < 0) {
-		log_err("ERROR : socket uevent");
+		log_err("ERROR : socket %s", pUE->name);
 		return -1;
 	}
 
 	ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &sz, sizeof(sz));
 	if (ret < 0) {
-		log_err("ERROR : setsockopt");
+		log_err("ERROR : setsockopt %s", pUE->name);
 		close(fd);
 		return -1;
 	}
 
 	ret = bind(fd, (struct sockaddr *)&nl_addr, sizeof(struct sockaddr_nl));
 	if (ret < 0) {
-		log_err("ERROR : bind");
+		log_err("ERROR : bind %s", pUE->name);
 		close(fd);
 		return -1;
+	}
+
+	int err = fcntl(fd, F_SETFL, O_NONBLOCK);
+	if (err < 0) {
+		log_err("ERROR : fcntl %s", pUE->name);
+		return err;
 	}
 
 	pUE->fd = fd;
@@ -228,6 +240,7 @@ int csv_uevent_deinit (void)
 	struct csv_uevent_t *pUE = &gCSV->uevent;
 
 	if (pUE->fd > 0) {
+		log_info("OK : close uevent.");
 		close(pUE->fd);
 		pUE->fd = -1;
 	}

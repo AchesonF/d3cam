@@ -11,9 +11,10 @@ extern "C" {
 #define LEN_UEVENT_MSG		(4096)
 
 struct kmsg_uevent_t {
-	const char		*action;		// ACTION=	add/remove/change/move/online/offline
+	const char		*action;		// ACTION=	add/remove/change/move/online/offline/bind
 	const char		*devpath;		// DEVPATH=  /devices/...
-	const char		*subsystem;		// SUBSYSTEM= usb/...
+	const char		*subsystem;		// SUBSYSTEM= usb/ tty/ 
+	const char		*devname;		// DEVNAME=  ttyUSB0
 	const char		*devtype;		// DEVTYPE=   usb_device/usb_interface/...
 	const char		*product;		// PRODUCT= 2bdf/1/100
 	int				major;			// MAJOR=
