@@ -14,9 +14,11 @@ static int csv_mvs_camera_deinit (struct cam_spec_t *pCAM)
 
 	log_info("CAM %s detach handle.", pCAM->serialNum);
 
-	nRet = MV_CC_StopGrabbing(pCAM->pHandle);
-	if (MV_OK != nRet) {
-		log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->serialNum, nRet);
+	if (pCAM->grabbing) {
+		nRet = MV_CC_StopGrabbing(pCAM->pHandle);
+		if (MV_OK != nRet) {
+			log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->serialNum, nRet);
+		}
 	}
 
 	nRet = MV_CC_CloseDevice(pCAM->pHandle);
@@ -31,6 +33,8 @@ static int csv_mvs_camera_deinit (struct cam_spec_t *pCAM)
 
 	pCAM->pHandle = NULL;
 	pCAM->opened = false;
+	pCAM->grabbing = false;
+	pCAM->stParam.nCurValue = 0;
 
 	if (NULL != pCAM->imgData) {
 		free(pCAM->imgData);
@@ -56,6 +60,8 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 
 		pCAM = &pMVS->Cam[i];
 		log_info("Initialling CAM '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
+
+		pCAM->grabbing = false;
 
 		nRet = MV_CC_CreateHandle(&pCAM->pHandle, pDevInfo);
 		if (MV_OK != nRet) {
@@ -119,24 +125,26 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 			log_info("ERROR : SetEnumValue 'TriggerSource' failed. [0x%08X]", nRet);
 		}
 
-
-		// 宽16倍对齐，偏移设置
-		MVCC_INTVALUE struIntValue = {0};
-		nRet = MV_CC_GetIntValue(pCAM->pHandle, "Width", &struIntValue);
-		if (MV_OK != nRet) {
-			log_info("ERROR : GetIntValue 'Width' failed. [0x%08X]", nRet);
+		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "ExposureTime", &pCAM->exposureTime);
+		if (MV_OK == nRet) {
+			log_info("OK ：GetFloatValue 'ExposureTime' : %f [%f, %f]", pCAM->exposureTime.fCurValue, 
+				pCAM->exposureTime.fMin, pCAM->exposureTime.fMax);
 		}
 
-		int overplus = struIntValue.nCurValue%16;
+		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "Gain", &pCAM->gain);
+		if (MV_OK == nRet) {
+			log_info("OK : GetFloatValue 'Gain' : %f [%f, %f]", pCAM->gain.fCurValue, 
+				pCAM->gain.fMin, pCAM->gain.fMax);
+		}
+
+		MVCC_INTVALUE struIntWidth = {0}, struIntHeight = {0};
+		MV_CC_GetIntValue(pCAM->pHandle, "Width", &struIntWidth);
+
+		// 宽16倍对齐，偏移设置
+		int overplus = struIntWidth.nCurValue%16;
 		if (overplus > 0) {	// 非 16 字节对齐
-		    nRet = MV_CC_SetIntValue(pCAM->pHandle, "OffsetX", overplus/2);
-			if (MV_OK != nRet) {
-				log_info("ERROR : SetIntValue 'OffsetX' failed. [0x%08X]", nRet);
-			}
-		    nRet = MV_CC_SetIntValue(pCAM->pHandle, "Width", struIntValue.nCurValue-overplus);
-			if (MV_OK != nRet) {
-				log_info("ERROR : SetIntValue 'Width' failed. [0x%08X]", nRet);
-			}
+		    MV_CC_SetIntValue(pCAM->pHandle, "OffsetX", overplus/2);
+		    MV_CC_SetIntValue(pCAM->pHandle, "Width", struIntWidth.nCurValue-overplus);
 		}
 
 		// 需先确认相机参数一致 W*H
@@ -144,6 +152,11 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 		if (MV_OK != nRet) {
 			log_info("ERROR : GetIntValue 'PayloadSize' failed. [0x%08X]", nRet);
 		}
+
+		MV_CC_GetIntValue(pCAM->pHandle, "Width", &struIntWidth);
+		MV_CC_GetIntValue(pCAM->pHandle, "Height", &struIntHeight);
+		log_info("OK : GetIntValue 'Width x Height' = [%d x %d]", 
+			struIntWidth.nCurValue, struIntHeight.nCurValue);
 
 		pCAM->imgData = (uint8_t *)malloc(pCAM->stParam.nCurValue);
 		if (pCAM->imgData == NULL){
@@ -172,6 +185,7 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 	MV_CC_DEVICE_INFO *pDevInfo = NULL;
 	struct cam_spec_t *pCAM = NULL;
 
+	pMVS->cnt_mvs = 0;
 	memset(pDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
 
 	// enum device
@@ -293,6 +307,7 @@ int csv_mvs_cams_open (struct csv_mvs_t *pMVS)
 			log_info("ERROR : StartGrabbing failed. [0x%08X]", nRet);
 			errNum++;
         }
+		pCAM->grabbing = true;
     }
 
 	if (errNum > 0){
@@ -316,9 +331,12 @@ int csv_mvs_cams_close (struct csv_mvs_t *pMVS)
 			continue;
 		}
 
-		nRet = MV_CC_StopGrabbing(pCAM->pHandle);
-		if (MV_OK != nRet) {
-			log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->serialNum, nRet);
+		if (pCAM->grabbing) {
+			nRet = MV_CC_StopGrabbing(pCAM->pHandle);
+			if (MV_OK != nRet) {
+				log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->serialNum, nRet);
+			}
+			pCAM->grabbing = false;
 		}
     }
 

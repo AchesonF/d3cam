@@ -20,6 +20,7 @@ enum {
 // (#define INFO_MAX_BUFFER_SIZE 64) in CameraParams.h
 struct cam_spec_t {
 	uint8_t					opened;
+	uint8_t					grabbing;
 	void					*pHandle;
 	char					serialNum[64];
 	char					modelName[64];
