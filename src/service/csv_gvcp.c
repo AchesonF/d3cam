@@ -6,25 +6,57 @@ extern "C" {
 #endif
 
 
-
-
-
-
 int csv_gvcp_sendto (struct csv_gvcp_t *pGVCP)
 {
 	socklen_t from_len = sizeof(struct sockaddr_in);
 
-	//log_data("udp send", pGVCP->Send.pTx, pGVCP->Send.nTx);
-
-
+	log_hex(STREAM_UDP, pGVCP->Send.pTx, pGVCP->Send.nTx, "gvcp sendto '%s:%d'",
+		inet_ntoa(pGVCP->from_addr.sin_addr), htons(pGVCP->from_addr.sin_port));
 
 	return sendto(pGVCP->fd, pGVCP->Send.pTx, pGVCP->Send.nTx, 0, 
 		(struct sockaddr *)&pGVCP->from_addr, from_len);
 }
 
 
+int csv_gvcp_discover_ack (struct csv_gvcp_t *pGVCP, struct gvcp_cmd_header_t *pHDR)
+{
+	struct csv_eth_t *pETH = &gCSV->eth;
+
+
+	struct gvcp_discover_ack ack_msg;
+	memset(&ack_msg, 0, sizeof(struct gvcp_discover_ack));
+	ack_msg.header.wStatus=htons(0);
+	ack_msg.header.wAck=htons(GVCP_DISCOVERY_ACK);
+	ack_msg.header.wLen=htons(sizeof(struct gvcp_ack_payload_t));
+	ack_msg.header.wReqID=htons(pHDR->wReqID);
+	ack_msg.payload.dwSpecVer=htonl(0x010002);;
+	ack_msg.payload.dwDevMode=htonl(1);
+	//uint8 MyMac[6]={0xc4,0x2f,0x90,0xf1,0x71,0x3e};
+	memcpy(&ack_msg.payload.Mac[2], pETH->MACAddr,6);
+	ack_msg.payload.dwSupIpSet=htonl(0x80000007);
+	ack_msg.payload.dwCurIpSet=htonl(0x00005);
+	//uint8 unused1[12];
+	*((uint32_t *)&ack_msg.payload.CurIP[12])=inet_addr(pETH->ip);//last 4 byte
+	*((uint32_t *)&ack_msg.payload.SubMask[12])=inet_addr(pETH->nm);//last 4 byte
+	*((uint32_t *)&ack_msg.payload.Gateway[12])=inet_addr(pETH->gw);//last 4 byte
+	strcpy(ack_msg.payload.szFacName,"GEV");//first
+	strcpy(ack_msg.payload.szModelName,"MV-CS001-50GM");//first
+	strcpy(ack_msg.payload.szDevVer,"V2.8.6 180210 143913");
+	strcpy(ack_msg.payload.szFacInfo,"GEV");
+	strcpy(ack_msg.payload.szSerial,"00C31976084");
+	strcpy(ack_msg.payload.szUserName,"");
+
+	pGVCP->Send.nTx = sizeof(struct gvcp_discover_ack);
+	memcpy(pGVCP->Send.pTx, (uint8_t *)&ack_msg, pGVCP->Send.nTx);
+
+
+	return csv_gvcp_sendto(pGVCP);
+}
+
+
 int csv_gvcp_trigger (struct csv_gvcp_t *pGVCP)
 {
+	int ret = 0;
 	uint8_t *pBuf = pGVCP->Recv.pRx;
 	socklen_t from_len = sizeof(struct sockaddr_in);
 
@@ -32,9 +64,13 @@ int csv_gvcp_trigger (struct csv_gvcp_t *pGVCP)
 		(struct sockaddr *)&pGVCP->from_addr, &from_len);
 
 	if (pGVCP->Recv.nRx < sizeof(struct gvcp_cmd_header_t)) {
-		log_hex(STREAM_UDP, pBuf, pGVCP->Recv.nRx, "wrong gvcp head length.");
+		log_hex(STREAM_UDP, pBuf, pGVCP->Recv.nRx, "Wrong gvcp head length. '%s:%d'", 
+			inet_ntoa(pGVCP->from_addr.sin_addr), htons(pGVCP->from_addr.sin_port));
 		return -1;
 	}
+
+	log_hex(STREAM_UDP, pGVCP->Recv.pRx, pGVCP->Recv.nRx, "gvcp recvfrom '%s:%d'", 
+		inet_ntoa(pGVCP->from_addr.sin_addr), htons(pGVCP->from_addr.sin_port));
 
 	struct gvcp_cmd_header_t *pHeader = (struct gvcp_cmd_header_t *)pBuf;
 	struct gvcp_cmd_header_t Cmdheader;
@@ -51,6 +87,7 @@ int csv_gvcp_trigger (struct csv_gvcp_t *pGVCP)
 
 	switch (Cmdheader.wCmd) {
 	case GVCP_DISCOVERY_CMD:
+		ret = csv_gvcp_discover_ack(pGVCP, &Cmdheader);
 		break;
 	case GVCP_FORCEIP_CMD:
 		break;
@@ -62,7 +99,7 @@ int csv_gvcp_trigger (struct csv_gvcp_t *pGVCP)
 		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 

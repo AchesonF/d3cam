@@ -189,7 +189,8 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 	memset(pDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
 
 	// enum device
-	nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, pDevList);
+	//nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, pDevList);
+	nRet = MV_CC_EnumDevices(MV_USB_DEVICE, pDevList);
 	if (MV_OK != nRet) {
 		log_info("ERROR : EnumDevices failed [0x%08X]", nRet);
 		return -1;
@@ -299,15 +300,17 @@ int csv_mvs_cams_open (struct csv_mvs_t *pMVS)
 			continue;
 		}
 
-		log_info("StartGrabbing CAM '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
+		if (!pCAM->grabbing) {
+			log_info("StartGrabbing CAM '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
 
-		// 准备开始取数据流
-		nRet = MV_CC_StartGrabbing(pCAM->pHandle);
-		if (MV_OK != nRet) {
-			log_info("ERROR : StartGrabbing failed. [0x%08X]", nRet);
-			errNum++;
-        }
-		pCAM->grabbing = true;
+			// 准备开始取数据流
+			nRet = MV_CC_StartGrabbing(pCAM->pHandle);
+			if (MV_OK != nRet) {
+				log_info("ERROR : StartGrabbing failed. [0x%08X]", nRet);
+				errNum++;
+	        }
+			pCAM->grabbing = true;
+		}
     }
 
 	if (errNum > 0){
