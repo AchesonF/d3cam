@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 /* 0x0-0xF 的字符查找表*/
-const char Hex2Ascii[17] = "0123456789ABCDEF";
+//const char Hex2Ascii[17] = "0123456789ABCDEF";
 /* 0-9 数字转字符 */
 const char Dec2Ascii[11] = "0123456789";
 
@@ -141,14 +141,14 @@ uint64_t utility_get_millisecond (void)
  * @param[in]	void
  * @return		!0 : micro second.
  */
-uint64_t utility_get_microsecond (void)
+/*uint64_t utility_get_microsecond (void)
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
     return ((uint64_t) tv.tv_sec * 1000000 + tv.tv_usec);
 }
-
+*/
 int system_redef (const char *cmd)
 {
 	FILE *fp;

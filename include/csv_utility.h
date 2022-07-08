@@ -7,7 +7,7 @@ extern "C" {
 
 #define toSTR(_str)			#_str
 
-extern const char Hex2Ascii[17];
+//extern const char Hex2Ascii[17];
 extern const char Dec2Ascii[11];
 
 extern int convert_dec(uint8_t val);
@@ -36,8 +36,6 @@ extern void hexstr_to_u8v (char *buf, uint16_t len, uint8_t *data);
 extern double utility_get_sec_since_boot (void);
 
 extern uint64_t utility_get_millisecond (void);
-
-extern uint64_t utility_get_microsecond (void);
 
 extern int system_redef (const char *cmd);
 

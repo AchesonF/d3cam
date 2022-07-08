@@ -88,7 +88,7 @@ void csv_stop (int signum)
 		break;
 	}
 
-	csv_gvcp_deinit();
+	csv_gev_deinit();
 
 	csv_dlp_deinit();
 
@@ -273,7 +273,7 @@ int csv_init (struct csv_info_t *pCSV)
 
 	csv_dlp_init();
 
-	csv_gvcp_init();
+	csv_gev_init();
 
 	csv_tcp_init();
 
@@ -316,7 +316,7 @@ int main (int argc, char **argv)
 	csv_init(gCSV);
 
 	struct csv_uevent_t *pUE = &gCSV->uevent;
-	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
+	struct csv_gev_t *pGEV = &gCSV->gev;
 	struct csv_tick_t *pTICK = &gCSV->tick;
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
 
@@ -327,9 +327,9 @@ int main (int argc, char **argv)
 		FD_ZERO(&readset);
 		FD_ZERO(&writeset);
 
-		if (pGVCP->fd > 0) {
-			maxfd = MAX(maxfd, pGVCP->fd);
-			FD_SET(pGVCP->fd, &readset);
+		if (pGEV->fd > 0) {
+			maxfd = MAX(maxfd, pGEV->fd);
+			FD_SET(pGEV->fd, &readset);
 		}
 
 		if (pUE->fd > 0) {
@@ -370,8 +370,8 @@ int main (int argc, char **argv)
 		break;
 		}
 
-		if ((pGVCP->fd > 0)&&(FD_ISSET(pGVCP->fd, &readset))) {
-			csv_gvcp_trigger(pGVCP);
+		if ((pGEV->fd > 0)&&(FD_ISSET(pGEV->fd, &readset))) {
+			csv_gev_trigger(pGEV);
 		}
 
 		if ((pUE->fd > 0)&&(FD_ISSET(pUE->fd, &readset))) {

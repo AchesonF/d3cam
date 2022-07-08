@@ -7,6 +7,8 @@ extern "C" {
 
 #include <stdarg.h>
 
+extern const char Hex2Ascii[17];
+
 /*
 * @param[in]	priority	日志级别
 *		LOG_EMERG		system is unusable\n
@@ -20,6 +22,8 @@ extern "C" {
 */
 
 extern int hex_printf (const uint8_t *buff, int count);
+
+extern uint64_t utility_get_microsecond (void);
 
 extern void log_do (int priority, const char *fmt, ...);
 

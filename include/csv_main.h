@@ -54,7 +54,7 @@ struct csv_info_t {
 
 	struct csv_uevent_t	uevent;					///< 探测内核事件
 	struct csv_mvs_t	mvs;					///< 支持海康工业相机
-	struct csv_gvcp_t	gvcp;					///< GVCP
+	struct csv_gev_t	gev;					///< GigE Vision
 	struct csv_dlp_t	dlp;					///< 光机控制通道
 
 	struct csv_so_t		so;						///< 挂载算法so 

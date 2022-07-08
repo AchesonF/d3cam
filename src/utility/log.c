@@ -6,6 +6,16 @@ extern "C" {
 
 #define MAX_LINE					(4096)		///< 每行最大字符数
 
+const char Hex2Ascii[17] = "0123456789ABCDEF";
+
+uint64_t utility_get_microsecond (void)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    return ((uint64_t) tv.tv_sec * 1000000 + tv.tv_usec);
+}
+
 int hex_printf (const uint8_t *buff, int count)
 {
 	uint32_t i = 0, j = 0;

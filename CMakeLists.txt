@@ -89,6 +89,7 @@ endif ()
 include_directories(
 	"include"
 	"include/mvs"
+	"include/gev"
 	"include/so"
 	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}

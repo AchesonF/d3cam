@@ -2,8 +2,6 @@
 #ifndef _MV_PIXEL_TYPE_H_
 #define _MV_PIXEL_TYPE_H_
 
-//#include "Base/GCTypes.h"
-
 
 /************************************************************************/
 /*     GigE Vision (2.0.03) PIXEL FORMATS                               */
