@@ -344,7 +344,7 @@ static int msg_sys_info_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
-static int cameras_save_to_bmp_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
+int cameras_save_to_bmp_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
 	uint8_t *pData, int idx, int r_l)
 {
 	int nRet = MV_OK;
@@ -406,6 +406,130 @@ exit:
 	return ret;
 }
 
+int cameras_save_to_png_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
+	uint8_t *pData, uint32_t nData, int idx, int r_l)
+{
+	int nRet = MV_OK;
+	int ret = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	uint8_t *pDataForSaveImage = NULL;
+	char img_filename[128] = {0};
+	memset(img_filename, 0, 128);
+
+	if (idx == 0) {
+		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%d.png", pMVS->groupDemarcate, r_l+1);
+	} else {
+		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%dS00P%03d.png", pMVS->groupDemarcate, r_l+1, idx);
+	}
+
+	log_debug("Save to file : '%s'", img_filename);
+
+	pDataForSaveImage = (uint8_t*)malloc(nData);
+	if (NULL == pDataForSaveImage) {
+		log_err("ERROR : malloc DataForSaveImage");
+		return -1;
+	}
+
+	// 填充存图参数
+	// fill in the parameters of save image
+	MV_SAVE_IMAGE_PARAM_EX stSaveParam;
+	memset(&stSaveParam, 0, sizeof(MV_SAVE_IMAGE_PARAM_EX));
+	// 从上到下依次是：输出图片格式，输入数据的像素格式，提供的输出缓冲区大小，图像宽，
+	// 图像高，输入数据缓存，输出图片缓存，JPG编码质量
+	// Top to bottom are：
+	stSaveParam.enImageType = MV_Image_Png; 
+	stSaveParam.enPixelType = stImageInfo->enPixelType; 
+	stSaveParam.nBufferSize = nData;
+	stSaveParam.nWidth      = stImageInfo->nWidth; 
+	stSaveParam.nHeight     = stImageInfo->nHeight; 
+	stSaveParam.pData       = pData;
+	stSaveParam.nDataLen    = stImageInfo->nFrameLen;
+	stSaveParam.pImageBuffer = pDataForSaveImage;
+	stSaveParam.nJpgQuality = 90;
+
+	nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
+	if (MV_OK != nRet) {
+		log_info("ERROR : %d_%02d SaveImage failed. [0x%08X]", idx, r_l, nRet);
+		ret = -1;
+		goto exit;
+	}
+
+	ret = csv_file_write_data(img_filename, pDataForSaveImage, stSaveParam.nImageLen);
+	if (ret < 0) {
+		log_info("ERROR : write file. %d_%02d", idx, r_l);
+	}
+
+exit:
+
+	if (NULL != pDataForSaveImage) {
+		free(pDataForSaveImage);
+	}
+
+	return ret;
+}
+
+int cameras_save_to_jpg_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
+	uint8_t *pData, uint32_t nData, int idx, int r_l)
+{
+	int nRet = MV_OK;
+	int ret = 0;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	uint8_t *pDataForSaveImage = NULL;
+	char img_filename[128] = {0};
+	memset(img_filename, 0, 128);
+
+	if (idx == 0) {
+		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%d.jpg", pMVS->groupDemarcate, r_l+1);
+	} else {
+		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%dS00P%03d.jpg", pMVS->groupDemarcate, r_l+1, idx);
+	}
+
+	log_debug("Save to file : '%s'", img_filename);
+
+	pDataForSaveImage = (uint8_t*)malloc(nData);
+	if (NULL == pDataForSaveImage) {
+		log_err("ERROR : malloc DataForSaveImage");
+		return -1;
+	}
+
+	// 填充存图参数
+	// fill in the parameters of save image
+	MV_SAVE_IMAGE_PARAM_EX stSaveParam;
+	memset(&stSaveParam, 0, sizeof(MV_SAVE_IMAGE_PARAM_EX));
+	// 从上到下依次是：输出图片格式，输入数据的像素格式，提供的输出缓冲区大小，图像宽，
+	// 图像高，输入数据缓存，输出图片缓存，JPG编码质量
+	// Top to bottom are：
+	stSaveParam.enImageType = MV_Image_Jpeg; 
+	stSaveParam.enPixelType = stImageInfo->enPixelType; 
+	stSaveParam.nBufferSize = nData;
+	stSaveParam.nWidth      = stImageInfo->nWidth; 
+	stSaveParam.nHeight     = stImageInfo->nHeight; 
+	stSaveParam.pData       = pData;
+	stSaveParam.nDataLen    = stImageInfo->nFrameLen;
+	stSaveParam.pImageBuffer = pDataForSaveImage;
+	stSaveParam.nJpgQuality = 90;
+
+	nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
+	if (MV_OK != nRet) {
+		log_info("ERROR : %d_%02d SaveImage failed. [0x%08X]", idx, r_l, nRet);
+		ret = -1;
+		goto exit;
+	}
+
+	ret = csv_file_write_data(img_filename, pDataForSaveImage, stSaveParam.nImageLen);
+	if (ret < 0) {
+		log_info("ERROR : write file. %d_%02d", idx, r_l);
+	}
+
+exit:
+
+	if (NULL != pDataForSaveImage) {
+		free(pDataForSaveImage);
+	}
+
+	return ret;
+}
+
 int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = 0, i = 0;
@@ -431,7 +555,11 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-			ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+			//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+			//ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+			//	pCAM->stParam.nCurValue, idx, i);
+			ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+				pCAM->stParam.nCurValue, idx, i);
 		} else {
 			log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 				pCAM->serialNum, idx, i, nRet);
@@ -458,7 +586,11 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-				ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+				//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+				//ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+				//	pCAM->stParam.nCurValue, idx, i);
+				ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+					pCAM->stParam.nCurValue, idx, i);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->serialNum, idx, i, nRet);
@@ -571,9 +703,9 @@ static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), msg_cameras_grab_rgb);
 	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), msg_cameras_grab_rgb);
 
-	//msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_demarcate);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_demarcate);
 	//msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_urandom);
-	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_highspeed);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_highspeed);
 
 
 	// todo add more cmd

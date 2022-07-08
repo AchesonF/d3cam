@@ -44,7 +44,7 @@ extern void log_do (int priority, const char *fmt, ...);
 
   #define log_hex(type, buff, len, fmt, ...) do {\
 		if ((gPdct.tdata == type)||(gPdct.tdata == STREAM_ALL)) {	\
-  			log_do(LOG_DEBUG, "%lld： %s(%d): " fmt, utility_get_microsecond(), \
+  			log_do(LOG_DEBUG, "%lld: %s(%d): " fmt, utility_get_microsecond(), \
   				__func__, __LINE__, ##__VA_ARGS__); \
   			hex_printf(buff, len); } } while(0)
 
