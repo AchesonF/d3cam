@@ -395,7 +395,7 @@ int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime)
 			errNum++;
 			continue;
 		}
-
+/*
 		if (pCAM->exposureTime.fMax < fExposureTime) {
 			fExposureTime = pCAM->exposureTime.fMax;
 		}
@@ -407,6 +407,22 @@ int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime)
 		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "ExposureTime", fExposureTime);
 		if (MV_OK == nRet) {
 			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->serialNum, fExposureTime);
+		} else {
+			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->serialNum, nRet);
+			errNum++;
+		}
+*/
+		if (pCAM->exposureTime.fMax < gCSV->cfg.device_param.exposure_time) {
+			gCSV->cfg.device_param.exposure_time = pCAM->exposureTime.fMax;
+		}
+
+		if (pCAM->exposureTime.fMin > gCSV->cfg.device_param.exposure_time) {
+			gCSV->cfg.device_param.exposure_time = pCAM->exposureTime.fMin;
+		}
+
+		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "ExposureTime", gCSV->cfg.device_param.exposure_time);
+		if (MV_OK == nRet) {
+			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->serialNum, gCSV->cfg.device_param.exposure_time);
 		} else {
 			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->serialNum, nRet);
 			errNum++;
@@ -552,7 +568,7 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 		return -1;
 	}
 
-	return 0;
+	return nRet;
 }
 
 

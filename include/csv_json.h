@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define FILE_NAME_CJSON			"csvcfg.json"
+#define FILE_NAME_CJSON			"../../target/csvcfg.json"
 
 struct device_param_t {
 	int					device_type;

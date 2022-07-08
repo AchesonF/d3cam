@@ -555,11 +555,11 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-			//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+			ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
 			//ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
 			//	pCAM->stParam.nCurValue, idx, i);
-			ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-				pCAM->stParam.nCurValue, idx, i);
+			//ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+			//	pCAM->stParam.nCurValue, idx, i);
 		} else {
 			log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 				pCAM->serialNum, idx, i, nRet);
@@ -586,11 +586,11 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-				//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+				ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
 				//ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
 				//	pCAM->stParam.nCurValue, idx, i);
-				ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-					pCAM->stParam.nCurValue, idx, i);
+				//ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+				//	pCAM->stParam.nCurValue, idx, i);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->serialNum, idx, i, nRet);
@@ -637,6 +637,11 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->serialNum, idx, i, nRet);
+
+				if (MV_E_NODATA == nRet) {
+					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
+					return -1;
+				}
 			}
 
 		}
@@ -705,7 +710,7 @@ static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 
 	msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_demarcate);
 	//msg_command_add(pMSG, CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_urandom);
-	msg_command_add(pMSG, CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_highspeed);
+	msg_command_add(pMSG, CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_highspeed);
 
 
 	// todo add more cmd

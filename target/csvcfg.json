@@ -3,7 +3,7 @@
 		"device_type" : 0,
 		"camera_leftright_type" : false,
 		"camera_img_type" : true,
-		"exposure_time" : 10000.0,
+		"exposure_time" : 110000.0,
 		"exposure_time_for_rgb" : 10000.00
 	},
 

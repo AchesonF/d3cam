@@ -61,6 +61,12 @@ int csv_json_parse (json_object *jobj, int *cnt_recursion)
 			if (NULL != j_object) {
 				log_debug("double ['%s' : '%f']", key, json_object_get_double(j_object));
 				// todo 
+
+				if (!strcmp(key, "exposure_time")) {
+					gCSV->cfg.device_param.exposure_time = json_object_get_double(j_object);
+					log_debug("ExposureTime %f", gCSV->cfg.device_param.exposure_time);
+				}
+
 				json_object_put(j_object);
 			}
 			break;
@@ -142,6 +148,17 @@ int csv_json_init (void)
 	struct csv_json_t *pCFG = &gCSV->cfg;
 
 	pCFG->name = FILE_NAME_CJSON;
+
+	pCFG->device_param.device_type = 0;
+	pCFG->device_param.camera_leftright_type = false;
+	pCFG->device_param.camera_img_type = true;
+	pCFG->device_param.exposure_time = 10000.0f;
+	pCFG->device_param.exposure_time_for_rgb = 10000.0f;
+
+	pCFG->depthimg_param.numDisparities = 816;
+	pCFG->depthimg_param.blockSize = 21;
+	pCFG->depthimg_param.uniqRatio = 9;
+
 
 	json_object *j_cfg = NULL;
 	int cnt = 0;
