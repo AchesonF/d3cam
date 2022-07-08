@@ -61,6 +61,9 @@ else (OpenCV_FOUND)
 	message(FATAL_ERROR "OpenCV not found. Please install first.")
 endif ()
 
+set(libXML_INCLUDE_DIRS "/usr/include/libxml2")
+set(libXML_LIBS "xml2")
+
 link_directories(
 	${DIR_LIBS_MVS}
 	"libs"
@@ -93,6 +96,7 @@ include_directories(
 	"include/so"
 	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}
+	${libXML_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${INC_POINTCLOUD}
 )

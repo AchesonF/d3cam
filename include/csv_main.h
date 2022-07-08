@@ -48,7 +48,8 @@ struct csv_product_t {
 
 struct csv_info_t {
 	struct csv_file_t	file;					///< 外部配置文件
-	struct csv_json_t	cfg;					///< config file using json
+	struct csv_xml_t	xml;					///< config file using xml
+	struct csv_cfg_t	cfg;
 	struct csv_eth_t	eth;					///< 本地网络参数
 	struct csv_stat_t	stat;					///< 系统状态信息
 

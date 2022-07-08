@@ -44,7 +44,7 @@ target_link_libraries(${EXE_TARGET}
 #	sqlite3
 	dl
 	MvCameraControl
-	json-c
+	${libXML_LIBS}
 	opencv_world
 #	${OpenCV_LIBS}
 	${LIB_WEB_SERVER}

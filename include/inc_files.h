@@ -57,14 +57,15 @@ extern "C" {
 #include "project_version.h"
 #include "config.h"
 
-// for json
-#include <json-c/json.h>
+// for xml2
+#include "libxml/parser.h"
+#include "libxml/tree.h"
+
 
 // for MVS
 #include "MvCameraControl.h"
 
 // for GigE Vision
-//#include "GigEVisionDeviceDefine.h"
 #include "GigEVisionGVCPDefine.h"
 #include "GigEVisionGVCPRegisterDefine.h"
 #include "GigEVisionGVSPDefine.h"
@@ -78,7 +79,8 @@ extern "C" {
 
 #include "csv_hb.h"
 #include "csv_file.h"
-#include "csv_json.h"
+#include "csv_cfg.h"
+#include "csv_xml.h"
 #include "csv_eth.h"
 #include "csv_life.h"
 #include "csv_stat.h"
