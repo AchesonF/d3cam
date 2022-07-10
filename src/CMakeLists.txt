@@ -16,6 +16,12 @@ if (USING_POINTCLOUD)
 	set(LIB_POINTCLOUD "pointcloud3d")
 endif ()
 
+if (USING_SPNG)
+	add_subdirectory(libspng)
+
+	set(LIB_SPNG "spng")
+endif ()
+
 # add some include directories
 #include_directories()
 
@@ -49,6 +55,7 @@ target_link_libraries(${EXE_TARGET}
 #	${OpenCV_LIBS}
 	${LIB_WEB_SERVER}
 	${LIB_POINTCLOUD}
+	${LIB_SPNG}
 )
 
 

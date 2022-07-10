@@ -88,6 +88,13 @@ if (USING_POINTCLOUD)
 	)
 endif ()
 
+option(USING_SPNG "Add png maker" ON)
+if (USING_SPNG)
+	set(INC_SPNG
+		"src/spng"
+	)
+endif ()
+
 # add include directories here
 include_directories(
 	"include"
@@ -99,6 +106,7 @@ include_directories(
 	${libXML_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${INC_POINTCLOUD}
+	${INC_SPNG}
 )
 
 add_subdirectory(src)
