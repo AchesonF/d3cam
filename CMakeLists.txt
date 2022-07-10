@@ -91,7 +91,7 @@ endif ()
 option(USING_SPNG "Add png maker" ON)
 if (USING_SPNG)
 	set(INC_SPNG
-		"src/spng"
+		"src/libspng"
 	)
 endif ()
 

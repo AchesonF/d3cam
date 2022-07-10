@@ -35,7 +35,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	// 导入C1相机图像
 	vector<cv::Mat> src1list;
 	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + "CSV_001C2S00P" + to_zero_lead(i + 1, 3) + ".bmp";
+		string path = pathRoot + "CSV_001C2S00P" + to_zero_lead(i + 1, 3) + ".png";
 
 		cout << "Read Image : " << path << endl;
 
@@ -48,7 +48,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	// 导入2相机图像
 	vector<cv::Mat> src2list;
 	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + "CSV_001C1S00P" + to_zero_lead(i + 1, 3) + ".bmp";
+		string path = pathRoot + "CSV_001C1S00P" + to_zero_lead(i + 1, 3) + ".png";
 
 		cout << "Read Image : " << path << endl;
 

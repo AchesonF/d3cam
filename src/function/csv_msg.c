@@ -1,6 +1,6 @@
 #include "inc_files.h"
 
-#include "csv_pointcloud.hpp"
+//#include "csv_pointcloud.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -407,12 +407,12 @@ exit:
 }
 
 int cameras_save_to_png_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
-	uint8_t *pData, uint32_t nData, int idx, int r_l)
+	uint8_t *pData, uint32_t nData, int idx, int r_l, uint8_t end_pc)
 {
-	int nRet = MV_OK;
+//	int nRet = MV_OK;
 	int ret = 0;
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	uint8_t *pDataForSaveImage = NULL;
+//	uint8_t *pDataForSaveImage = NULL;
 	char img_filename[128] = {0};
 	memset(img_filename, 0, 128);
 
@@ -424,6 +424,9 @@ int cameras_save_to_png_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
 
 	log_debug("Save to file : '%s'", img_filename);
 
+	csv_png_push(img_filename, pData, nData, stImageInfo->nWidth, stImageInfo->nHeight, end_pc);
+
+/*
 	pDataForSaveImage = (uint8_t*)malloc(nData);
 	if (NULL == pDataForSaveImage) {
 		log_err("ERROR : malloc DataForSaveImage");
@@ -464,7 +467,7 @@ exit:
 	if (NULL != pDataForSaveImage) {
 		free(pDataForSaveImage);
 	}
-
+*/
 	return ret;
 }
 
@@ -555,9 +558,9 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-			ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
-			//ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-			//	pCAM->stParam.nCurValue, idx, i);
+			//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+			ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+				pCAM->stParam.nCurValue, idx, i, 0);
 			//ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
 			//	pCAM->stParam.nCurValue, idx, i);
 		} else {
@@ -586,9 +589,9 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-				ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
-				//ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-				//	pCAM->stParam.nCurValue, idx, i);
+				//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+				ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+					pCAM->stParam.nCurValue, idx, i, 0);
 				//ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
 				//	pCAM->stParam.nCurValue, idx, i);
 			} else {
@@ -601,6 +604,7 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		idx++;
 	}
 
+	pthread_cond_broadcast(&gCSV->png.cond_png);
 
 	pMVS->groupDemarcate++;
 
@@ -613,6 +617,7 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 	int nRet = MV_OK;
 	int nFrames = 13;
 	int idx = 1;
+	uint8_t end_pc = 0;
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct cam_spec_t *pCAM = NULL;
 
@@ -633,7 +638,13 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-				ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+				//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
+
+				if ((idx == nFrames)&&(i == 1)) {
+					end_pc = 1;
+				}
+				ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+					pCAM->stParam.nCurValue, idx, i, end_pc);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->serialNum, idx, i, nRet);
@@ -648,8 +659,7 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 
 		idx++;
 	}
-
-	point_cloud_calc();
+pthread_cond_broadcast(&gCSV->png.cond_png);
 
 	return ret;
 }
