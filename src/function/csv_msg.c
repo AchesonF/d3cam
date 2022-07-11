@@ -621,6 +621,8 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct cam_spec_t *pCAM = NULL;
 
+	pMVS->groupDemarcate = 1;
+
 	// 13 高速光
 	ret = csv_dlp_just_write(DLP_HIGH_SPEED);
 
@@ -659,7 +661,9 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 
 		idx++;
 	}
-pthread_cond_broadcast(&gCSV->png.cond_png);
+	pthread_cond_broadcast(&gCSV->png.cond_png);
+
+	pMVS->groupDemarcate++;
 
 	return ret;
 }

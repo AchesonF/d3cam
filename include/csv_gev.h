@@ -14,10 +14,15 @@ enum {
 	GEV_REG_TYPE_MEM		= 1			///< memory
 };
 
+#define GEV_REG_READ		(0x01)							///< 可读
+#define GEV_REG_WRITE		(0x02)							///< 可写
+#define GEV_REG_RDWR		(GEV_REG_READ|GEV_REG_WRITE)	///< 可读可写
+
 struct reg_info_t {
 	uint16_t				addr;
 	uint8_t					type;		// GEV_REG_TYPE_REG/GEV_REG_TYPE_MEM
-	uint8_t					length;		// 长度
+	uint8_t					mode;		// GEV_REG_RDWR
+	uint16_t				length;		// 长度
 	uint32_t				value;		// reg 值
 	char					*info;		// mem内容
 	char					*desc;		// 寄存器描述
