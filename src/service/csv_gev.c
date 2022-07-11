@@ -392,6 +392,73 @@ int csv_gev_server_open (struct csv_gev_t *pGEV)
 	return 0;
 }
 
+static struct reglist_t *gev_reg_malloc (void)
+{
+	struct reglist_t *cur = NULL;
+
+	cur = (struct reglist_t *)malloc(sizeof(struct reglist_t));
+	if (cur == NULL) {
+		log_err("ERROR : malloc reglist_t");
+		return NULL;
+	}
+	memset(cur, 0, sizeof(struct reglist_t));
+
+	return cur;
+}
+
+static void csv_gev_reg_add (uint16_t addr, uint8_t type, 
+	uint8_t length, uint32_t value, char *info, char *desc)
+{
+	int len = 0;
+	struct reglist_t *cur = NULL;
+
+	cur = gev_reg_malloc();
+	if (cur != NULL) {
+		cur->ri.addr = addr;
+		cur->ri.type = type;
+		cur->ri.length = length;
+		if (GEV_REG_TYPE_REG == type) {
+			cur->ri.value = value;
+		} else if (GEV_REG_TYPE_MEM == type) {
+			if (NULL == info) {
+				log_info("WARN : mem 0x%04X null", addr);
+				return ;
+			}
+
+			len = strlen(info);
+			if (len > 0) {
+				cur->ri.info = (char *)malloc(len+1);
+				if (NULL == cur->ri.info) {
+					log_err("ERROR : malloc ri info");
+					return ;
+				}
+				memcpy(cur->ri.info, info, len);
+			}
+		} else {
+			log_info("ERROR : not support type");
+		}
+
+		if (NULL != desc) {
+			len = strlen(desc);
+			cur->ri.desc = (char *)malloc(len+1);
+			if (NULL == cur->ri.info) {
+				log_err("ERROR : malloc ri desc");
+				return ;
+			}
+			memcpy(cur->ri.desc, desc, len);
+		}
+
+		list_add_tail(&cur->list, &gCSV->gev.head_reg.list);
+	}
+}
+
+static void csv_gev_reg_enroll (void)
+{
+	csv_gev_reg_add(REG_Version, GEV_REG_TYPE_REG, 4, 0x00010002, NULL, NULL);
+
+
+}
+
 static int csv_gev_server_close (struct csv_gev_t *pGEV)
 {
 	if (pGEV->fd > 0) {
@@ -418,6 +485,8 @@ int csv_gev_init (void)
 	pGEV->ReqId = GVCP_REQ_ID_INIT;
 	pGEV->rxlen = 0;
 	pGEV->txlen = 0;
+
+	csv_gev_reg_enroll();
 
 	ret = csv_gev_server_open(pGEV);
 

@@ -689,7 +689,7 @@ static void msg_command_add (struct csv_msg_t *pMSG,
 	if (cur != NULL) {
 		cur->command.cmdtype = cmdtype;
 		cur->command.cmdname = cmdname;
-		cur->command.func = func,
+		cur->command.func = func;
 
 		list_add_tail(&cur->list, &pMSG->head_cmd.list);
 	}
