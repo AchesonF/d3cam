@@ -830,7 +830,7 @@ static int csv_msg_execute (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 //	log_debug("msg 0x%08X", pMP->hdr.cmdtype);
 
-	list_for_each_prev(pos, &gCSV->msg.head_cmd.list) {
+	list_for_each(pos, &gCSV->msg.head_cmd.list) {
 		task = list_entry(pos, struct msg_command_list, list);
 		if (task == NULL) {
 			break;

@@ -21,11 +21,20 @@ struct depthimg_param_t {
 };
 
 
+struct gev_param_t {
+	uint32_t				Version;	// hi16 major, low16 minor
+	uint32_t				DeviceMode;
+	uint32_t				MacHi;		// mac[0-1]
+	uint32_t				MacLow;		// mac[2-5]
+
+};
+
+
 struct csv_cfg_t {
-	struct device_param_t device_param;
+	struct device_param_t	device_param;
 	struct depthimg_param_t depthimg_param;
 
-
+	struct gev_param_t		gp;				///< gev参数
 };
 
 

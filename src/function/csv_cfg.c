@@ -11,7 +11,7 @@ extern "C" {
 int csv_cfg_init (void)
 {
 	struct csv_cfg_t *pCFG = &gCSV->cfg;
-
+	struct gev_param_t *pGP = &pCFG->gp;
 
 	pCFG->device_param.device_type = 0;
 	pCFG->device_param.camera_leftright_type = false;
@@ -22,6 +22,13 @@ int csv_cfg_init (void)
 	pCFG->depthimg_param.numDisparities = 816;
 	pCFG->depthimg_param.blockSize = 21;
 	pCFG->depthimg_param.uniqRatio = 9;
+
+
+	pGP->Version = (GEV_VERSION_MAJOR<<16) | GEV_VERSION_MINOR;
+	pGP->DeviceMode = GEV_DEVICE_MODE;
+	pGP->MacHi = (uint32_t)u8v_to_u16(&gCSV->eth.MACAddr[0]);
+	pGP->MacLow = u8v_to_u32(&gCSV->eth.MACAddr[2]);
+
 
 
 
