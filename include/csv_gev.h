@@ -40,6 +40,13 @@ struct reglist_t {
 };
 
 
+struct gvsp_param_t {
+	int						fd;
+	char					*name;
+	struct sockaddr_in		to_addr;	///< 流to
+
+};
+
 struct csv_gev_t {
 	int						fd;			///< 文件描述符
 	char					*name;		///< 链接名称
@@ -54,12 +61,14 @@ struct csv_gev_t {
 
 	struct reglist_t		head_reg;		///< 寄存器链表
 
+	struct gvsp_param_t		stream[TOTAL_CAMS];
+
 	struct sockaddr_in		from_addr;		///< 来源地址参数
 	struct sockaddr_in		target_addr;	///< 媒体流流向参数
 };
 
 
-extern int csv_gev_trigger (struct csv_gev_t *pGEV);
+extern int csv_gvcp_trigger (struct csv_gev_t *pGEV);
 
 extern int csv_gev_init (void);
 

@@ -773,7 +773,7 @@ static int csv_gvcp_action_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	return csv_gvcp_sendto(pGEV);
 }
 
-static int csv_gev_gvcp_msg (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
+static int csv_gvcp_msg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 {
 	int ret = -1;
 
@@ -833,7 +833,7 @@ static int csv_gev_gvcp_msg (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 	return ret;
 }
 
-int csv_gev_trigger (struct csv_gev_t *pGEV)
+int csv_gvcp_trigger (struct csv_gev_t *pGEV)
 {
 	socklen_t from_len = sizeof(struct sockaddr_in);
 
@@ -862,12 +862,12 @@ int csv_gev_trigger (struct csv_gev_t *pGEV)
 		return -1;
 	}
 
-	return csv_gev_gvcp_msg(pGEV, &Cmdheader);
+	return csv_gvcp_msg_ack(pGEV, &Cmdheader);
 }
 
 
 
-int csv_gev_server_open (struct csv_gev_t *pGEV)
+static int csv_gvcp_server_open (struct csv_gev_t *pGEV)
 {
 	int ret = -1;
 	int fd = -1;
@@ -909,7 +909,7 @@ int csv_gev_server_open (struct csv_gev_t *pGEV)
 	return 0;
 }
 
-static int csv_gev_server_close (struct csv_gev_t *pGEV)
+static int csv_gvcp_server_close (struct csv_gev_t *pGEV)
 {
 	if (pGEV->fd > 0) {
 		if (close(pGEV->fd) < 0) {
@@ -924,10 +924,17 @@ static int csv_gev_server_close (struct csv_gev_t *pGEV)
 	return 0;
 }
 
+static int csv_gvsp_open (struct gvsp_param_t *pStream)
+{
+
+	return 0;
+}
+
 int csv_gev_init (void)
 {
-	int ret = 0;
+	int ret = 0, i = 0;
 	struct csv_gev_t *pGEV = &gCSV->gev;
+	struct gvsp_param_t *pStream = NULL;
 
 	pGEV->fd = -1;
 	pGEV->name = NAME_UDP_GVCP;
@@ -938,7 +945,16 @@ int csv_gev_init (void)
 
 	csv_gev_reg_enroll();
 
-	ret = csv_gev_server_open(pGEV);
+	for (i = 0; i < TOTAL_CAMS; i++) {
+		pStream = &pGEV->stream[i];
+
+		pStream->fd = -1;
+		pStream->name = "stream"toSTR();
+
+		csv_gvsp_open(pStream);
+	}
+
+	ret = csv_gvcp_server_open(pGEV);
 
 	return ret;
 }
@@ -949,7 +965,7 @@ int csv_gev_deinit (void)
 
 	csv_gev_reg_disroll();
 
-	ret = csv_gev_server_close(&gCSV->gev);
+	ret = csv_gvcp_server_close(&gCSV->gev);
 
 	return ret;
 }
