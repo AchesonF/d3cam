@@ -168,6 +168,48 @@ static int msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t
 	return csv_msg_send(pACK);
 }
 
+int msg_cameras_rgb_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int len_msg = 0;
+	char str_expo[1024] = {0};
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
+
+
+	len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
+		pCAMLEFT->serialNum, gCSV->cfg.device_param.exposure_time_for_rgb,
+		pCAMRIGHT->serialNum, gCSV->cfg.device_param.exposure_time_for_rgb);
+
+	if (len_msg > 0) {
+		csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
+	}
+
+
+	return csv_msg_send(pACK);
+}
+
+static int msg_cameras_rgb_exposure_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int ret = -1;
+	int result = -1;
+	float *ExpoTime = (float *)pMP->payload;
+
+	if (pMP->hdr.length == sizeof(float)) {
+		gCSV->cfg.device_param.exposure_time_for_rgb = *ExpoTime;
+
+		ret = csv_xml_write_DeviceParameters();
+		if (ret == 0) {
+			result = 0;
+		}
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+
+	return csv_msg_send(pACK);
+}
+
+
 static int msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
@@ -785,7 +827,7 @@ static void csv_msg_cmd_register (struct csv_msg_t *pMSG)
 	msg_command_add(pMSG, CAMERA_SET_CALIB_FILE, toSTR(CAMERA_SET_CALIB_FILE), msg_cameras_calibrate_file_set);
 	msg_command_add(pMSG, CAMERA_SET_CAMERA_NAME, toSTR(CAMERA_SET_CAMERA_NAME), msg_cameras_name_set);
 	msg_command_add(pMSG, CAMERA_SET_LED_DELAY_TIME, toSTR(CAMERA_SET_LED_DELAY_TIME), msg_led_delay_set);
-
+	msg_command_add(pMSG, CAMERA_SET_RGB_EXPOSURE, toSTR(CAMERA_SET_RGB_EXPOSURE), msg_cameras_rgb_exposure_set);
 	msg_command_add(pMSG, CAMERA_SET_RATE, toSTR(CAMERA_SET_RATE), msg_cameras_rate_set);
 	msg_command_add(pMSG, CAMERA_SET_BRIGHTNESS, toSTR(CAMERA_SET_BRIGHTNESS), msg_cameras_brightness_set);
 
