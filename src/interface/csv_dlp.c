@@ -5,22 +5,30 @@ extern "C" {
 #endif
 
 
-static uint8_t dlp_ctrl_cmd[TOTAL_DLP_CMD][LEN_DLP_CTRL] = {
-	{0x36, 0xAA, 0x01, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// PINSTRIPE
-	{0x36, 0xAA, 0x02, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// DEMARCATE
-	{0x36, 0xAA, 0x03, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// WIDISTRIPE
-	{0x36, 0xAA, 0x04, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// FOCUS
-	{0x36, 0xAA, 0x05, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// BRIGHT
-	{0x36, 0xAA, 0x06, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// SINGLE_SINE
-	{0x36, 0xAA, 0x07, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// SINGLE_WIDESTRIPE_SINE
-	{0x36, 0xAA, 0x0A, 0x2D, 0xF4, 0x01, 0x27, 0x10, 0x00, 0x00, 0xAA, 0xAA},	// HIGH_SPEED
-	{0x36, 0xAA, 0x21, 0x04, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// FOCUS_BRIGHT
-	{0x36, 0xAA, 0x21, 0x05, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// LIGHT_BRIGHT
-	{0x36, 0xAA, 0x21, 0x06, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// PINSTRIPE_SINE_BRIGHT
-	{0x36, 0xAA, 0x21, 0x07, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA}	// WIDESTRIPE_SINE_BRIGHT
-};
+static int csv_dlp_encode (struct csv_dlp_t *pDLP, uint8_t cmd)
+{
+	if (cmd >= TOTAL_CMDS) {
+		log_info("ERROR : not support cmd 0x%02X", cmd);
+		pDLP->tlen = 0;
+		return -1;
+	}
 
-int csv_dlp_just_write (uint8_t idx)
+	pDLP->tbuf[0] = DLP_HEAD_A;
+	pDLP->tbuf[1] = DLP_HEAD_B;
+	pDLP->tbuf[2] = cmd;
+	pDLP->tbuf[3] = (uint8_t)gCSV->cfg.device_param.dlp_rate;
+	u16_to_u8v(swap16((uint16_t)gCSV->cfg.device_param.dlp_brightness), &pDLP->tbuf[4]);
+	u32_to_u8v(swap32((uint32_t)gCSV->cfg.device_param.exposure_time), &pDLP->tbuf[6]);
+	pDLP->tbuf[10] = 0xAA;	// no crc check
+	pDLP->tbuf[11] = 0xAA;
+
+	pDLP->tlen = 12;
+
+	return pDLP->tlen;
+}
+
+
+int csv_dlp_just_write (uint8_t cmd)
 {
 	int ret = 0;
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
@@ -29,20 +37,25 @@ int csv_dlp_just_write (uint8_t idx)
 		return -1;
 	}
 
-	ret = csv_tty_write(pDLP->fd, dlp_ctrl_cmd[idx], sizeof(dlp_ctrl_cmd[idx]));
+	ret = csv_dlp_encode(pDLP, cmd);
+	if (ret < 0) {
+		return -1;
+	}
+
+	ret = csv_tty_write(pDLP->fd, pDLP->tbuf, pDLP->tlen);
 	if (ret < 0) {
 		log_err("ERROR : %s write failed.", pDLP->name);
 		return -1;
 	}
 
 	if (ret > 0) {
-		log_hex(STREAM_TTY, dlp_ctrl_cmd[idx], ret, "DLP write");
+		log_hex(STREAM_TTY, pDLP->tbuf, ret, "DLP write");
 	}
 
 	return ret;
 }
 
-static int csv_dlp_write (struct csv_dlp_t *pDLP, uint8_t idx)
+static int csv_dlp_write (struct csv_dlp_t *pDLP, uint8_t cmd)
 {
 	int ret = 0;
 
@@ -50,14 +63,19 @@ static int csv_dlp_write (struct csv_dlp_t *pDLP, uint8_t idx)
 		return -1;
 	}
 
-	ret = csv_tty_write(pDLP->fd, dlp_ctrl_cmd[idx], sizeof(dlp_ctrl_cmd[idx]));
+	ret = csv_dlp_encode(pDLP, cmd);
+	if (ret < 0) {
+		return -1;
+	}
+
+	ret = csv_tty_write(pDLP->fd, pDLP->tbuf, pDLP->tlen);
 	if (ret < 0) {
 		log_err("ERROR : %s write failed.", pDLP->name);
 		return -1;
 	}
 
 	if (ret > 0) {
-		log_hex(STREAM_TTY, dlp_ctrl_cmd[idx], ret, "DLP write");
+		log_hex(STREAM_TTY, pDLP->tbuf, ret, "DLP write");
 	}
 
 	return ret;
@@ -88,7 +106,7 @@ int csv_dlp_read (struct csv_dlp_t *pDLP)
 	return ret;
 }
 
-int csv_dlp_write_and_read (uint8_t idx)
+int csv_dlp_write_and_read (uint8_t cmd)
 {
 	int ret = 0;
 	int cnt_snd = 0;
@@ -101,7 +119,7 @@ int csv_dlp_write_and_read (uint8_t idx)
 	timeo.tv_nsec = now.tv_usec * 1000;
 
 	do {
-		ret = csv_dlp_write(pDLP, idx);
+		ret = csv_dlp_write(pDLP, cmd);
 	} while ((ret < 0)&&(++cnt_snd < 3));
 
 	if (ret < 0) {

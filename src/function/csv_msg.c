@@ -605,7 +605,7 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	struct cam_spec_t *pCAM = NULL;
 
 	// 1 亮光
-	ret = csv_dlp_just_write(DLP_BRIGHT);
+	ret = csv_dlp_just_write(CMD_BRIGHT);
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -628,6 +628,10 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		} else {
 			log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 				pCAM->serialNum, idx, i, nRet);
+				if (MV_E_NODATA == nRet) {
+					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
+					return -1;
+				}
 		}
 
 	}
@@ -635,7 +639,7 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	idx++;
 
 	// 22 标定
-	ret = csv_dlp_just_write(DLP_DEMARCATE);
+	ret = csv_dlp_just_write(CMD_DEMARCATE);
 
 	while (idx < nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
@@ -659,6 +663,10 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->serialNum, idx, i, nRet);
+				if (MV_E_NODATA == nRet) {
+					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
+					return -1;
+				}
 			}
 
 		}
@@ -686,7 +694,7 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 	pMVS->groupDemarcate = 1;
 
 	// 13 高速光
-	ret = csv_dlp_just_write(DLP_HIGH_SPEED);
+	ret = csv_dlp_just_write(CMD_HIGH_SPEED);
 
 	while (idx <= nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
