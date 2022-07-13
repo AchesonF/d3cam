@@ -7,6 +7,10 @@ extern "C" {
 
 #include <stdarg.h>
 
+#if (CONFIG_DEBUG_HEX_FORMAT==1)
+  #define HEX_SHOW_FORMAT	1
+#endif
+
 extern const char Hex2Ascii[17];
 
 /*
