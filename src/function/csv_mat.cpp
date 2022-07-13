@@ -15,7 +15,7 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 	int ret = 0;
 
 	if ((NULL == pstImageInfo)||(NULL == pData)) {
-		printf("ERROR : null point.\n");
+		log_info("ERROR : null point.");
 		return -1;
 	}
 
