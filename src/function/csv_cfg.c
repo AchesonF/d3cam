@@ -18,6 +18,8 @@ int csv_cfg_init (void)
 	pCFG->device_param.camera_img_type = true;
 	pCFG->device_param.exposure_time = 10000.0f;
 	pCFG->device_param.exposure_time_for_rgb = 10000.0f;
+	pCFG->device_param.dlp_rate = 0x002D;
+	pCFG->device_param.dlp_brightness = 0x03FF;
 
 	pCFG->depthimg_param.numDisparities = 816;
 	pCFG->depthimg_param.blockSize = 21;

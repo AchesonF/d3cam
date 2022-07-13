@@ -19,6 +19,9 @@ typedef enum {
 	CAMERA_GET_CALIB_FILE			= (0x00003003),	// 获取标定文件
 	CAMERA_GET_CAMERA_NAME			= (0x00003004),	// 获取相机名称
 
+	CAMERA_GET_RATE					= (0x00003010),	// 获取帧率
+	CAMERA_GET_BRIGHTNESS			= (0x00003011),	// 获取亮度
+
 	CAMERA_SET_INFO					= (0x00004000),	// 空值
 	CAMERA_SET_EXPOSURE				= (0x00004001),	// 设置相机曝光参数
 	CAMERA_SET_GAIN					= (0x00004002),	// 设置相机增益
@@ -30,6 +33,9 @@ typedef enum {
 	CAMERA_SET_CONT_EXPOSURE		= (0x00004008),	// 设置相机曝光参数
 	CAMERA_SET_IMG_TYPE				= (0x00004009),	// 设置相机图像格式
 	CAMERA_PARAM_SAVE				= (0x00004100),	// 保存相机参数到配置文件里
+
+	CAMERA_SET_RATE					= (0x00004010),	// 设置帧率
+	CAMERA_SET_BRIGHTNESS			= (0x00004011),	// 设置亮度
 
 	CAMERA_GET_GRAB_FLASH			= (0x00005000),	// 获取带随机光的图像,闪动
 	CAMERA_GET_GRAB_LEFT			= (0x00005001),

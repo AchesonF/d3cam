@@ -384,45 +384,57 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 static int csv_xml_DeviceParameters (
 	struct csv_xml_t *pXML, uint8_t mode)
 {
-	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[6];
-
-	if (mode == XML_GET) {
-		xml_strlcpy(key_pair[nums].key, "device_type", MAX_KEY_SIZE);
-		key_pair[nums].value = &gCSV->cfg.device_param.device_type;
-		key_pair[nums].value_type = XML_VALUE_UINT8;
-		key_pair[nums].nodeType = XML_ELEMENT_NODE;
-		nums++;
-
-		xml_strlcpy(key_pair[nums].key, "camera_leftright_type", MAX_KEY_SIZE);
-		key_pair[nums].value = &gCSV->cfg.device_param.camera_leftright_type;
-		key_pair[nums].value_type = XML_VALUE_UINT8;
-		key_pair[nums].nodeType = XML_ELEMENT_NODE;
-		nums++;
-
-		xml_strlcpy(key_pair[nums].key, "camera_img_type", MAX_KEY_SIZE);
-		key_pair[nums].value = &gCSV->cfg.device_param.camera_img_type;
-		key_pair[nums].value_type = XML_VALUE_UINT8;
-		key_pair[nums].nodeType = XML_ELEMENT_NODE;
-		nums++;
-
-		xml_strlcpy(key_pair[nums].key, "exposure_time", MAX_KEY_SIZE);
-		key_pair[nums].value = &gCSV->cfg.device_param.exposure_time;
-		key_pair[nums].value_type = XML_VALUE_FLOAT;
-		key_pair[nums].nodeType = XML_ELEMENT_NODE;
-		nums++;
-
-		xml_strlcpy(key_pair[nums].key, "exposure_time_for_rgb", MAX_KEY_SIZE);
-		key_pair[nums].value = &gCSV->cfg.device_param.exposure_time_for_rgb;
-		key_pair[nums].value_type = XML_VALUE_FLOAT;
-		key_pair[nums].nodeType = XML_ELEMENT_NODE;
-		nums++;
-	}
-
 	int ret = 0;
+	uint32_t nums = 0;
+	struct key_value_pair_t key_pair[8];
+
+	xml_strlcpy(key_pair[nums].key, "device_type", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.device_param.device_type;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "camera_leftright_type", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.device_param.camera_leftright_type;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "camera_img_type", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.device_param.camera_img_type;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "exposure_time", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.device_param.exposure_time;
+	key_pair[nums].value_type = XML_VALUE_FLOAT;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "exposure_time_for_rgb", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.device_param.exposure_time_for_rgb;
+	key_pair[nums].value_type = XML_VALUE_FLOAT;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "dlp_rate", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.device_param.dlp_rate;
+	key_pair[nums].value_type = XML_VALUE_FLOAT;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "dlp_brightness", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.device_param.dlp_brightness;
+	key_pair[nums].value_type = XML_VALUE_FLOAT;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
 
 	if (mode == XML_GET) {
 		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
+			"DeviceParameters", key_pair, nums, 0);
+	} else {
+		ret = xml_set_node_data(pXML->pDoc, pXML->pNode,
 			"DeviceParameters", key_pair, nums, 0);
 	}
 
@@ -430,7 +442,6 @@ static int csv_xml_DeviceParameters (
 		log_info("ERROR : DeviceParameters");
 		return -1;
 	}
-
 
 	if (mode == XML_SET) {
 		pXML->SaveFile = true;
@@ -442,33 +453,33 @@ static int csv_xml_DeviceParameters (
 static int csv_xml_DepthImgParameters (
 	struct csv_xml_t *pXML, uint8_t mode)
 {
+	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[4];
 
-	if (mode == XML_GET) {
-		xml_strlcpy(key_pair[nums].key, "numDisparities", MAX_KEY_SIZE);
-		key_pair[nums].value = &gCSV->cfg.depthimg_param.numDisparities;
-		key_pair[nums].value_type = XML_VALUE_UINT32;
-		key_pair[nums].nodeType = XML_ELEMENT_NODE;
-		nums++;
+	xml_strlcpy(key_pair[nums].key, "numDisparities", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.depthimg_param.numDisparities;
+	key_pair[nums].value_type = XML_VALUE_UINT32;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
 
-		xml_strlcpy(key_pair[nums].key, "blockSize", MAX_KEY_SIZE);
-		key_pair[nums].value = &gCSV->cfg.depthimg_param.blockSize;
-		key_pair[nums].value_type = XML_VALUE_UINT32;
-		key_pair[nums].nodeType = XML_ELEMENT_NODE;
-		nums++;
+	xml_strlcpy(key_pair[nums].key, "blockSize", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.depthimg_param.blockSize;
+	key_pair[nums].value_type = XML_VALUE_UINT32;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
 
-		xml_strlcpy(key_pair[nums].key, "uniqRatio", MAX_KEY_SIZE);
-		key_pair[nums].value = &gCSV->cfg.depthimg_param.uniqRatio;
-		key_pair[nums].value_type = XML_VALUE_UINT32;
-		key_pair[nums].nodeType = XML_ELEMENT_NODE;
-		nums++;
-	}
-
-	int ret = 0;
+	xml_strlcpy(key_pair[nums].key, "uniqRatio", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.depthimg_param.uniqRatio;
+	key_pair[nums].value_type = XML_VALUE_UINT32;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
 
 	if (mode == XML_GET) {
 		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
+			"DepthImgParameters", key_pair, nums, 0);
+	} else {
+		ret = xml_set_node_data(pXML->pDoc, pXML->pNode,
 			"DepthImgParameters", key_pair, nums, 0);
 	}
 
@@ -476,7 +487,6 @@ static int csv_xml_DepthImgParameters (
 		log_info("ERROR : DepthImgParameters");
 		return -1;
 	}
-
 
 	if (mode == XML_SET) {
 		pXML->SaveFile = true;
@@ -503,7 +513,7 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_DeviceParameters(pXML, XML_GET);
 		if (ret < 0) {
-			log_info("ERROR : ext_xml_DeviceParameters GET");
+			log_info("ERROR : csv_xml_DeviceParameters GET");
 		}
 	}
 
@@ -511,13 +521,67 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_DepthImgParameters(pXML, XML_GET);
 		if (ret < 0) {
-			log_info("ERROR : ext_xml_DepthImgParameters GET");
+			log_info("ERROR : csv_xml_DepthImgParameters GET");
 		}
 	}
 
 	xml_unload_file(pXML->pDoc);
 
 	log_info("OK : read xml.");
+
+	return ret;
+}
+
+int csv_xml_write_DeviceParameters (void)
+{
+	int ret = 0;
+	struct csv_xml_t *pXML = &gCSV->xml;
+
+	ret = xml_load_file(pXML);
+	if (ret < 0) {
+		log_info("ERROR : xml file load.");
+		return -1;
+	}
+
+	/* node_index is 0, pNodePtr is pRootPtr */
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVDeviceParameters", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_DeviceParameters(pXML, XML_SET);
+		if (ret < 0) {
+			log_info("ERROR : csv_xml_DeviceParameters SET");
+			goto xml_exit;
+		}
+	}
+
+  xml_exit:
+	xml_unload_file(pXML->pDoc);
+
+	return ret;
+}
+
+int csv_xml_write_DepthImgParameters (void)
+{
+	int ret = 0;
+	struct csv_xml_t *pXML = &gCSV->xml;
+
+	ret = xml_load_file(pXML);
+	if (ret < 0) {
+		log_info("ERROR : xml file load.");
+		return -1;
+	}
+
+	/* node_index is 0, pNodePtr is pRootPtr */
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVDepthImgParameters", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_DepthImgParameters(pXML, XML_SET);
+		if (ret < 0) {
+			log_info("ERROR : csv_xml_DepthImgParameters SET");
+			goto xml_exit;
+		}
+	}
+
+  xml_exit:
+	xml_unload_file(pXML->pDoc);
 
 	return ret;
 }

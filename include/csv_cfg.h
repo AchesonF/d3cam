@@ -12,6 +12,10 @@ struct device_param_t {
 	uint8_t				camera_img_type;
 	float				exposure_time;
 	float				exposure_time_for_rgb;
+
+	float				dlp_rate;
+	float				dlp_brightness;
+
 };
 
 struct depthimg_param_t {

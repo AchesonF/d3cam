@@ -926,9 +926,66 @@ static int csv_gvcp_server_close (struct csv_gev_t *pGEV)
 
 static int csv_gvsp_open (struct gvsp_param_t *pStream)
 {
+	int ret = 0;
+	int fd = -1;
+
+	if (pStream->fd > 0) {
+		ret = close(pStream->fd);
+		if (ret < 0) {
+			log_err("ERROR : close '%s'", pStream->name);
+		}
+		pStream->fd = -1;
+	}
+
+	struct sockaddr_in local_addr;
+	socklen_t sin_size = sizeof(struct sockaddr);
+
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if( fd < 0 ) {
+		log_err("ERROR : socket %s", pStream->name);
+
+		return -1;
+	}
+
+	memset((void*)&local_addr, 0, sizeof(struct sockaddr_in));
+	local_addr.sin_family = AF_INET;
+	local_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	local_addr.sin_port = htons(0);
+	bzero(&(local_addr.sin_zero), 8);
+
+	ret = bind(fd, (struct sockaddr*)&local_addr, sizeof(struct sockaddr));
+	if(ret < 0) {
+		log_err("ERROR : bind %s", pStream->name);
+
+		return -1;
+	}
+
+/*	int val = 1;	// 禁止分包
+	ret = setsockopt(fd, IPPROTO_IP, IP_DF, &val, sizeof(val));
+	if (ret < 0) {
+		log_err("ERROR : setsockopt 'IP_DF'");
+
+		return -1;
+	}
+*/
+	int send_len = (64<<10);	// 64K
+	ret = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &send_len, sizeof(send_len));
+	if (ret < 0) {
+		log_err("ERROR : setsockopt 'SO_SNDBUF'");
+
+		return -1;
+	}
+
+	getsockname(fd, (struct sockaddr *)&local_addr, &sin_size);
+
+	pStream->fd = fd;
+
+	log_info("OK : bind '%s' : '%d/udp' as fd(%d).", pStream->name, 
+		ntohs(local_addr.sin_port), pStream->fd);
 
 	return 0;
 }
+
 
 int csv_gev_init (void)
 {
@@ -943,14 +1000,15 @@ int csv_gev_init (void)
 	pGEV->rxlen = 0;
 	pGEV->txlen = 0;
 
+	INIT_LIST_HEAD(&pGEV->head_reg.list);
+
 	csv_gev_reg_enroll();
 
+	pGEV->stream[CAM_LEFT].name = "stream"toSTR(CAM_LEFT);
+	pGEV->stream[CAM_RIGHT].name = "stream"toSTR(CAM_RIGHT);
 	for (i = 0; i < TOTAL_CAMS; i++) {
 		pStream = &pGEV->stream[i];
-
 		pStream->fd = -1;
-		pStream->name = "stream"toSTR();
-
 		csv_gvsp_open(pStream);
 	}
 

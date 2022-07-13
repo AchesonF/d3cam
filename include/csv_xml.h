@@ -50,6 +50,10 @@ struct csv_xml_t {
 };
 
 
+extern int csv_xml_write_DeviceParameters (void);
+
+extern int csv_xml_write_DepthImgParameters (void);
+
 extern int csv_xml_init (void);
 
 extern int csv_xml_deinit (void);

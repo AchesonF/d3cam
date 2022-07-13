@@ -43,7 +43,7 @@ struct reglist_t {
 struct gvsp_param_t {
 	int						fd;
 	char					*name;
-	struct sockaddr_in		to_addr;	///< 流to
+	struct sockaddr_in		peer_addr;
 
 };
 
@@ -64,7 +64,6 @@ struct csv_gev_t {
 	struct gvsp_param_t		stream[TOTAL_CAMS];
 
 	struct sockaddr_in		from_addr;		///< 来源地址参数
-	struct sockaddr_in		target_addr;	///< 媒体流流向参数
 };
 
 
