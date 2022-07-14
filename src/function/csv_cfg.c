@@ -7,7 +7,6 @@ extern "C" {
 
 
 
-
 int csv_cfg_init (void)
 {
 	struct csv_cfg_t *pCFG = &gCSV->cfg;
@@ -25,6 +24,11 @@ int csv_cfg_init (void)
 	pCFG->depthimg_param.blockSize = 21;
 	pCFG->depthimg_param.uniqRatio = 9;
 
+	strcpy(pCFG->pointcloud_param.imgRoot, "data/calibImage/");
+	strcpy(pCFG->pointcloud_param.imgPrefixNameL, "CSV_001C1S00P");
+	strcpy(pCFG->pointcloud_param.imgPrefixNameR, "CSV_001C2S00P");
+	strcpy(pCFG->pointcloud_param.calibFile, "grayCodeParams.xml");
+	strcpy(pCFG->pointcloud_param.outFileXYZ, "pointcloud.xyz");
 
 	pGP->Version = (GEV_VERSION_MAJOR<<16) | GEV_VERSION_MINOR;
 	pGP->DeviceMode = GEV_DEVICE_MODE;

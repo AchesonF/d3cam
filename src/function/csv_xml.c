@@ -495,6 +495,63 @@ static int csv_xml_DepthImgParameters (
 	return 0;
 }
 
+static int csv_xml_PointCloudParameters (
+	struct csv_xml_t *pXML, uint8_t mode)
+{
+	int ret = 0;
+	uint32_t nums = 0;
+	struct key_value_pair_t key_pair[6];
+
+	xml_strlcpy(key_pair[nums].key, "imgRoot", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.pointcloud_param.imgRoot;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "imgPrefixNameL", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.pointcloud_param.imgPrefixNameL;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "imgPrefixNameR", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.pointcloud_param.imgPrefixNameR;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "calibFile", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.pointcloud_param.calibFile;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "outFileXYZ", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.pointcloud_param.outFileXYZ;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	if (mode == XML_GET) {
+		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
+			"PointCloudParameters", key_pair, nums, 0);
+	} else {
+		ret = xml_set_node_data(pXML->pDoc, pXML->pNode,
+			"PointCloudParameters", key_pair, nums, 0);
+	}
+
+	if (ret != 0) {
+		log_info("ERROR : PointCloudParameters");
+		return -1;
+	}
+
+	if (mode == XML_SET) {
+		pXML->SaveFile = true;
+	}
+
+	return 0;
+}
+
 // 一次全部读取
 // 分模块写入
 
@@ -522,6 +579,14 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 		ret = csv_xml_DepthImgParameters(pXML, XML_GET);
 		if (ret < 0) {
 			log_info("ERROR : csv_xml_DepthImgParameters GET");
+		}
+	}
+
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVPointCloudParameters", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_PointCloudParameters(pXML, XML_GET);
+		if (ret < 0) {
+			log_info("ERROR : csv_xml_PointCloudParameters GET");
 		}
 	}
 
@@ -586,9 +651,54 @@ int csv_xml_write_DepthImgParameters (void)
 	return ret;
 }
 
+int csv_xml_write_PointCloudParameters (void)
+{
+	int ret = 0;
+	struct csv_xml_t *pXML = &gCSV->xml;
+
+	ret = xml_load_file(pXML);
+	if (ret < 0) {
+		log_info("ERROR : xml file load.");
+		return -1;
+	}
+
+	/* node_index is 0, pNodePtr is pRootPtr */
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVPointCloudParameters", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_PointCloudParameters(pXML, XML_SET);
+		if (ret < 0) {
+			log_info("ERROR : csv_xml_PointCloudParameters SET");
+			goto xml_exit;
+		}
+	}
+
+  xml_exit:
+	xml_unload_file(pXML->pDoc);
+
+	return ret;
+}
+
+static int csv_xml_directories_prepare (void)
+{
+	int ret = 0;
+	struct csv_cfg_t *pCFG = &gCSV->cfg;
+	char str_cmd[512] = {0};
+
+	memset(str_cmd, 0, 512);
+
+	if ((NULL != pCFG->pointcloud_param.imgRoot)
+	  &&(!csv_file_isExist(pCFG->pointcloud_param.imgRoot))) {
+		snprintf(str_cmd, 512, "mkdir -p %s", pCFG->pointcloud_param.imgRoot);
+		ret = system(str_cmd);
+	}
+
+
+	return ret;
+}
 
 int csv_xml_init (void)
 {
+	int ret = 0;
 	struct csv_xml_t *pXML = &gCSV->xml;
 
 	pXML->file = FILE_PATH_XML;
@@ -602,7 +712,11 @@ int csv_xml_init (void)
 	pXML->pNode5 = NULL;
 	pXML->pNode6 = NULL;
 
-	return csv_xml_read_ALL(pXML);
+	ret = csv_xml_read_ALL(pXML);
+
+	csv_xml_directories_prepare();
+
+	return ret;
 }
 
 

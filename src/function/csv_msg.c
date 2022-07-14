@@ -513,65 +513,23 @@ exit:
 int cameras_save_to_png_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
 	uint8_t *pData, uint32_t nData, int idx, int r_l, uint8_t end_pc)
 {
-//	int nRet = MV_OK;
 	int ret = 0;
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-//	uint8_t *pDataForSaveImage = NULL;
-	char img_filename[128] = {0};
-	memset(img_filename, 0, 128);
+	char img_filename[256] = {0};
+	memset(img_filename, 0, 268);
 
 	if (idx == 0) {
-		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%d.png", pMVS->groupDemarcate, r_l+1);
+		snprintf(img_filename, 256, "%sCSV_%03dC%d.png", 
+			gCSV->cfg.pointcloud_param.imgRoot, pMVS->groupDemarcate, r_l+1);
 	} else {
-		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%dS00P%03d.png", pMVS->groupDemarcate, r_l+1, idx);
+		snprintf(img_filename, 256, "%sCSV_%03dC%dS00P%03d.png", 
+			gCSV->cfg.pointcloud_param.imgRoot, pMVS->groupDemarcate, r_l+1, idx);
 	}
 
 	log_debug("Save to file : '%s'", img_filename);
 
 	csv_png_push(img_filename, pData, nData, stImageInfo->nWidth, stImageInfo->nHeight, end_pc);
 
-/*
-	pDataForSaveImage = (uint8_t*)malloc(nData);
-	if (NULL == pDataForSaveImage) {
-		log_err("ERROR : malloc DataForSaveImage");
-		return -1;
-	}
-
-	// 填充存图参数
-	// fill in the parameters of save image
-	MV_SAVE_IMAGE_PARAM_EX stSaveParam;
-	memset(&stSaveParam, 0, sizeof(MV_SAVE_IMAGE_PARAM_EX));
-	// 从上到下依次是：输出图片格式，输入数据的像素格式，提供的输出缓冲区大小，图像宽，
-	// 图像高，输入数据缓存，输出图片缓存，JPG编码质量
-	// Top to bottom are：
-	stSaveParam.enImageType = MV_Image_Png; 
-	stSaveParam.enPixelType = stImageInfo->enPixelType; 
-	stSaveParam.nBufferSize = nData;
-	stSaveParam.nWidth      = stImageInfo->nWidth; 
-	stSaveParam.nHeight     = stImageInfo->nHeight; 
-	stSaveParam.pData       = pData;
-	stSaveParam.nDataLen    = stImageInfo->nFrameLen;
-	stSaveParam.pImageBuffer = pDataForSaveImage;
-	stSaveParam.nJpgQuality = 90;
-
-	nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
-	if (MV_OK != nRet) {
-		log_info("ERROR : %d_%02d SaveImage failed. [0x%08X]", idx, r_l, nRet);
-		ret = -1;
-		goto exit;
-	}
-
-	ret = csv_file_write_data(img_filename, pDataForSaveImage, stSaveParam.nImageLen);
-	if (ret < 0) {
-		log_info("ERROR : write file. %d_%02d", idx, r_l);
-	}
-
-exit:
-
-	if (NULL != pDataForSaveImage) {
-		free(pDataForSaveImage);
-	}
-*/
 	return ret;
 }
 

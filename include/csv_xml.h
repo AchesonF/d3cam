@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#define FILE_PATH_XML			("csvcfg.xml")	///< 配置xml备份路径
-#define FILE_PATH_XML_BK		("../../target/csvcfg.xml")	///< 配置xml文件路径
+#define FILE_PATH_XML			("csvcfg.xml")	///< 配置xml文件路径
+#define FILE_PATH_XML_BK		("csvcfg.xml.bk")	///< 配置xml备份路径
 
 #define MAX_KEY_VALUE_PAIRS 	32
 #define MAX_KEY_SIZE			48

@@ -184,6 +184,10 @@ uint8_t csv_file_isExist (char *path)
 	struct stat st;
 	int ret = 0;
 
+	if (NULL == path) {
+		return false;
+	}
+
 	ret = stat(path, &st);
 	if (0 == ret) {
 		return true;
@@ -238,9 +242,6 @@ static int csv_file_get (struct csv_file_t *pFILE)
 	}
 */
 
-	if (!csv_file_isExist("data/calibImage")) {
-		ret = system("mkdir -p data/calibImage");
-	}
 
 	return ret;
 }

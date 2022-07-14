@@ -33,10 +33,18 @@ struct gev_param_t {
 
 };
 
+struct pointcloud_param_t {
+	char					imgRoot[128];
+	char					imgPrefixNameL[128];
+	char					imgPrefixNameR[128];
+	char					calibFile[128];
+	char					outFileXYZ[256];
+};
 
 struct csv_cfg_t {
 	struct device_param_t	device_param;
 	struct depthimg_param_t depthimg_param;
+	struct pointcloud_param_t	pointcloud_param;
 
 	struct gev_param_t		gp;				///< gev参数
 };

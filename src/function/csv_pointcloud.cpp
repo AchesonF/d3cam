@@ -35,7 +35,8 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	// 导入C1相机图像
 	vector<cv::Mat> src1list;
 	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + "CSV_001C2S00P" + to_zero_lead(i + 1, 3) + ".png";
+		string path = pathRoot + gCSV->cfg.pointcloud_param.imgPrefixNameL 
+			+ to_zero_lead(i + 1, 3) + ".png";
 
 		cout << "Read Image : " << path << endl;
 
@@ -48,7 +49,8 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	// 导入2相机图像
 	vector<cv::Mat> src2list;
 	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + "CSV_001C1S00P" + to_zero_lead(i + 1, 3) + ".png";
+		string path = pathRoot + gCSV->cfg.pointcloud_param.imgPrefixNameR 
+		+ to_zero_lead(i + 1, 3) + ".png";
 
 		cout << "Read Image : " << path << endl;
 
@@ -63,11 +65,24 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 
 int point_cloud_calc(void)
 {
+	if ((NULL == gCSV->cfg.pointcloud_param.calibFile)
+		||(!csv_file_isExist(gCSV->cfg.pointcloud_param.calibFile))) {
+		log_info("ERROR : calibFile null");
+		return -1;
+	}
+
+	if ((NULL == gCSV->cfg.pointcloud_param.imgRoot)
+		||(!csv_file_isExist(gCSV->cfg.pointcloud_param.imgRoot))) {
+		log_info("ERROR : imgRoot null");
+		return -1;
+	}
+
 	string version =  CSV::csvGetCreatePoint3DALgVersion();
 	cout << version << endl;
 
 	CSV::CsvCreatePoint3DParam param;
-	param.calibXml = string("../../target/CalibInv.xml");
+	param.calibXml = string(gCSV->cfg.pointcloud_param.calibFile);
+	//param.outfile = string(gCSV->cfg.pointcloud_param.outFileXYZ);
 	param.type = CSV::CSV_DataFormatType::FixPoint64bits;
 
 	csvSetCreatePoint3DParam(param); //set params
@@ -77,7 +92,7 @@ int point_cloud_calc(void)
 	cout << param0.calibXml << endl;
 	cout << param0.type << endl;
 
-	string imgRoot = string("data/calibImage/");
+	string imgRoot = string(gCSV->cfg.pointcloud_param.imgRoot);
 	vector<vector<cv::Mat>> imgGroupList;
 	loadSrcImageEx(imgRoot, imgGroupList);
 
