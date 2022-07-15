@@ -676,6 +676,7 @@ int csv_eth_get (struct csv_eth_t *pETH)
 int csv_eth_init (void)
 {
 	struct csv_eth_t *pETH = &gCSV->eth;
+	struct gev_param_t *pGP = &gCSV->cfg.gp;
 
 	pETH->name = DEV_ETH;
 	pETH->fd = -1;
@@ -684,6 +685,12 @@ int csv_eth_init (void)
 	pETH->name_dhcp = THREAD_NAME_DHCP;
 
 	csv_eth_get(pETH);
+
+	pGP->MacHi = (uint32_t)u8v_to_u16(&gCSV->eth.MACAddr[0]);
+	pGP->MacLow = u8v_to_u32(&gCSV->eth.MACAddr[2]);
+
+log_debug("mac hi 0x%08X", pGP->MacHi);
+log_debug("mac low 0x%08X", pGP->MacLow);
 
 	return 0;
 }

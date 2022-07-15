@@ -33,7 +33,6 @@ struct cam_spec_t {
 
 struct csv_mvs_t {
 	uint8_t					cnt_mvs;		///< used cams
-	uint16_t				groupDemarcate;	///< 标定次数, need to save for next boot
 
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
 	struct cam_spec_t		Cam[TOTAL_CAMS];

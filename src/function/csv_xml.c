@@ -386,7 +386,7 @@ static int csv_xml_DeviceParameters (
 {
 	int ret = 0;
 	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[8];
+	struct key_value_pair_t key_pair[10];
 
 	xml_strlcpy(key_pair[nums].key, "device_type", MAX_KEY_SIZE);
 	key_pair[nums].value = &gCSV->cfg.device_param.device_type;
@@ -430,6 +430,12 @@ static int csv_xml_DeviceParameters (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
+	xml_strlcpy(key_pair[nums].key, "img_type", MAX_KEY_SIZE);
+	key_pair[nums].value = &gCSV->cfg.device_param.img_type;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
 	if (mode == XML_GET) {
 		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
 			"DeviceParameters", key_pair, nums, 0);
@@ -456,21 +462,22 @@ static int csv_xml_DepthImgParameters (
 	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[4];
+	struct depthimg_param_t *pDEP = &gCSV->cfg.depthimg_param;
 
 	xml_strlcpy(key_pair[nums].key, "numDisparities", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.depthimg_param.numDisparities;
+	key_pair[nums].value = &pDEP->numDisparities;
 	key_pair[nums].value_type = XML_VALUE_UINT32;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "blockSize", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.depthimg_param.blockSize;
+	key_pair[nums].value = &pDEP->blockSize;
 	key_pair[nums].value_type = XML_VALUE_UINT32;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "uniqRatio", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.depthimg_param.uniqRatio;
+	key_pair[nums].value = &pDEP->uniqRatio;
 	key_pair[nums].value_type = XML_VALUE_UINT32;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -501,33 +508,28 @@ static int csv_xml_PointCloudParameters (
 	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[6];
+	struct pointcloud_param_t *pPC = &gCSV->cfg.pointcloud_param;
 
 	xml_strlcpy(key_pair[nums].key, "imgRoot", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.pointcloud_param.imgRoot;
+	key_pair[nums].value = &pPC->imgRoot;
 	key_pair[nums].value_type = XML_VALUE_STRING;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "imgPrefixNameL", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.pointcloud_param.imgPrefixNameL;
+	key_pair[nums].value = &pPC->imgPrefixNameL;
 	key_pair[nums].value_type = XML_VALUE_STRING;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "imgPrefixNameR", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.pointcloud_param.imgPrefixNameR;
-	key_pair[nums].value_type = XML_VALUE_STRING;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "calibFile", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.pointcloud_param.calibFile;
+	key_pair[nums].value = &pPC->imgPrefixNameR;
 	key_pair[nums].value_type = XML_VALUE_STRING;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "outFileXYZ", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.pointcloud_param.outFileXYZ;
+	key_pair[nums].value = &pPC->outFileXYZ;
 	key_pair[nums].value_type = XML_VALUE_STRING;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -542,6 +544,52 @@ static int csv_xml_PointCloudParameters (
 
 	if (ret != 0) {
 		log_info("ERROR : PointCloudParameters");
+		return -1;
+	}
+
+	if (mode == XML_SET) {
+		pXML->SaveFile = true;
+	}
+
+	return 0;
+}
+
+static int csv_xml_CalibParameters (
+	struct csv_xml_t *pXML, uint8_t mode)
+{
+	int ret = 0;
+	uint32_t nums = 0;
+	struct key_value_pair_t key_pair[4];
+	struct calib_param_t *pCALIB = &gCSV->cfg.calib_param;
+
+	xml_strlcpy(key_pair[nums].key, "path", MAX_KEY_SIZE);
+	key_pair[nums].value = &pCALIB->path;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "calibFile", MAX_KEY_SIZE);
+	key_pair[nums].value = &pCALIB->calibFile;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "groupDemarcate", MAX_KEY_SIZE);
+	key_pair[nums].value = &pCALIB->groupDemarcate;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	if (mode == XML_GET) {
+		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
+			"CalibParameters", key_pair, nums, 0);
+	} else {
+		ret = xml_set_node_data(pXML->pDoc, pXML->pNode,
+			"CalibParameters", key_pair, nums, 0);
+	}
+
+	if (ret != 0) {
+		log_info("ERROR : CalibParameters");
 		return -1;
 	}
 
@@ -587,6 +635,14 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 		ret = csv_xml_PointCloudParameters(pXML, XML_GET);
 		if (ret < 0) {
 			log_info("ERROR : csv_xml_PointCloudParameters GET");
+		}
+	}
+
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVCalibParameters", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_CalibParameters(pXML, XML_GET);
+		if (ret < 0) {
+			log_info("ERROR : csv_xml_CalibParameters GET");
 		}
 	}
 
@@ -678,6 +734,35 @@ int csv_xml_write_PointCloudParameters (void)
 	return ret;
 }
 
+int csv_xml_write_CalibParameters (void)
+{
+	int ret = 0;
+	struct csv_xml_t *pXML = &gCSV->xml;
+
+	ret = xml_load_file(pXML);
+	if (ret < 0) {
+		log_info("ERROR : xml file load.");
+		return -1;
+	}
+
+	/* node_index is 0, pNodePtr is pRootPtr */
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVCalibParameters", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_CalibParameters(pXML, XML_SET);
+		if (ret < 0) {
+			log_info("ERROR : csv_xml_CalibParameters SET");
+			goto xml_exit;
+		}
+	}
+
+  xml_exit:
+	xml_unload_file(pXML->pDoc);
+
+	return ret;
+}
+
+
+
 static int csv_xml_directories_prepare (void)
 {
 	int ret = 0;
@@ -692,6 +777,11 @@ static int csv_xml_directories_prepare (void)
 		ret = system(str_cmd);
 	}
 
+	if ((NULL != pCFG->calib_param.path)
+	  &&(!csv_file_isExist(pCFG->calib_param.path))) {
+		snprintf(str_cmd, 512, "mkdir -p %s", pCFG->calib_param.path);
+		ret = system(str_cmd);
+	}
 
 	return ret;
 }

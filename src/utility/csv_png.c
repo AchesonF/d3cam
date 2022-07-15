@@ -108,8 +108,6 @@ int csv_png_push (char *filename, uint8_t *buf,
 	list_add_tail(&cur->list, &pPNG->head_png.list);
 	pthread_mutex_unlock(&pPNG->mutex_png);
 
-//	pthread_cond_broadcast(&pPNG->cond_png);
-
 	return 0;
 }
 

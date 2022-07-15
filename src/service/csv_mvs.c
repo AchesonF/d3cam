@@ -673,7 +673,6 @@ int csv_mvs_init (void)
 
 	pMVS->cnt_mvs = 0;
 	pMVS->name_mvs = NAME_THREAD_MVS;
-	pMVS->groupDemarcate = 1;
 
 	return csv_mvs_thread(pMVS);
 }

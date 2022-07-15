@@ -65,8 +65,8 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 
 int point_cloud_calc(void)
 {
-	if ((NULL == gCSV->cfg.pointcloud_param.calibFile)
-		||(!csv_file_isExist(gCSV->cfg.pointcloud_param.calibFile))) {
+	if ((NULL == gCSV->cfg.calib_param.calibFile)
+		||(!csv_file_isExist(gCSV->cfg.calib_param.calibFile))) {
 		log_info("ERROR : calibFile null");
 		return -1;
 	}
@@ -81,7 +81,7 @@ int point_cloud_calc(void)
 	cout << version << endl;
 
 	CSV::CsvCreatePoint3DParam param;
-	param.calibXml = string(gCSV->cfg.pointcloud_param.calibFile);
+	param.calibXml = string(gCSV->cfg.calib_param.calibFile);
 	//param.outfile = string(gCSV->cfg.pointcloud_param.outFileXYZ);
 	param.type = CSV::CSV_DataFormatType::FixPoint64bits;
 

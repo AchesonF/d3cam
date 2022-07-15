@@ -16,6 +16,7 @@ struct device_param_t {
 	float				dlp_rate;
 	float				dlp_brightness;
 
+	uint8_t				img_type;		// SUFFIX_BMP
 };
 
 struct depthimg_param_t {
@@ -34,11 +35,18 @@ struct gev_param_t {
 };
 
 struct pointcloud_param_t {
-	char					imgRoot[128];
-	char					imgPrefixNameL[128];
-	char					imgPrefixNameR[128];
-	char					calibFile[128];
-	char					outFileXYZ[256];
+	char					imgRoot[128];	///< 相对路径
+	char					imgPrefixNameL[128];///< 左图名称前缀
+	char					imgPrefixNameR[128];///< 右图名称前缀
+	char					outFileXYZ[256];	///< 生成文件名
+};
+
+// 标定
+struct calib_param_t {
+	char					path[128];		///< 图片相对路径
+	char					calibFile[128];	///< 标定文件名
+	uint8_t					groupDemarcate;	///< 标定次数, need to save for next boot
+
 };
 
 struct csv_cfg_t {
@@ -46,6 +54,7 @@ struct csv_cfg_t {
 	struct depthimg_param_t depthimg_param;
 	struct pointcloud_param_t	pointcloud_param;
 
+	struct calib_param_t	calib_param;
 	struct gev_param_t		gp;				///< gev参数
 };
 

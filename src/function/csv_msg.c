@@ -448,23 +448,61 @@ static int msg_sys_info_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
-int cameras_save_to_bmp_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
-	uint8_t *pData, int idx, int r_l)
+/* *path : 路径
+group : 次数
+idx : 编号
+lr : 左右
+suffix : 后缀类型
+*img_file : 生成名
+*/
+static int generate_image_filename (char *path, uint16_t group, 
+	int idx, int lr, uint8_t suffix, char *img_file)
+{
+	char *str_suffix = NULL;
+
+	switch (suffix) {
+	case SUFFIX_PNG:
+		str_suffix = ".png";
+		break;
+	case SUFFIX_JPG:
+		str_suffix = ".jpg";
+		break;
+	case SUFFIX_BMP:
+	default:
+		str_suffix = ".bmp";
+		break;
+	}
+
+	if (idx == 0) {
+		snprintf(img_file, 128, "%s/CSV_%03dC%d%s", 
+			path, group, lr+1, str_suffix);
+	} else {
+		snprintf(img_file, 128, "%s/CSV_%03dC%dS00P%03d%s", 
+			path, group, lr+1, idx, str_suffix);
+	}
+
+	log_debug("img : '%s'", img_file);
+
+	return 0;
+}
+
+
+static int save_image_to_bmp (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
+	uint8_t *pData, char *img_name)
 {
 	int nRet = MV_OK;
 	int ret = 0;
-	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	uint8_t *pDataForSaveImage = NULL;
-	char img_filename[128] = {0};
-	memset(img_filename, 0, 128);
 
-	if (idx == 0) {
-		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%d.bmp", pMVS->groupDemarcate, r_l+1);
-	} else {
-		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%dS00P%03d.bmp", pMVS->groupDemarcate, r_l+1, idx);
+	if ((NULL == img_name)&&(!isprint(img_name[0]))) {
+		log_info("ERROR : img name error");
+		return -1;
 	}
 
-	log_debug("Save to file : '%s'", img_filename);
+	if ((NULL == stImageInfo)||(NULL == handle)||(NULL == pData)) {
+		log_info("ERROR : null point");
+		return -1;
+	}
 
 	pDataForSaveImage = (uint8_t*)malloc(stImageInfo->nWidth * stImageInfo->nHeight * 4 + 2048);
 	if (NULL == pDataForSaveImage) {
@@ -491,14 +529,14 @@ int cameras_save_to_bmp_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
 
 	nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
 	if (MV_OK != nRet) {
-		log_info("ERROR : %d_%02d SaveImage failed. [0x%08X]", idx, r_l, nRet);
+		log_info("ERROR : SaveImageEx2 failed. [0x%08X]", nRet);
 		ret = -1;
 		goto exit;
 	}
 
-	ret = csv_file_write_data(img_filename, pDataForSaveImage, stSaveParam.nImageLen);
+	ret = csv_file_write_data(img_name, pDataForSaveImage, stSaveParam.nImageLen);
 	if (ret < 0) {
-		log_info("ERROR : write file. %d_%02d", idx, r_l);
+		log_info("ERROR : write file '%s'.", img_name);
 	}
 
 exit:
@@ -510,46 +548,22 @@ exit:
 	return ret;
 }
 
-int cameras_save_to_png_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
-	uint8_t *pData, uint32_t nData, int idx, int r_l, uint8_t end_pc)
-{
-	int ret = 0;
-	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	char img_filename[256] = {0};
-	memset(img_filename, 0, 268);
-
-	if (idx == 0) {
-		snprintf(img_filename, 256, "%sCSV_%03dC%d.png", 
-			gCSV->cfg.pointcloud_param.imgRoot, pMVS->groupDemarcate, r_l+1);
-	} else {
-		snprintf(img_filename, 256, "%sCSV_%03dC%dS00P%03d.png", 
-			gCSV->cfg.pointcloud_param.imgRoot, pMVS->groupDemarcate, r_l+1, idx);
-	}
-
-	log_debug("Save to file : '%s'", img_filename);
-
-	csv_png_push(img_filename, pData, nData, stImageInfo->nWidth, stImageInfo->nHeight, end_pc);
-
-	return ret;
-}
-
-int cameras_save_to_jpg_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
-	uint8_t *pData, uint32_t nData, int idx, int r_l)
+static int save_image_to_jpeg (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
+	uint8_t *pData, uint32_t nData, char *img_name)
 {
 	int nRet = MV_OK;
 	int ret = 0;
-	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	uint8_t *pDataForSaveImage = NULL;
-	char img_filename[128] = {0};
-	memset(img_filename, 0, 128);
 
-	if (idx == 0) {
-		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%d.jpg", pMVS->groupDemarcate, r_l+1);
-	} else {
-		snprintf(img_filename, 128, "data/calibImage/CSV_%03dC%dS00P%03d.jpg", pMVS->groupDemarcate, r_l+1, idx);
+	if ((NULL == img_name)&&(!isprint(img_name[0]))) {
+		log_info("ERROR : img name error");
+		return -1;
 	}
 
-	log_debug("Save to file : '%s'", img_filename);
+	if ((NULL == stImageInfo)||(NULL == handle)||(NULL == pData)) {
+		log_info("ERROR : null point");
+		return -1;
+	}
 
 	pDataForSaveImage = (uint8_t*)malloc(nData);
 	if (NULL == pDataForSaveImage) {
@@ -576,14 +590,14 @@ int cameras_save_to_jpg_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void* handle,
 
 	nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
 	if (MV_OK != nRet) {
-		log_info("ERROR : %d_%02d SaveImage failed. [0x%08X]", idx, r_l, nRet);
+		log_info("ERROR : SaveImageEx2 failed. [0x%08X]", nRet);
 		ret = -1;
 		goto exit;
 	}
 
-	ret = csv_file_write_data(img_filename, pDataForSaveImage, stSaveParam.nImageLen);
+	ret = csv_file_write_data(img_name, pDataForSaveImage, stSaveParam.nImageLen);
 	if (ret < 0) {
-		log_info("ERROR : write file. %d_%02d", idx, r_l);
+		log_info("ERROR : write file '%s'.", img_name);
 	}
 
 exit:
@@ -595,14 +609,43 @@ exit:
 	return ret;
 }
 
+static int save_image_to_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
+	uint8_t *pData, uint32_t nData, uint8_t suffix, char *img_name, uint8_t end)
+{
+	int ret = 0;
+
+	switch (suffix) {
+	case SUFFIX_JPG:
+		ret = save_image_to_jpeg(stImageInfo, handle, pData, nData, img_name);
+		break;
+	case SUFFIX_PNG:
+		csv_png_push(img_name, pData, nData, stImageInfo->nWidth, stImageInfo->nHeight, end);
+		break;
+	case SUFFIX_BMP:
+	default:
+		ret = save_image_to_bmp(stImageInfo, handle, pData, img_name);
+		break;
+	}
+
+	return ret;
+}
+
 int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = 0, i = 0;
 	int nRet = MV_OK;
 	int nFrames = 23;
 	int idx = 0;
+	char img_name[256] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct cam_spec_t *pCAM = NULL;
+	struct calib_param_t *pCALIB = &gCSV->cfg.calib_param;
+
+	if ((NULL == pCALIB->path)
+		||(!csv_file_isExist(pCALIB->path))) {
+		log_info("ERROR : cali img path null");
+		return -1;
+	}
 
 	// 1 亮光
 	ret = csv_dlp_just_write(CMD_BRIGHT);
@@ -620,11 +663,11 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-			//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
-			ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-				pCAM->stParam.nCurValue, idx, i, 0);
-			//ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-			//	pCAM->stParam.nCurValue, idx, i);
+			memset(img_name, 0, 256);
+			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
+				gCSV->cfg.device_param.img_type, img_name);
+			ret = save_image_to_file(&pCAM->imageInfo, pCAM->pHandle, 
+				pCAM->imgData, pCAM->stParam.nCurValue, gCSV->cfg.device_param.img_type, img_name, 0);
 		} else {
 			log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 				pCAM->serialNum, idx, i, nRet);
@@ -655,11 +698,11 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-				//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
-				ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-					pCAM->stParam.nCurValue, idx, i, 0);
-				//ret = cameras_save_to_jpg_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-				//	pCAM->stParam.nCurValue, idx, i);
+				memset(img_name, 0, 256);
+				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
+					gCSV->cfg.device_param.img_type, img_name);
+				ret = save_image_to_file(&pCAM->imageInfo, pCAM->pHandle, 
+					pCAM->imgData, pCAM->stParam.nCurValue, gCSV->cfg.device_param.img_type, img_name, 0);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->serialNum, idx, i, nRet);
@@ -674,9 +717,13 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		idx++;
 	}
 
-	pthread_cond_broadcast(&gCSV->png.cond_png);
+	if (SUFFIX_PNG == gCSV->cfg.device_param.img_type) {
+		pthread_cond_broadcast(&gCSV->png.cond_png);
+	}
 
-	pMVS->groupDemarcate++;
+	pCALIB->groupDemarcate++;
+
+	csv_xml_write_CalibParameters();
 
 	return ret;
 }
@@ -688,10 +735,10 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 	int nFrames = 13;
 	int idx = 1;
 	uint8_t end_pc = 0;
+	char img_name[256] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct cam_spec_t *pCAM = NULL;
-
-	pMVS->groupDemarcate = 1;
+	struct pointcloud_param_t *pPC = &gCSV->cfg.pointcloud_param;
 
 	// 13 高速光
 	ret = csv_dlp_just_write(CMD_HIGH_SPEED);
@@ -710,13 +757,14 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
 					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
 
-				//ret = cameras_save_to_bmp_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, idx, i);
-
 				if ((idx == nFrames)&&(i == 1)) {
 					end_pc = 1;
 				}
-				ret = cameras_save_to_png_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-					pCAM->stParam.nCurValue, idx, i, end_pc);
+				memset(img_name, 0, 256);
+				generate_image_filename(pPC->imgRoot, 1, idx, i, 
+					gCSV->cfg.device_param.img_type, img_name);
+				ret = save_image_to_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
+					pCAM->stParam.nCurValue, gCSV->cfg.device_param.img_type, img_name, end_pc);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->serialNum, idx, i, nRet);
@@ -731,9 +779,10 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 
 		idx++;
 	}
-	pthread_cond_broadcast(&gCSV->png.cond_png);
 
-	pMVS->groupDemarcate++;
+	if (SUFFIX_PNG == gCSV->cfg.device_param.img_type) {
+		pthread_cond_broadcast(&gCSV->png.cond_png);
+	}
 
 	return ret;
 }

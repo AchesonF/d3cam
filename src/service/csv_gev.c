@@ -96,7 +96,7 @@ uint32_t csv_gev_reg_value_get (uint16_t addr)
 
 int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
 {
-	int ret = -1;
+	int ret = -1;	// !0 : not save
 	struct list_head *pos = NULL;
 	struct reglist_t *task = NULL;
 	struct reg_info_t *pRI = NULL;
@@ -112,9 +112,8 @@ int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
 		if (addr == pRI->addr) {
 			if (value != pRI->value) {
 				pRI->value = value;
-				// TODO  save to file
 			}
-			ret = 0;
+			ret = 0;	// 0: wait to save
 			break;
 		}
 	}
@@ -225,15 +224,16 @@ uint8_t csv_gev_reg_type_get (uint16_t addr)
 static void csv_gev_reg_enroll (void)
 {
 	struct gev_param_t *pGP = &gCSV->cfg.gp;
+	//struct csv_eth_t *pETH = &gCSV->eth;
 
 	csv_gev_reg_add(REG_Version, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGP->Version, NULL, NULL);
 	csv_gev_reg_add(REG_DeviceMode, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGP->DeviceMode, NULL, NULL);
 	csv_gev_reg_add(REG_DeviceMACAddressHigh0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->MacHi, NULL, NULL);
 	csv_gev_reg_add(REG_DeviceMACAddressLow0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->MacLow, NULL, NULL);
 	csv_gev_reg_add(REG_NetworkInterfaceCapability0, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, 0x00000000, NULL, NULL);
 	csv_gev_reg_add(REG_NetworkInterfaceConfiguration0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
@@ -387,7 +387,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_ScheduledActionCommandQueueSize, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, 0x00000000, NULL, NULL);
 	csv_gev_reg_add(REG_ControlChannelPrivilege, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x80000001, NULL, NULL);
 	csv_gev_reg_add(REG_PrimaryApplicationPort, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, NULL);
 	csv_gev_reg_add(REG_PrimaryApplicationIPAddress, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
@@ -547,6 +547,21 @@ static int csv_gvcp_error_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR, uin
 	return csv_gvcp_sendto(pGEV);
 }
 
+int csv_gvcp_event_send (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
+{
+	CMD_MSG_HEADER *pHeader = (CMD_MSG_HEADER *)pGEV->txbuf;
+
+	pHeader->cKeyValue = GVCP_CMD_KEY_VALUE;
+	pHeader->cFlg = GVCP_CMD_FLAG_NEED_ACK; // TODO
+	pHeader->nCommand = GEV_EVENT_CMD;
+	pHeader->nReqId = pHDR->nReqId;
+
+
+	pGEV->txlen = sizeof(ACK_MSG_HEADER) + 0;
+
+	return csv_gvcp_sendto(pGEV);
+}
+
 static int csv_gvcp_discover_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
 	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
@@ -649,32 +664,40 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	int *pCurRegAddr = (int *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 	if (pHDR->nLength > GVCP_MAX_PAYLOAD_LEN) {
 		log_info("ERROR : read too long reg addrs");
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
+		return -1;
+	}
+
+	if (pGEV->rxlen != 8+pHDR->nLength) {
+		log_info("ERROR : length not match");
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
 	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
 	int *pCurRegData = (int *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
-	int nRegs = pHDR->nLength / sizeof(uint32_t);
+	int nRegs = pHDR->nLength / sizeof(uint32_t); // GVCP_READ_REG_MAX_NUM
+	uint16_t reg_addr = 0;
 
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_READREG_ACK);
-	//pAckHdr->nLength			= htons(pHDR->nLength);
 	pAckHdr->nAckId				= htons(pHDR->nReqId);
 
 	uint8_t type = GEV_REG_TYPE_NONE;
-	uint32_t nTemp = 0; // GVCP_READ_REG_MAX_NUM
+	uint32_t nTemp = 0;
 	for (i = 0; i < nRegs; i++) {
-		type = csv_gev_reg_type_get((uint16_t)ntohl(*pCurRegAddr));
+		reg_addr = (uint16_t)ntohl(*pCurRegAddr);
+		type = csv_gev_reg_type_get(reg_addr);
 		if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_MEM == type)) {
 			break;
 		}
-		nTemp = csv_gev_reg_value_get((uint16_t)ntohl(*pCurRegAddr));
+		nTemp = csv_gev_reg_value_get(reg_addr);
 
 		*pCurRegData++ = htonl(nTemp);
 		pCurRegAddr++;
 	}
 
-	pAckHdr->nLength			= htons(i*4);
+	pAckHdr->nLength			= i*4;
 
 	pGEV->txlen = sizeof(ACK_MSG_HEADER) + pAckHdr->nLength;
 
@@ -683,7 +706,7 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
-	int i = 0, ret = 0;
+	int i = 0, ret = -1;
 	WRITEREG_CMD_MSG *pCurCmdMsg = (WRITEREG_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 
 	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
@@ -704,7 +727,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 			break;
 		}
 
-		ret = csv_gev_reg_value_set((uint16_t)ntohl(pCurCmdMsg->nRegAddress), pCurCmdMsg->nRegData);
+		ret |= csv_gev_reg_value_set((uint16_t)ntohl(pCurCmdMsg->nRegAddress), pCurCmdMsg->nRegData);
 		if (ret != 0) {
 			nIndex = i;
 			break;
@@ -716,9 +739,13 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 	WRITEREG_ACK_MSG *pAckMsg = (WRITEREG_ACK_MSG *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
 	pAckMsg->nReserved	= 0;
-	pAckMsg->nIndex		= htons(nIndex);
+	pAckMsg->nIndex		= nIndex;
 
 	pGEV->txlen = sizeof(ACK_MSG_HEADER) + pAckHdr->nLength;
+
+	if (ret == 0) {
+		// TODO save to xml file
+	}
 
 	return csv_gvcp_sendto(pGEV);
 }
@@ -743,17 +770,7 @@ static int csv_gvcp_writemem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	return csv_gvcp_sendto(pGEV);
 }
 
-static int csv_gvcp_event_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
-{
-
-
-
-	pGEV->txlen = sizeof(ACK_MSG_HEADER) + 0;
-
-	return csv_gvcp_sendto(pGEV);
-}
-
-static int csv_gvcp_eventdata_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
+int csv_gvcp_eventdata_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
 
 
@@ -781,44 +798,52 @@ static int csv_gvcp_msg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 
 	switch (pHdr->nCommand) {
 	case GEV_DISCOVERY_CMD:
+		log_info("%s", toSTR(GEV_DISCOVERY_CMD));
 		if (pHdr->cFlg & 0x01) {
 			ret = csv_gvcp_discover_ack(pGEV, pHdr);
 		}
 		break;
 
 	case GEV_FORCEIP_CMD:
+		log_info("%s", toSTR(GEV_FORCEIP_CMD));
 		ret = csv_gvcp_forceip_ack(pGEV, pHdr);
 		break;
 
 	case GEV_PACKETRESEND_CMD:
+		log_info("%s", toSTR(GEV_PACKETRESEND_CMD));
 		ret = csv_gvcp_packetresend_ack(pGEV, pHdr);
 		break;
 
 	case GEV_READREG_CMD:
+		log_info("%s", toSTR(GEV_READREG_CMD));
 		ret = csv_gvcp_readreg_ack(pGEV, pHdr);
 		break;
 
 	case GEV_WRITEREG_CMD:
+		log_info("%s", toSTR(GEV_WRITEREG_CMD));
 		ret = csv_gvcp_writereg_ack(pGEV, pHdr);
 		break;
 
 	case GEV_READMEM_CMD:
+		log_info("%s", toSTR(GEV_READMEM_CMD));
 		ret = csv_gvcp_readmem_ack(pGEV, pHdr);
 		break;
 
 	case GEV_WRITEMEM_CMD:
+		log_info("%s", toSTR(GEV_WRITEMEM_CMD));
 		ret = csv_gvcp_writemem_ack(pGEV, pHdr);
 		break;
 
-	case GEV_EVENT_CMD:
-		ret = csv_gvcp_event_ack(pGEV, pHdr);
+	case GEV_EVENT_ACK:
+		//ret = csv_gvcp_event_ack(pGEV, pHdr);
 		break;
 
-	case GEV_EVENTDATA_CMD:
-		ret = csv_gvcp_eventdata_ack(pGEV, pHdr);
+	case GEV_EVENTDATA_ACK:
+		//ret = csv_gvcp_eventdata_ack(pGEV, pHdr);
 		break;
 
 	case GEV_ACTION_CMD:
+		log_info("%s", toSTR(GEV_ACTION_CMD));
 		ret = csv_gvcp_action_ack(pGEV, pHdr);
 		break;
 
@@ -859,6 +884,11 @@ int csv_gvcp_trigger (struct csv_gev_t *pGEV)
 	Cmdheader.nReqId = ntohs(pHeader->nReqId);
 
 	if (GVCP_CMD_KEY_VALUE != pHeader->cKeyValue) {
+		if ((GEV_STATUS_SUCCESS == (pHeader->cKeyValue<<8)+pHeader->cFlg)
+		  &&(GEV_EVENT_ACK == Cmdheader.nCommand)) {
+			log_info("OK : event ack id[%d]", Cmdheader.nReqId);
+		}
+
 		return -1;
 	}
 

@@ -102,7 +102,10 @@ static void log_printf (int priority, const char *fmt, va_list ap)
 			" : [%d]%s", errno_save, strerror(errno_save));
 	}
 	strcat(buf, "\n");
-	syslog(priority, "%s", buf);
+
+	if (LOG_DEBUG != priority) {
+		syslog(priority, "%s", buf);
+	}
 
 	if (gPdct.tlog) {
 		fflush(stdout);
