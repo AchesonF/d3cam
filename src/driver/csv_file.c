@@ -196,6 +196,23 @@ uint8_t csv_file_isExist (char *path)
 	return false;
 }
 
+uint32_t csv_file_modify_time (char *path)
+{
+	int ret = 0;
+	struct stat st;
+
+	if (NULL == path) {
+		return 0;
+	}
+
+	ret = stat(path, &st);
+	if (0 == ret) {
+		return st.st_mtim.tv_sec;
+	}
+
+	return 0;
+}
+
 static int csv_file_get (struct csv_file_t *pFILE)
 {
 	int ret = 0;

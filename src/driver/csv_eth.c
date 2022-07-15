@@ -689,8 +689,7 @@ int csv_eth_init (void)
 	pGP->MacHi = (uint32_t)u8v_to_u16(&gCSV->eth.MACAddr[0]);
 	pGP->MacLow = u8v_to_u32(&gCSV->eth.MACAddr[2]);
 
-log_debug("mac hi 0x%08X", pGP->MacHi);
-log_debug("mac low 0x%08X", pGP->MacLow);
+
 
 	return 0;
 }

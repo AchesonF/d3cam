@@ -21,6 +21,8 @@ static void xml_unload_file (xmlDocPtr pDoc)
 		pXML->SaveFile = false;
 		xmlSaveFormatFileEnc(pXML->file, pDoc, "UTF-8", 1);
 		sync();
+
+		pXML->TimeOfModify = csv_file_modify_time(pXML->file);
 	}
 
 	xmlFreeDoc(pDoc);
@@ -806,15 +808,26 @@ int csv_xml_init (void)
 
 	csv_xml_directories_prepare();
 
+	pXML->TimeOfModify = csv_file_modify_time(pXML->file);
+
 	return ret;
 }
 
 
-int csv_xml_deinit (void)
+int csv_xml_check (void)
 {
+	int ret = 0;
+	uint32_t new_tom = 0;
+	struct csv_xml_t *pXML = &gCSV->xml;
 
+	new_tom = csv_file_modify_time(pXML->file);
+	if (new_tom != pXML->TimeOfModify) {
+		ret = csv_xml_read_ALL(pXML);
+		csv_xml_directories_prepare();
+		pXML->TimeOfModify = new_tom;
+	}
 
-	return 0;
+	return ret;
 }
 
 

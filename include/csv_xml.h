@@ -38,6 +38,7 @@ struct csv_xml_t {
 	char				*file;					///< xml 文件绝对路径
 
 	uint8_t				SaveFile;				///< 保存标志
+	uint32_t			TimeOfModify;			///< 最后修改时间 s
 
 	xmlDocPtr			pDoc;					///< 文件指针
 	xmlNodePtr			pRoot;					///< 根指针
@@ -60,7 +61,7 @@ extern int csv_xml_write_CalibParameters (void);
 
 extern int csv_xml_init (void);
 
-extern int csv_xml_deinit (void);
+extern int csv_xml_check (void);
 
 
 #ifdef __cplusplus
