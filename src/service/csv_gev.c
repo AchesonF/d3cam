@@ -70,7 +70,7 @@ static void csv_gev_reg_add (uint16_t addr, uint8_t type, uint8_t mode,
 	}
 }
 
-uint32_t csv_gev_reg_value_get (uint16_t addr)
+static uint32_t csv_gev_reg_value_get (uint16_t addr)
 {
 	uint32_t value = 0;
 	struct list_head *pos = NULL;
@@ -94,7 +94,7 @@ uint32_t csv_gev_reg_value_get (uint16_t addr)
 	return value;
 }
 
-int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
+static int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
 {
 	int ret = -1;	// !0 : not save
 	struct list_head *pos = NULL;
@@ -110,18 +110,47 @@ int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
 		pRI = &task->ri;
 
 		if (addr == pRI->addr) {
-			if (value != pRI->value) {
-				pRI->value = value;
+			if (pRI->mode & GEV_REG_WRITE) {
+				if (value != pRI->value) {
+					pRI->value = value;
+				}
+				ret = 0;	// 0: wait to save
+				break;
+			} else {
+				ret = -2;	// can't be write
+				break;
 			}
-			ret = 0;	// 0: wait to save
-			break;
 		}
 	}
 
 	return ret;
 }
 
-char *csv_gev_mem_info_get (uint16_t addr)
+static uint16_t csv_gev_mem_info_get_length (uint16_t addr)
+{
+	uint16_t length = 0;
+	struct list_head *pos = NULL;
+	struct reglist_t *task = NULL;
+	struct reg_info_t *pRI = NULL;
+
+	list_for_each(pos, &gCSV->gev.head_reg.list) {
+		task = list_entry(pos, struct reglist_t, list);
+		if (task == NULL) {
+			break;
+		}
+
+		pRI = &task->ri;
+
+		if (addr == pRI->addr) {
+			length = pRI->length;
+			break;
+		}
+	}
+
+	return length;
+}
+
+static char *csv_gev_mem_info_get (uint16_t addr)
 {
 	char *info = NULL;
 	struct list_head *pos = NULL;
@@ -661,42 +690,53 @@ static int csv_gvcp_packetresend_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pH
 static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
 	int i = 0;
-	int *pCurRegAddr = (int *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
+
 	if (pHDR->nLength > GVCP_MAX_PAYLOAD_LEN) {
 		log_info("ERROR : read too long reg addrs");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
-	if (pGEV->rxlen != 8+pHDR->nLength) {
+	if ((pHDR->nLength % sizeof(uint32_t) != 0)||(pGEV->rxlen != 8+pHDR->nLength)) {
 		log_info("ERROR : length not match");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
-	int *pCurRegData = (int *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
+	uint32_t *pRegAddr = (uint32_t *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
+	uint32_t *pRegData = (uint32_t *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
 	int nRegs = pHDR->nLength / sizeof(uint32_t); // GVCP_READ_REG_MAX_NUM
 	uint16_t reg_addr = 0;
+	uint8_t type = GEV_REG_TYPE_NONE;
+	uint32_t nTemp = 0;
 
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_READREG_ACK);
 	pAckHdr->nAckId				= htons(pHDR->nReqId);
 
-	uint8_t type = GEV_REG_TYPE_NONE;
-	uint32_t nTemp = 0;
 	for (i = 0; i < nRegs; i++) {
-		reg_addr = (uint16_t)ntohl(*pCurRegAddr);
+		reg_addr = (uint16_t)ntohl(*pRegAddr);
+
+		if (reg_addr % sizeof(uint32_t) != 0) {
+			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_BAD_ALIGNMENT);
+			return -1;
+		}
+
 		type = csv_gev_reg_type_get(reg_addr);
 		if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_MEM == type)) {
-			break;
+			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
+			return -1;
 		}
 		nTemp = csv_gev_reg_value_get(reg_addr);
 
-		*pCurRegData++ = htonl(nTemp);
-		pCurRegAddr++;
+		*pRegData++ = htonl(nTemp);
+		pRegAddr++;
 	}
 
+	if (i != nRegs) {
+		pAckHdr->nStatus		= htons(GEV_STATUS_INVALID_ADDRESS);
+	}
 	pAckHdr->nLength			= i*4;
 
 	pGEV->txlen = sizeof(ACK_MSG_HEADER) + pAckHdr->nLength;
@@ -707,55 +747,128 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
 	int i = 0, ret = -1;
-	WRITEREG_CMD_MSG *pCurCmdMsg = (WRITEREG_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
-	int *pCurRegData = (int *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
+
+	if (pHDR->nLength > GVCP_MAX_PAYLOAD_LEN) {
+		log_info("ERROR : too long regs");
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
+		return -1;
+	}
+
+	if ((pHDR->nLength % sizeof(WRITEREG_CMD_MSG) != 0)||(pGEV->rxlen != 8+pHDR->nLength)) {
+		log_info("ERROR : length not match");
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
+		return -1;
+	}
+
 	int nRegs = pHDR->nLength/sizeof(WRITEREG_CMD_MSG);
 
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_WRITEREG_ACK);
-	pAckHdr->nLength			= htons(pHDR->nLength);
+	pAckHdr->nLength			= htons(sizeof(WRITEREG_ACK_MSG));
 	pAckHdr->nAckId				= htons(pHDR->nReqId);
 
+	uint16_t reg_addr = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	int nIndex = MAX_WRITEREG_INDEX;
+
+	WRITEREG_CMD_MSG *pRegMsg = (WRITEREG_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 	for (i = 0; i < nRegs; i++) {
-		type = csv_gev_reg_type_get((uint16_t)ntohl(pCurCmdMsg->nRegAddress));
-		if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_MEM == type)) {
-			nIndex = i;
-			break;
+		reg_addr = (uint16_t)ntohl(pRegMsg->nRegAddress);
+
+		if (reg_addr % sizeof(uint32_t) != 0) {
+			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_BAD_ALIGNMENT);
+			return -1;
 		}
 
-		ret |= csv_gev_reg_value_set((uint16_t)ntohl(pCurCmdMsg->nRegAddress), pCurCmdMsg->nRegData);
+		type = csv_gev_reg_type_get(reg_addr);
+		if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_MEM == type)) {
+			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
+			return -1;
+		}
+
+		ret |= csv_gev_reg_value_set(reg_addr, ntohl(pRegMsg->nRegData));
 		if (ret != 0) {
 			nIndex = i;
+
+			if (ret == -2) {
+				csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_WRITE_PROTECT);
+				return -1;
+			}
 			break;
 		}
 
-		*pCurRegData++ = ret;
-		pCurCmdMsg++;
+		pRegMsg++;
 	}
 
 	WRITEREG_ACK_MSG *pAckMsg = (WRITEREG_ACK_MSG *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
-	pAckMsg->nReserved	= 0;
-	pAckMsg->nIndex		= nIndex;
-
-	pGEV->txlen = sizeof(ACK_MSG_HEADER) + pAckHdr->nLength;
+	pAckMsg->nReserved			= htons(0x00);
+	pAckMsg->nIndex				= htons(nIndex);
 
 	if (ret == 0) {
-		// TODO save to xml file
+		// TODO 1 save to xml file
+		// TODO 2 effect new cfg
 	}
+
+	pGEV->txlen = sizeof(ACK_MSG_HEADER) + sizeof(WRITEREG_ACK_MSG);
 
 	return csv_gvcp_sendto(pGEV);
 }
 
 static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
+	if (pHDR->nLength != sizeof(READMEM_CMD_MSG)) {
+		log_info("ERROR : readmem param length");
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
+		return -1;
+	}
 
+	if (pGEV->rxlen != 8+pHDR->nLength) {
+		log_info("ERROR : length not match");
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
+		return -1;
+	}
 
+	char *info = NULL;
+	uint16_t len_info = 0;
+	READMEM_CMD_MSG *pReadMem = (READMEM_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
+	uint16_t mem_addr = (uint16_t)ntohl(pReadMem->nMemAddress);
+	uint16_t mem_len = (uint16_t)ntohl(pReadMem->nMemLen);
+	if (mem_addr % 4 != 0) {
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
+		return -1;
+	}
 
-	pGEV->txlen = sizeof(ACK_MSG_HEADER) + 0;
+	if (mem_len % 4 != 0) {
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
+		return -1;
+	}
+
+	info = csv_gev_mem_info_get(mem_addr);
+	if (NULL == info) {
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_PACKET_REMOVED_FROM_MEMORY);
+		return -1;
+	}
+
+	len_info = csv_gev_mem_info_get_length(mem_addr);
+	if (pReadMem->nMemLen > len_info) {
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_BAD_ALIGNMENT);
+		return -1;
+	}
+
+	READMEM_ACK_MSG *pMemAck = (READMEM_ACK_MSG *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
+	pMemAck->nMemAddress = pReadMem->nMemAddress;
+	memset(pMemAck->chReadMemData, 0, GVCP_MAX_PAYLOAD_LEN);
+	memcpy(pMemAck->chReadMemData, info, pReadMem->nMemLen);
+
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
+	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
+	pAckHdr->nAckMsgValue		= htons(GEV_WRITEREG_ACK);
+	pAckHdr->nLength			= htons(sizeof(WRITEREG_ACK_MSG));
+	pAckHdr->nAckId				= htons(pHDR->nReqId);
+
+	pGEV->txlen = sizeof(ACK_MSG_HEADER) + sizeof(uint32_t) + pReadMem->nMemLen;
 
 	return csv_gvcp_sendto(pGEV);
 }
@@ -799,9 +912,7 @@ static int csv_gvcp_msg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 	switch (pHdr->nCommand) {
 	case GEV_DISCOVERY_CMD:
 		log_info("%s", toSTR(GEV_DISCOVERY_CMD));
-		if (pHdr->cFlg & 0x01) {
-			ret = csv_gvcp_discover_ack(pGEV, pHdr);
-		}
+		ret = csv_gvcp_discover_ack(pGEV, pHdr);
 		break;
 
 	case GEV_FORCEIP_CMD:
