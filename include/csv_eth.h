@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define DEV_ETH						("enp0s3")//("eth0")//("ens33")//("enp0s3")	///< 网卡设备节点
+#define DEV_ETH						("eth0")//("ens33")//("enp0s3")	///< 网卡设备节点
 
 #define THREAD_NAME_DHCP			("'thr_dhcp'")
 

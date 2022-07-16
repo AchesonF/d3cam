@@ -147,7 +147,7 @@ static int msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t
 
 static int msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
-	int ret = -1;
+/*	int ret = -1;
 	int result = -1;
 	float *ExpoTime = (float *)pMP->payload;
 
@@ -164,7 +164,7 @@ static int msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
-
+*/
 	return csv_msg_send(pACK);
 }
 
@@ -641,11 +641,17 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	struct cam_spec_t *pCAM = NULL;
 	struct calib_param_t *pCALIB = &gCSV->cfg.calib_param;
 
+	if (pMVS->grabing) {
+		return -1;
+	}
+
 	if ((NULL == pCALIB->path)
 		||(!csv_file_isExist(pCALIB->path))) {
 		log_info("ERROR : cali img path null");
 		return -1;
 	}
+
+	pMVS->grabing = true;
 
 	// 1 亮光
 	ret = csv_dlp_just_write(CMD_BRIGHT);
@@ -673,6 +679,7 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 				pCAM->serialNum, idx, i, nRet);
 				if (MV_E_NODATA == nRet) {
 					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
+					pMVS->grabing = false;
 					return -1;
 				}
 		}
@@ -708,6 +715,7 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 					pCAM->serialNum, idx, i, nRet);
 				if (MV_E_NODATA == nRet) {
 					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
+					pMVS->grabing = false;
 					return -1;
 				}
 			}
@@ -722,8 +730,9 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	}
 
 	pCALIB->groupDemarcate++;
-
 	csv_xml_write_CalibParameters();
+
+	pMVS->grabing = false;
 
 	return ret;
 }
@@ -739,6 +748,12 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct cam_spec_t *pCAM = NULL;
 	struct pointcloud_param_t *pPC = &gCSV->cfg.pointcloud_param;
+
+	if (pMVS->grabing) {
+		return -1;
+	}
+
+	pMVS->grabing = true;
 
 	// 13 高速光
 	ret = csv_dlp_just_write(CMD_HIGH_SPEED);
@@ -771,6 +786,7 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 
 				if (MV_E_NODATA == nRet) {
 					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
+					pMVS->grabing = false;
 					return -1;
 				}
 			}
@@ -783,6 +799,8 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 	if (SUFFIX_PNG == gCSV->cfg.device_param.img_type) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
 	}
+
+	pMVS->grabing = false;
 
 	return ret;
 }

@@ -81,7 +81,7 @@ static int csv_dlp_write (struct csv_dlp_t *pDLP, uint8_t cmd)
 	return ret;
 }
 
-int csv_dlp_read (struct csv_dlp_t *pDLP)
+static int csv_dlp_read (struct csv_dlp_t *pDLP)
 {
 	int ret = 0;
 
@@ -166,10 +166,16 @@ static void *csv_dlp_loop (void *data)
 		return NULL;
 	}
 
+	int ret = 0;
+
 	struct csv_dlp_t *pDLP = (struct csv_dlp_t *)data;
 
 	while (1) {
-		csv_dlp_read(pDLP);
+		ret = csv_dlp_read(pDLP);
+
+		if (ret <= 0) {
+			continue;
+		}
 
 		if (strstr((char *)pDLP->rbuf, "alive")) {
 			// dlp alive. do nothing

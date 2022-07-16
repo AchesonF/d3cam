@@ -864,7 +864,7 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
-	pAckHdr->nAckMsgValue		= htons(GEV_WRITEREG_ACK);
+	pAckHdr->nAckMsgValue		= htons(GEV_READMEM_ACK);
 	pAckHdr->nLength			= htons(sizeof(WRITEREG_ACK_MSG));
 	pAckHdr->nAckId				= htons(pHDR->nReqId);
 

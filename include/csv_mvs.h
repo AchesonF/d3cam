@@ -37,6 +37,7 @@ struct csv_mvs_t {
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
 	struct cam_spec_t		Cam[TOTAL_CAMS];
 	// todo bind dev
+	uint8_t					grabing;		///< 正在抓图
 
 	const char				*name_mvs;		///< 消息
 	pthread_t				thr_mvs;		///< ID

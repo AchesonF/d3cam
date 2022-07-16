@@ -543,6 +543,12 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 	int errNum = 0;
 	struct cam_spec_t *pCAM = NULL;
 
+	if (pMVS->grabing) {
+		return -1;
+	}
+
+	pMVS->grabing = true;
+
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
 
@@ -565,9 +571,11 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 	}
 
 	if (errNum > 0) {
+		pMVS->grabing = false;
 		return -1;
 	}
 
+	pMVS->grabing = false;
 	return nRet;
 }
 
