@@ -36,7 +36,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	vector<cv::Mat> src1list;
 	for (int i = 0; i < 13; i++) {
 		string path = pathRoot + gCSV->cfg.pointcloud_param.imgPrefixNameL 
-			+ to_zero_lead(i + 1, 3) + ".png";
+			+ to_zero_lead(i + 1, 3) + ".bmp";
 
 		cout << "Read Image : " << path << endl;
 
@@ -50,7 +50,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	vector<cv::Mat> src2list;
 	for (int i = 0; i < 13; i++) {
 		string path = pathRoot + gCSV->cfg.pointcloud_param.imgPrefixNameR 
-		+ to_zero_lead(i + 1, 3) + ".png";
+		+ to_zero_lead(i + 1, 3) + ".bmp";
 
 		cout << "Read Image : " << path << endl;
 

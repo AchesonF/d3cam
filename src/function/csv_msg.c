@@ -1,6 +1,6 @@
 #include "inc_files.h"
 
-//#include "csv_pointcloud.hpp"
+#include "csv_pointcloud.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -798,6 +798,8 @@ static int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *p
 
 	if (SUFFIX_PNG == gCSV->cfg.device_param.img_type) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
+	} else {
+		ret = point_cloud_calc();
 	}
 
 	pMVS->grabing = false;
