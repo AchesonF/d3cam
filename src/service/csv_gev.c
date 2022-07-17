@@ -1101,14 +1101,14 @@ static int csv_gvsp_open (struct gvsp_param_t *pStream)
 		return -1;
 	}
 
-/*	int val = 1;	// 禁止分包
-	ret = setsockopt(fd, IPPROTO_IP, IP_DF, &val, sizeof(val));
+	int val = IP_PMTUDISC_DO; /* don't fragment */
+	ret = setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
 	if (ret < 0) {
-		log_err("ERROR : setsockopt 'IP_DF'");
+		log_err("ERROR : setsockopt 'IP_MTU_DISCOVER'");
 
 		return -1;
 	}
-*/
+
 	int send_len = (64<<10);	// 64K
 	ret = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &send_len, sizeof(send_len));
 	if (ret < 0) {
