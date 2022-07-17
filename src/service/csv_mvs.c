@@ -210,6 +210,12 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 		log_info("Only USE first %d CAM devices.", TOTAL_CAMS);
 	}
 
+	if ((2 == pMVS->cnt_mvs)&&(gCSV->cfg.device_param.camera_leftright_type)) {
+		MV_CC_DEVICE_INFO *pTemp = pDevList->pDeviceInfo[0];
+		pDevList->pDeviceInfo[0] = pDevList->pDeviceInfo[1];
+		pDevList->pDeviceInfo[1] = pTemp;
+	}
+
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
 		log_info("CAM[%d] : ", i);
 
