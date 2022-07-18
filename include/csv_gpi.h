@@ -8,12 +8,12 @@ extern "C" {
 #define NAME_INPUT					("'csv_input'")
 
 
-#define DEV_GPIO_INPUT				("/dev/input/by-path/gpio-keys")//("/dev/input/event4") // to check
+#define DEV_GPIO_INPUT				("/dev/input/by-path/platform-gpio-keys-event")
 
 
 // gpio-key KEY_SLEEP(142),KEY_POWER(116) define in file "tegra194-p3509-0000+p3668-0000.dts"
-#define GPI_IN_FORCE				(142)		///< Force Recovery (G, 0)
-#define GPI_IN_POWER				(116)		///< Power	(EE, 4)
+#define GPI_IN_FORCE				(0x101)		///< Force Recovery (G, 0)
+#define GPI_IN_POWER				(0x74)		///< Power	(EE, 4)
 
 #define GPI_LOW						(0)			///< GPI输入为0
 #define GPI_HIGH					(1)			///< GPI输入为1

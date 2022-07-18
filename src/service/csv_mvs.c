@@ -962,10 +962,10 @@ static void *csv_mvs_grab_loop (void *data)
 			log_err("ERROR : pthread_cond_wait %s", pMVS->name_grab);
 			break;
 		}
-
+		ret = csv_mvs_cams_open(pMVS);
 		switch (pMVS->grab_type) {
 		case GRAB_DEMARCATE:
-			csv_mvs_cams_demarcate(pMVS);			
+			csv_mvs_cams_demarcate(pMVS);
 			break;
 		case GRAB_HIGHSPEED:
 			csv_mvs_cams_highspeed(pMVS);
@@ -973,7 +973,7 @@ static void *csv_mvs_grab_loop (void *data)
 		default:
 			break;
 		}
-
+		ret = csv_mvs_cams_close(pMVS);
 	}
 
 	log_info("WARN : exit pthread %s", pMVS->name_grab);

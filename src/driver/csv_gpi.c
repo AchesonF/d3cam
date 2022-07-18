@@ -70,7 +70,7 @@ int csv_gpi_trigger (struct csv_gpi_t *pGPI)
 				}
 				break;
 			default:
-				log_debug("Not support key");
+				//log_debug("Not support key");
 				break;
 			}
 		}

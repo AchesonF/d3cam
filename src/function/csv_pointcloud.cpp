@@ -35,7 +35,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	// 导入C1相机图像
 	vector<cv::Mat> src1list;
 	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + gCSV->cfg.pointcloud_param.imgPrefixNameL 
+		string path = pathRoot + "/" + gCSV->cfg.pointcloud_param.imgPrefixNameL 
 			+ to_zero_lead(i + 1, 3) + ".bmp";
 
 		cout << "Read Image : " << path << endl;
@@ -49,7 +49,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	// 导入2相机图像
 	vector<cv::Mat> src2list;
 	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + gCSV->cfg.pointcloud_param.imgPrefixNameR 
+		string path = pathRoot + "/" + gCSV->cfg.pointcloud_param.imgPrefixNameR 
 		+ to_zero_lead(i + 1, 3) + ".bmp";
 
 		cout << "Read Image : " << path << endl;

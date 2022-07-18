@@ -15,10 +15,10 @@ int csv_cfg_init (void)
 	pCFG->device_param.device_type = 0;
 	pCFG->device_param.camera_leftright_type = false;
 	pCFG->device_param.camera_img_type = true;
-	pCFG->device_param.exposure_time = 10000.0f;
+	pCFG->device_param.exposure_time = 40000.0f;
 	pCFG->device_param.exposure_time_for_rgb = 10000.0f;
 	pCFG->device_param.dlp_rate = 0x002D;
-	pCFG->device_param.dlp_brightness = 0x7FFF;
+	pCFG->device_param.dlp_brightness = 700;
 	pCFG->device_param.img_type = SUFFIX_BMP;
 
 	pCFG->depthimg_param.numDisparities = 816;
@@ -31,7 +31,7 @@ int csv_cfg_init (void)
 	strcpy(pCFG->pointcloud_param.outFileXYZ, "pointcloud.xyz");
 
 	pCFG->calib_param.groupDemarcate = 1;
-	strcpy(pCFG->calib_param.path, "data/calibImage/");
+	strcpy(pCFG->calib_param.path, "data/calibImage");
 	strcpy(pCFG->calib_param.calibFile, "grayCodeParams.xml");
 
 	pGP->Version = (GEV_VERSION_MAJOR<<16) | GEV_VERSION_MINOR;
