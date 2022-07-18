@@ -541,7 +541,7 @@ static void csv_msg_cmd_enroll (void)
 	// todo add more cmd
 
 
-	log_info("OK : register message commands.");
+	log_info("OK : enroll message commands.");
 }
 
 static void csv_msg_cmd_disroll (void)
@@ -561,7 +561,7 @@ static void csv_msg_cmd_disroll (void)
 		task = NULL;
 	}
 
-	log_info("OK : unregister message commands.");
+	log_info("OK : disroll message commands.");
 }
 
 static int csv_msg_push (struct csv_msg_t *pMSG, uint8_t *buf, uint32_t len)

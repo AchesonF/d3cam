@@ -32,6 +32,19 @@ struct gev_param_t {
 	uint32_t				MacHi;		// mac[0-1]
 	uint32_t				MacLow;		// mac[2-5]
 
+	uint32_t				IfCapability0;
+	uint32_t				IfConfiguration0;
+	char					ManufacturerName[32];
+	char					ModelName[32];
+	char					DeviceVersion[32];
+	char					ManufacturerInfo[48];
+	char					SerialNumber[16];
+	char					UserdefinedName[16];
+	char					FirstURL[512];
+	char					SecondURL[512];
+
+
+
 };
 
 struct pointcloud_param_t {

@@ -36,7 +36,13 @@ int csv_cfg_init (void)
 
 	pGP->Version = (GEV_VERSION_MAJOR<<16) | GEV_VERSION_MINOR;
 	pGP->DeviceMode = GEV_DEVICE_MODE;
-
+	pGP->IfCapability0 = 7;
+	pGP->IfConfiguration0 = 6;
+	strcpy(pGP->ManufacturerName, "CSVision");
+	strcpy(pGP->ModelName, "CS-3D001-28HS");
+	strcpy(pGP->DeviceVersion, SOFTWARE_VERSION);
+	strcpy(pGP->ManufacturerInfo, "CS vision 3d infomation");
+	strcpy(pGP->SerialNumber, "CS300128001"); // todo update
 
 	return 0;
 }

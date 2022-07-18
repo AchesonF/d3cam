@@ -253,7 +253,7 @@ uint8_t csv_gev_reg_type_get (uint16_t addr)
 static void csv_gev_reg_enroll (void)
 {
 	struct gev_param_t *pGP = &gCSV->cfg.gp;
-	//struct csv_eth_t *pETH = &gCSV->eth;
+	struct csv_eth_t *pETH = &gCSV->eth;
 
 	csv_gev_reg_add(REG_Version, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGP->Version, NULL, NULL);
@@ -264,31 +264,31 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_DeviceMACAddressLow0, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGP->MacLow, NULL, NULL);
 	csv_gev_reg_add(REG_NetworkInterfaceCapability0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->IfCapability0, NULL, NULL);
 	csv_gev_reg_add(REG_NetworkInterfaceConfiguration0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->IfConfiguration0, NULL, NULL);
 	csv_gev_reg_add(REG_CurrentIPAddress0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, pETH->IPAddress, NULL, NULL);
 	csv_gev_reg_add(REG_CurrentSubnetMask0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, pETH->IPMask, NULL, NULL);
 	csv_gev_reg_add(REG_CurrentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, pETH->GateWayAddr, NULL, NULL);
 	csv_gev_reg_add(REG_ManufacturerName, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		32, 0, "CSV", NULL);
+		32, 0, pGP->ManufacturerName, NULL);
 	csv_gev_reg_add(REG_ModelName, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		32, 0, "CSV01", NULL);
+		32, 0, pGP->ModelName, NULL);
 	csv_gev_reg_add(REG_DeviceVersion, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		32, 0, "V1.0.0", NULL);
+		32, 0, pGP->DeviceVersion, NULL);
 	csv_gev_reg_add(REG_ManufacturerInfo, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		48, 0, "CSVCSV", NULL);
+		48, 0, pGP->ManufacturerInfo, NULL);
 	csv_gev_reg_add(REG_SerialNumber, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		16, 0, "CCSSVV0001", NULL);
+		16, 0, pGP->SerialNumber, NULL);
 	csv_gev_reg_add(REG_UserdefinedName, GEV_REG_TYPE_MEM, GEV_REG_RDWR, 
-		16, 0, "USERDEFINED", NULL);
+		16, 0, pGP->UserdefinedName, NULL);
 	csv_gev_reg_add(REG_FirstURL, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		512, 0, "first_url_stringformat...", NULL);
+		512, 0, pGP->FirstURL, NULL);
 	csv_gev_reg_add(REG_SecondURL, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		512, 0, "second_url_stringformat...", NULL);
+		512, 0, pGP->SecondURL, NULL);
 	csv_gev_reg_add(REG_NumberofNetworkInterfaces, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, 1, NULL, NULL);
 	csv_gev_reg_add(REG_PersistentIPAddress, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
@@ -516,6 +516,8 @@ static void csv_gev_reg_enroll (void)
 
 	csv_gev_reg_add(REG_StartofNanufacturerSpecificRegisterSpace, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, NULL);
+
+	log_info("OK : enroll gev reg");
 }
 
 static void csv_gev_reg_disroll (void)
@@ -546,6 +548,8 @@ static void csv_gev_reg_disroll (void)
 		free(task);
 		task = NULL;
 	}
+
+	log_info("OK : disroll gev reg");
 }
 
 
@@ -609,18 +613,18 @@ static int csv_gvcp_discover_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	pAckMsg->nDeviceMode		= htonl(pGP->DeviceMode);
 	pAckMsg->nMacAddrHigh		= htons(pGP->MacHi)&0xFFFF;
 	pAckMsg->nMacAddrLow		= htonl(pGP->MacLow);
-	pAckMsg->nIpCfgOption		= htonl(0x80000007);
-	pAckMsg->nIpCfgCurrent		= htonl(0x00000005);
+	pAckMsg->nIpCfgOption		= htonl(pGP->IfCapability0);
+	pAckMsg->nIpCfgCurrent		= htonl(pGP->IfConfiguration0);
 	pAckMsg->nCurrentIp			= inet_addr(pETH->ip);
 	pAckMsg->nCurrentSubNetMask	= inet_addr(pETH->nm);
 	pAckMsg->nDefultGateWay		= inet_addr(pETH->gw);
 
-	strncpy((char *)pAckMsg->chManufacturerName, "CSV", 32);
-	strncpy((char *)pAckMsg->chModelName, "MV-CS001-50GM", 32);
-	strncpy((char *)pAckMsg->chDeviceVersion, "V1.0.0", 32);
-	strncpy((char *)pAckMsg->chManufacturerSpecificInfo, "GEV", 48);
-	strncpy((char *)pAckMsg->chSerialNumber, "010A000B0DCC", 16);
-	strncpy((char *)pAckMsg->chUserDefinedName, "user def here", 16);
+	strncpy((char *)pAckMsg->chManufacturerName, pGP->ManufacturerName, 32);
+	strncpy((char *)pAckMsg->chModelName, pGP->ModelName, 32);
+	strncpy((char *)pAckMsg->chDeviceVersion, pGP->DeviceVersion, 32);
+	strncpy((char *)pAckMsg->chManufacturerSpecificInfo, pGP->ManufacturerInfo, 48);
+	strncpy((char *)pAckMsg->chSerialNumber, pGP->SerialNumber, 16);
+	strncpy((char *)pAckMsg->chUserDefinedName, pGP->UserdefinedName, 16);
 
 	pGEV->txlen = sizeof(ACK_MSG_HEADER) + sizeof(DISCOVERY_ACK_MSG);
 
