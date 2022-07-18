@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #define NAME_THREAD_MVS			("'thr_mvs'")
+#define NAME_THREAD_GRAB		("'thr_grab'")
 
 enum {
 	CAM_LEFT				= (0),
@@ -16,6 +17,12 @@ enum {
 	TOTAL_CAMS
 };
 
+enum {
+	GRAB_DEMARCATE			= (0),
+	GRAB_HIGHSPEED			= (1),
+
+	GRAB_END
+};
 
 // (#define INFO_MAX_BUFFER_SIZE 64) in CameraParams.h
 struct cam_spec_t {
@@ -43,6 +50,12 @@ struct csv_mvs_t {
 	pthread_t				thr_mvs;		///< ID
 	pthread_mutex_t			mutex_mvs;		///< 锁
 	pthread_cond_t			cond_mvs;		///< 条件
+
+	uint8_t					grab_type;		///< 获取图像组类型 0:calib 1:pointcloud ...
+	const char				*name_grab;		///< 消息
+	pthread_t				thr_grab;		///< ID
+	pthread_mutex_t			mutex_grab;		///< 锁
+	pthread_cond_t			cond_grab;		///< 条件
 };
 
 
@@ -65,6 +78,7 @@ extern int csv_mvs_cams_gain_set (struct csv_mvs_t *pMVS, float fGain);
 extern int csv_mvs_cams_name_set (struct csv_mvs_t *pMVS, char *camSNum, char *strValue);
 
 extern int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS);
+
 
 extern int csv_mvs_init (void);
 

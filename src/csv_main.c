@@ -23,6 +23,36 @@ struct csv_product_t gPdct = {
     .fd_lock = -1,
 };
 
+static void csv_deinit (void)
+{
+	csv_gev_deinit();
+
+	csv_gpi_deinit();
+
+	csv_dlp_deinit();
+
+	csv_msg_deinit();
+
+	csv_png_deinit();
+
+	csv_tcp_deinit();
+
+	csv_uevent_deinit();
+
+	csv_mvs_deinit();
+
+	csv_web_deinit();
+
+	csv_tick_deinit();
+
+	if (gCSV != NULL) {
+		free(gCSV);
+	}
+
+	close(gPdct.fd_lock);
+
+}
+
 static void csv_trace (int signum)
 {
 	void *array[256];
@@ -63,12 +93,14 @@ static void csv_trace (int signum)
 	free(strings);
 	fclose(fp);
 
-	close(gPdct.fd_lock);
+	csv_deinit();
+
+	log_info("WARN : crash process pid[%d] via signum[%d]=%s", 
+		getpid(), signum, strSIG);
 
 	sync();
 
-	//system("reboot");
-	_exit(1);
+	exit(1);
 }
 
 void csv_stop (int signum)
@@ -88,33 +120,10 @@ void csv_stop (int signum)
 		break;
 	}
 
-	csv_gev_deinit();
-
-	csv_dlp_deinit();
-
-	csv_msg_deinit();
-
-	csv_png_deinit();
-
-	csv_tcp_deinit();
-
-	csv_uevent_deinit();
-
-	csv_mvs_deinit();
-
-	csv_web_deinit();
-
-	csv_tick_deinit();
-
-
-	if (gCSV != NULL) {
-		free(gCSV);
-	}
+	csv_deinit();
 
 	log_info("OK : Stop process pid[%d] via signum[%d]=%s", 
 		getpid(), signum, strSIG);
-
-	close(gPdct.fd_lock);
 
 	sync();
 
@@ -265,7 +274,7 @@ static void startup_opts (int argc, char **argv)
 	}
 }
 
-int csv_init (struct csv_info_t *pCSV)
+int csv_init (void)
 {
 	csv_file_init();
 
@@ -274,6 +283,8 @@ int csv_init (struct csv_info_t *pCSV)
 	csv_xml_init();
 
 	csv_eth_init();
+
+	csv_gpi_init();
 
 	csv_dlp_init();
 
@@ -319,9 +330,10 @@ int main (int argc, char **argv)
 
 	gCSV = csv_global_init();
 
-	csv_init(gCSV);
+	csv_init();
 
 	struct csv_uevent_t *pUE = &gCSV->uevent;
+	struct csv_gpi_t *pGPI = &gCSV->gpi;
 	struct csv_gev_t *pGEV = &gCSV->gev;
 	struct csv_tick_t *pTICK = &gCSV->tick;
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
@@ -332,6 +344,11 @@ int main (int argc, char **argv)
 
 		FD_ZERO(&readset);
 		FD_ZERO(&writeset);
+
+		if (pGPI->fd > 0) {
+			maxfd = MAX(maxfd, pGPI->fd);
+			FD_SET(pGPI->fd, &readset);
+		}
 
 		if (pGEV->fd > 0) {
 			maxfd = MAX(maxfd, pGEV->fd);
@@ -374,6 +391,10 @@ int main (int argc, char **argv)
 		default:		// number of descriptors
 			// log_debug("select %d", ret);
 		break;
+		}
+
+		if ((pGPI->fd > 0)&&(FD_ISSET(pGPI->fd, &readset))) {
+			csv_gpi_trigger(pGPI);
 		}
 
 		if ((pGEV->fd > 0)&&(FD_ISSET(pGEV->fd, &readset))) {

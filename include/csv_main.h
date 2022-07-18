@@ -52,6 +52,7 @@ struct csv_info_t {
 	struct csv_cfg_t	cfg;
 	struct csv_eth_t	eth;					///< 本地网络参数
 	struct csv_stat_t	stat;					///< 系统状态信息
+	struct csv_gpi_t	gpi;					///< 输入按键事件
 
 	struct csv_uevent_t	uevent;					///< 探测内核事件
 	struct csv_mvs_t	mvs;					///< 支持海康工业相机

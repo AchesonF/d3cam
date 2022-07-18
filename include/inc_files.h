@@ -16,6 +16,7 @@ extern "C" {
 #include <fcntl.h>
 #include <getopt.h>
 #include <limits.h>
+#include <linux/input.h>
 #include <malloc.h>
 #include <math.h>
 #include <net/if.h>
@@ -82,6 +83,7 @@ extern "C" {
 #include "csv_cfg.h"
 #include "csv_xml.h"
 #include "csv_eth.h"
+#include "csv_gpi.h"
 #include "csv_life.h"
 #include "csv_stat.h"
 #include "csv_beat.h"
