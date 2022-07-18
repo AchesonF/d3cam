@@ -8,7 +8,7 @@ extern "C" {
 #define NAME_INPUT					("'csv_input'")
 
 
-#define DEV_GPIO_INPUT				("/dev/input/event0") // todo check this
+#define DEV_GPIO_INPUT				("/dev/input/by-path/gpio-keys")//("/dev/input/event4") // to check
 
 
 // gpio-key KEY_SLEEP(142),KEY_POWER(116) define in file "tegra194-p3509-0000+p3668-0000.dts"

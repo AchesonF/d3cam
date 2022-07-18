@@ -11,7 +11,7 @@ static int csv_gpi_open (struct csv_gpi_t *pGPI)
 
     fd = open(pGPI->dev, O_RDONLY);
     if (fd < 0) {
-        log_err("ERROR : open %s", pGPI->name);
+        log_err("ERROR : open '%s'", pGPI->dev);
         return -1;
     }
 
