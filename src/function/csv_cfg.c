@@ -25,7 +25,7 @@ int csv_cfg_init (void)
 	pCFG->depthimg_param.blockSize = 21;
 	pCFG->depthimg_param.uniqRatio = 9;
 
-	strcpy(pCFG->pointcloud_param.imgRoot, "data/PointCloudImage/");
+	strcpy(pCFG->pointcloud_param.imgRoot, "data/PointCloudImage");
 	strcpy(pCFG->pointcloud_param.imgPrefixNameL, "CSV_001C1S00P");
 	strcpy(pCFG->pointcloud_param.imgPrefixNameR, "CSV_001C2S00P");
 	strcpy(pCFG->pointcloud_param.outFileXYZ, "pointcloud.xyz");
