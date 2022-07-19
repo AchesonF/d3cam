@@ -312,74 +312,6 @@ static void csv_gev_reg_enroll (void)
 		4, 0x00000000, NULL, NULL);
 	csv_gev_reg_add(REG_LinkSpeed0, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_DeviceMACAddressHigh1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_DeviceMACAddressLow1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_NetworkInterfaceCapability1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_NetworkInterfaceConfiguration1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentIPAddress1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentSubnetMask1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentDefaultGateway1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentIPAddress1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentSubnetMask1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentDefaultGateway1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_LinkSpeed1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-
-	csv_gev_reg_add(REG_DeviceMACAddressHigh2, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_DeviceMACAddressLow2, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_NetworkInterfaceCapability2, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_NetworkInterfaceConfiguration2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentIPAddress2, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentSubnetMask2, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentDefaultGateway2, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentIPAddress2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentSubnetMask2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentDefaultGateway2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_LinkSpeed2, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-
-	csv_gev_reg_add(REG_DeviceMACAddressHigh3, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_DeviceMACAddressLow3, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_NetworkInterfaceCapabilityLow3, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_NetworkInterfaceConfiguration3, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentIPAddress3, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentSubnetMask3, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_CurrentDefaultGateway3, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentIPAddress3, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentSubnetMask3, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_PersistentDefaultGateway3, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_LinkSpeed3, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
 
 	csv_gev_reg_add(REG_NumberofMessageChannels, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, 0x00000000, NULL, NULL);
@@ -487,24 +419,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_OtherStreamChannelsRegisters, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, NULL);
 
-	csv_gev_reg_add(REG_StreamChannelPort511, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_StreamChannelPacketSize511, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_StreamChannelPacketDelay511, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_StreamChannelDestinationAddress511, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_StreamChannelSourcePort511, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_StreamChannelCapability511, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_StreamChannelConfiguration511, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_StreamChannelZone511, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_StreamChannelZoneDirection511, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+	// stream 2-3 to add more
 
 	csv_gev_reg_add(REG_ManifestTable, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, 0x00000000, NULL, NULL);
@@ -522,12 +437,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_OtherActionSignalsRegisters, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, NULL);
 
-	csv_gev_reg_add(REG_ActionGroupKey127, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-	csv_gev_reg_add(REG_ActionGroupMask127, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
-
-	csv_gev_reg_add(REG_StartofNanufacturerSpecificRegisterSpace, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+	csv_gev_reg_add(REG_StartofManufacturerSpecificRegisterSpace, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, NULL);
 
 	log_info("OK : enroll gev reg");
@@ -765,6 +675,131 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	return csv_gvcp_sendto(pGEV);
 }
 
+static int csv_gvcp_writereg_effective (uint16_t regAddr)
+{
+
+
+	switch (regAddr) {
+	case REG_NetworkInterfaceConfiguration0:
+		break;
+
+	case REG_PersistentIPAddress:
+		break;
+
+	case REG_PersistentSubnetMask0:
+		break;
+
+	case REG_PersistentDefaultGateway0:
+		break;
+
+	case REG_ActionDeviceKey:
+		break;
+
+	case REG_HeartbeatTimeout:
+		break;
+
+	case REG_TimestampControl:
+		break;
+
+	case REG_DiscoveryACKDelay:
+		break;
+
+	case REG_GVCPConfiguration:
+		break;
+
+	case REG_ControlSwitchoverKey:
+		break;
+
+	case REG_GVSPConfiguration:
+		break;
+
+	case REG_PhysicalLinkConfiguration:
+		break;
+
+	case REG_ControlChannelPrivilege:
+		break;
+
+	case REG_PrimaryApplicationPort:
+		break;
+
+	case REG_PrimaryApplicationIPAddress:
+		break;
+
+	case REG_MessageChannelPort:
+		break;
+
+	case REG_MessageChannelDestination:
+		break;
+
+	case REG_MessageChannelTransmissionTimeout:
+		break;
+
+	case REG_MessageChannelRetryCount:
+		break;
+
+	case REG_MessageChannelSourcePort:
+		break;
+
+	case REG_StreamChannelPort0:
+		break;
+
+	case REG_StreamChannelPacketSize0:
+		break;
+
+	case REG_StreamChannelPacketDelay0:
+		break;
+
+	case REG_StreamChannelDestinationAddress0:
+		break;
+
+	case REG_StreamChannelConfiguration0:
+		break;
+
+	case REG_StreamChannelPort1:
+		break;
+
+	case REG_StreamChannelPacketSize1:
+		break;
+
+	case REG_StreamChannelPacketDelay1:
+		break;
+
+	case REG_StreamChannelDestinationAddress1:
+		break;
+
+	case REG_StreamChannelConfiguration1:
+		break;
+
+	case REG_OtherStreamChannelsRegisters:
+		break;
+
+	// stream 2-3 to add more
+
+	case REG_ActionGroupKey0:
+		break;
+
+	case REG_ActionGroupMask0:
+		break;
+
+	case REG_ActionGroupKey1:
+		break;
+
+	case REG_ActionGroupMask1:
+		break;
+
+	case REG_OtherActionSignalsRegisters:
+		break;
+
+	case REG_StartofManufacturerSpecificRegisterSpace:
+		break;
+
+	default:
+		break;
+	}
+
+	return 0;
+}
+
 static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
 	int i = 0, ret = -1;
@@ -809,15 +844,15 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 			return -1;
 		}
 
-		ret |= csv_gev_reg_value_set(reg_addr, ntohl(pRegMsg->nRegData));
-		if (ret != 0) {
+		ret = csv_gev_reg_value_set(reg_addr, ntohl(pRegMsg->nRegData));
+		if (ret == -1) {
 			nIndex = i;
-
-			if (ret == -2) {
-				csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_WRITE_PROTECT);
-				return -1;
-			}
 			break;
+		} else if (ret == -2) {
+			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_WRITE_PROTECT);
+			return -1;
+		} else {
+			csv_gvcp_writereg_effective(reg_addr);
 		}
 
 		pRegMsg++;
@@ -829,7 +864,6 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 	if (ret == 0) {
 		// TODO 1 save to xml file
-		// TODO 2 effect new cfg
 	}
 
 	pGEV->txlen = sizeof(ACK_MSG_HEADER) + sizeof(WRITEREG_ACK_MSG);
@@ -998,37 +1032,37 @@ static int csv_gvcp_msg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 
 	switch (pHdr->nCommand) {
 	case GEV_DISCOVERY_CMD:
-		log_info("%s", toSTR(GEV_DISCOVERY_CMD));
+		log_debug("%s", toSTR(GEV_DISCOVERY_CMD));
 		ret = csv_gvcp_discover_ack(pGEV, pHdr);
 		break;
 
 	case GEV_FORCEIP_CMD:
-		log_info("%s", toSTR(GEV_FORCEIP_CMD));
+		log_debug("%s", toSTR(GEV_FORCEIP_CMD));
 		ret = csv_gvcp_forceip_ack(pGEV, pHdr);
 		break;
 
 	case GEV_PACKETRESEND_CMD:
-		log_info("%s", toSTR(GEV_PACKETRESEND_CMD));
+		log_debug("%s", toSTR(GEV_PACKETRESEND_CMD));
 		ret = csv_gvcp_packetresend_ack(pGEV, pHdr);
 		break;
 
 	case GEV_READREG_CMD:
-		log_info("%s", toSTR(GEV_READREG_CMD));
+		log_debug("%s", toSTR(GEV_READREG_CMD));
 		ret = csv_gvcp_readreg_ack(pGEV, pHdr);
 		break;
 
 	case GEV_WRITEREG_CMD:
-		log_info("%s", toSTR(GEV_WRITEREG_CMD));
+		log_debug("%s", toSTR(GEV_WRITEREG_CMD));
 		ret = csv_gvcp_writereg_ack(pGEV, pHdr);
 		break;
 
 	case GEV_READMEM_CMD:
-		log_info("%s", toSTR(GEV_READMEM_CMD));
+		log_debug("%s", toSTR(GEV_READMEM_CMD));
 		ret = csv_gvcp_readmem_ack(pGEV, pHdr);
 		break;
 
 	case GEV_WRITEMEM_CMD:
-		log_info("%s", toSTR(GEV_WRITEMEM_CMD));
+		log_debug("%s", toSTR(GEV_WRITEMEM_CMD));
 		ret = csv_gvcp_writemem_ack(pGEV, pHdr);
 		break;
 
@@ -1041,12 +1075,12 @@ static int csv_gvcp_msg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 		break;
 
 	case GEV_ACTION_CMD:
-		log_info("%s", toSTR(GEV_ACTION_CMD));
+		log_debug("%s", toSTR(GEV_ACTION_CMD));
 		ret = csv_gvcp_action_ack(pGEV, pHdr);
 		break;
 
 	default:
-		log_info("WARN : not support cmd 0x%04X", pHdr->nCommand);
+		log_debug("WARN : not support cmd 0x%04X", pHdr->nCommand);
 		ret = csv_gvcp_error_ack(pGEV, pHdr, GEV_STATUS_NOT_IMPLEMENTED);
 		break;
 	}

@@ -512,7 +512,7 @@ extern "C" {
 
 //- - - Start of manufacturer-specific registers. These are not
 //covered by the specification and should be reported through the XML device description file.
-#define REG_StartofNanufacturerSpecificRegisterSpace		(0xA000)
+#define REG_StartofManufacturerSpecificRegisterSpace		(0xA000)
 
 #ifdef __cplusplus
 }
