@@ -675,12 +675,14 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	return csv_gvcp_sendto(pGEV);
 }
 
-static int csv_gvcp_writereg_effective (uint16_t regAddr)
+static int csv_gvcp_writereg_effective (uint16_t regAddr, uint32_t regData)
 {
-
+	struct csv_gev_t *pGEV = &gCSV->gev;
+	struct gev_param_t *pGP = &gCSV->cfg.gp;
 
 	switch (regAddr) {
 	case REG_NetworkInterfaceConfiguration0:
+		
 		break;
 
 	case REG_PersistentIPAddress:
@@ -693,81 +695,113 @@ static int csv_gvcp_writereg_effective (uint16_t regAddr)
 		break;
 
 	case REG_ActionDeviceKey:
+		pGP->ActionDeviceKey = regData;
 		break;
 
 	case REG_HeartbeatTimeout:
+		pGP->HeartbeatTimeout = regData;
 		break;
 
 	case REG_TimestampControl:
+		pGP->TimestampControl = regData;
 		break;
 
 	case REG_DiscoveryACKDelay:
+		pGP->DiscoveryACKDelay = regData;
 		break;
 
 	case REG_GVCPConfiguration:
+		pGP->GVCPConfiguration = regData;
 		break;
 
 	case REG_ControlSwitchoverKey:
+		pGP->ControlSwitchoverKey = regData;
 		break;
 
 	case REG_GVSPConfiguration:
+		pGP->GVSPConfiguration = regData;
 		break;
 
 	case REG_PhysicalLinkConfiguration:
+		pGP->PhysicalLinkConfiguration = regData;
 		break;
 
 	case REG_ControlChannelPrivilege:
+		pGP->ControlChannelPrivilege = regData;
 		break;
 
 	case REG_PrimaryApplicationPort:
+		pGP->PrimaryPort = (uint16_t)regData;
 		break;
 
 	case REG_PrimaryApplicationIPAddress:
+		pGP->PrimaryAddress = regData;
 		break;
 
 	case REG_MessageChannelPort:
+		pGP->MessagePort = (uint16_t)regData;
+		pGEV->message.peer_addr.sin_port = htons((uint16_t)regData);
 		break;
 
 	case REG_MessageChannelDestination:
+		pGP->MessageAddress = regData;
+		//pGEV->message.peer_addr.sin_addr = htonl(regData);
 		break;
 
 	case REG_MessageChannelTransmissionTimeout:
+		pGP->MessageTimeout = regData;
 		break;
 
 	case REG_MessageChannelRetryCount:
+		pGP->MessageRetryCount = regData;
 		break;
 
 	case REG_MessageChannelSourcePort:
+		pGP->MessageSourcePort = regData;
 		break;
 
 	case REG_StreamChannelPort0:
+		pGP->ChannelPort0 = (uint16_t)regData;
+		pGEV->stream[CAM_LEFT].peer_addr.sin_port = htons((uint16_t)regData);
 		break;
 
 	case REG_StreamChannelPacketSize0:
+		pGP->ChannelPort0 = regData;
 		break;
 
 	case REG_StreamChannelPacketDelay0:
+		pGP->ChannelPacketDelay0 = regData;
 		break;
 
 	case REG_StreamChannelDestinationAddress0:
+		pGP->ChannelAddress0 = regData;
+		//pGEV->stream[CAM_LEFT].peer_addr.sin_addr = htonl(regData);
 		break;
 
 	case REG_StreamChannelConfiguration0:
+		pGP->ChannelConfiguration0 = regData;
 		break;
 
 	case REG_StreamChannelPort1:
+		pGP->ChannelPort1 = (uint16_t)regData;
+		pGEV->stream[CAM_RIGHT].peer_addr.sin_port = htons((uint16_t)regData);
 		break;
 
 	case REG_StreamChannelPacketSize1:
+		pGP->ChannelPort1 = regData;
 		break;
 
 	case REG_StreamChannelPacketDelay1:
+		pGP->ChannelPacketDelay1 = regData;
 		break;
 
 	case REG_StreamChannelDestinationAddress1:
+		pGP->ChannelAddress1 = regData;
+		//pGEV->stream[CAM_RIGHT].peer_addr.sin_addr = htonl(regData);
 		break;
 
 	case REG_StreamChannelConfiguration1:
+		pGP->ChannelConfiguration1 = regData;
 		break;
 
 	case REG_OtherStreamChannelsRegisters:
@@ -828,10 +862,12 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	uint16_t reg_addr = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	int nIndex = MAX_WRITEREG_INDEX;
+	uint32_t reg_data = 0;
 
 	WRITEREG_CMD_MSG *pRegMsg = (WRITEREG_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 	for (i = 0; i < nRegs; i++) {
 		reg_addr = (uint16_t)ntohl(pRegMsg->nRegAddress);
+		reg_data = ntohl(pRegMsg->nRegData);
 
 		if (reg_addr % 4) {
 			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
@@ -844,7 +880,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 			return -1;
 		}
 
-		ret = csv_gev_reg_value_set(reg_addr, ntohl(pRegMsg->nRegData));
+		ret = csv_gev_reg_value_set(reg_addr, reg_data);
 		if (ret == -1) {
 			nIndex = i;
 			break;
@@ -852,7 +888,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_WRITE_PROTECT);
 			return -1;
 		} else {
-			csv_gvcp_writereg_effective(reg_addr);
+			csv_gvcp_writereg_effective(reg_addr, reg_data);
 		}
 
 		pRegMsg++;
@@ -1186,6 +1222,52 @@ static int csv_gvcp_server_close (struct csv_gev_t *pGEV)
 	return 0;
 }
 
+static int csv_gev_message_open (struct gev_message_t *pMsg)
+{
+	int ret = 0;
+	int fd = -1;
+
+	if (pMsg->fd > 0) {
+		ret = close(pMsg->fd);
+		if (ret < 0) {
+			log_err("ERROR : close '%s'", pMsg->name);
+		}
+		pMsg->fd = -1;
+	}
+
+	struct sockaddr_in local_addr;
+	socklen_t sin_size = sizeof(struct sockaddr);
+
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if( fd < 0 ) {
+		log_err("ERROR : socket %s", pMsg->name);
+
+		return -1;
+	}
+
+	memset((void*)&local_addr, 0, sizeof(struct sockaddr_in));
+	local_addr.sin_family = AF_INET;
+	local_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	local_addr.sin_port = htons(0);
+	bzero(&(local_addr.sin_zero), 8);
+
+	ret = bind(fd, (struct sockaddr*)&local_addr, sizeof(struct sockaddr));
+	if(ret < 0) {
+		log_err("ERROR : bind %s", pMsg->name);
+
+		return -1;
+	}
+
+	getsockname(fd, (struct sockaddr *)&local_addr, &sin_size);
+
+	pMsg->fd = fd;
+
+	log_info("OK : bind '%s' : '%d/udp' as fd(%d).", pMsg->name, 
+		ntohs(local_addr.sin_port), pMsg->fd);
+
+	return 0;
+}
+
 static int csv_gvsp_open (struct gvsp_param_t *pStream)
 {
 	int ret = 0;
@@ -1254,6 +1336,7 @@ int csv_gev_init (void)
 	int ret = 0, i = 0;
 	struct csv_gev_t *pGEV = &gCSV->gev;
 	struct gvsp_param_t *pStream = NULL;
+	struct gev_message_t *pMsg = &pGEV->message;
 
 	pGEV->fd = -1;
 	pGEV->name = NAME_UDP_GVCP;
@@ -1271,10 +1354,14 @@ int csv_gev_init (void)
 	for (i = 0; i < TOTAL_CAMS; i++) {
 		pStream = &pGEV->stream[i];
 		pStream->fd = -1;
-		csv_gvsp_open(pStream);
+		ret |= csv_gvsp_open(pStream);
 	}
 
-	ret = csv_gvcp_server_open(pGEV);
+	pMsg->fd = -1;
+	pMsg->name = NAME_GEV_MSG;
+	ret |= csv_gev_message_open(pMsg);
+
+	ret |= csv_gvcp_server_open(pGEV);
 
 	return ret;
 }

@@ -43,7 +43,36 @@ struct gev_param_t {
 	char					FirstURL[512];
 	char					SecondURL[512];
 
+	uint32_t				ActionDeviceKey;
+	uint32_t				HeartbeatTimeout;
+	uint32_t				TimestampControl;
+	uint32_t				DiscoveryACKDelay;
+	uint32_t				GVCPConfiguration;
+	uint32_t				ControlSwitchoverKey;
+	uint32_t				GVSPConfiguration;
+	uint32_t				PhysicalLinkConfiguration;
+	uint32_t				ControlChannelPrivilege;
 
+	uint32_t				PrimaryAddress;
+	uint16_t				PrimaryPort;
+
+	uint32_t				ChannelAddress0;
+	uint16_t				ChannelPort0;
+	uint32_t				ChannelPacketSize0;
+	uint32_t				ChannelPacketDelay0;
+	uint32_t				ChannelConfiguration0;
+
+	uint32_t				ChannelAddress1;
+	uint16_t				ChannelPort1;
+	uint32_t				ChannelPacketSize1;
+	uint32_t				ChannelPacketDelay1;
+	uint32_t				ChannelConfiguration1;
+
+	uint32_t				MessageAddress;
+	uint16_t				MessagePort;
+	uint32_t				MessageTimeout;
+	uint32_t				MessageRetryCount;
+	uint32_t				MessageSourcePort;
 
 };
 

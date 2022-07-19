@@ -9,6 +9,8 @@ extern "C" {
 
 #define NAME_UDP_GVCP				"'udp_gev'"
 
+#define NAME_GEV_MSG				"'gev_msg'"
+
 #define GEV_VERSION_MAJOR			(0x0001)
 #define GEV_VERSION_MINOR			(0x0002)
 #define GEV_DEVICE_MODE				(1)
@@ -47,6 +49,13 @@ struct gvsp_param_t {
 
 };
 
+struct gev_message_t {
+	int						fd;
+	char					*name;
+	struct sockaddr_in		peer_addr;
+
+};
+
 struct csv_gev_t {
 	int						fd;			///< 文件描述符
 	char					*name;		///< 链接名称
@@ -62,6 +71,7 @@ struct csv_gev_t {
 	struct reglist_t		head_reg;		///< 寄存器链表
 
 	struct gvsp_param_t		stream[TOTAL_CAMS];
+	struct gev_message_t	message;
 
 	struct sockaddr_in		from_addr;		///< 来源地址参数
 };
