@@ -50,6 +50,7 @@ static void csv_gev_reg_add (uint16_t addr, uint8_t type, uint8_t mode,
 					log_err("ERROR : malloc ri info");
 					return ;
 				}
+				memset(pRI->info, 0, len+1);
 				memcpy(pRI->info, info, len);
 			}
 		} else {
@@ -59,10 +60,11 @@ static void csv_gev_reg_add (uint16_t addr, uint8_t type, uint8_t mode,
 		if (NULL != desc) {
 			len = strlen(desc);
 			pRI->desc = (char *)malloc(len+1);
-			if (NULL == pRI->info) {
+			if (NULL == pRI->desc) {
 				log_err("ERROR : malloc ri desc");
 				return ;
 			}
+			memset(pRI->desc, 0, len+1);
 			memcpy(pRI->desc, desc, len);
 		}
 
@@ -100,7 +102,7 @@ static uint32_t csv_gev_reg_value_get (uint16_t addr, uint32_t *value)
 	return ret;
 }
 
-static int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
+int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
 {
 	int ret = -1;	// !0 : not save
 	struct list_head *pos = NULL;
@@ -235,7 +237,7 @@ int csv_gev_mem_info_set (uint16_t addr, char *info)
 	return ret;
 }
 
-uint8_t csv_gev_reg_type_get (uint16_t addr)
+static uint8_t csv_gev_reg_type_get (uint16_t addr, char **desc)
 {
 	uint8_t type = GEV_REG_TYPE_NONE;
 	struct list_head *pos = NULL;
@@ -252,6 +254,7 @@ uint8_t csv_gev_reg_type_get (uint16_t addr)
 
 		if (addr == pRI->addr) {
 			type = pRI->type;
+			*desc = pRI->desc;
 			break;
 		}
 	}
@@ -267,178 +270,183 @@ static void csv_gev_reg_enroll (void)
 {
 	struct gev_param_t *pGP = &gCSV->cfg.gp;
 	struct csv_eth_t *pETH = &gCSV->eth;
+	//struct csv_mvs_t *pMVS = &gCSV->mvs;
 
 	csv_gev_reg_add(REG_Version, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGP->Version, NULL, NULL);
+		4, pGP->Version, NULL, toSTR(REG_Version));
 	csv_gev_reg_add(REG_DeviceMode, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGP->DeviceMode, NULL, NULL);
+		4, pGP->DeviceMode, NULL, toSTR(REG_DeviceMode));
 	csv_gev_reg_add(REG_DeviceMACAddressHigh0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGP->MacHi, NULL, NULL);
+		4, pGP->MacHi, NULL, toSTR(REG_DeviceMACAddressHigh0));
 	csv_gev_reg_add(REG_DeviceMACAddressLow0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGP->MacLow, NULL, NULL);
+		4, pGP->MacLow, NULL, toSTR(REG_DeviceMACAddressLow0));
 	csv_gev_reg_add(REG_NetworkInterfaceCapability0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGP->IfCapability0, NULL, NULL);
+		4, pGP->IfCapability0, NULL, toSTR(REG_NetworkInterfaceCapability0));
 	csv_gev_reg_add(REG_NetworkInterfaceConfiguration0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGP->IfConfiguration0, NULL, NULL);
+		4, pGP->IfConfiguration0, NULL, toSTR(REG_NetworkInterfaceConfiguration0));
 	csv_gev_reg_add(REG_CurrentIPAddress0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pETH->IPAddress, NULL, NULL);
+		4, pETH->IPAddress, NULL, toSTR(REG_CurrentIPAddress0));
 	csv_gev_reg_add(REG_CurrentSubnetMask0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pETH->IPMask, NULL, NULL);
+		4, pETH->IPMask, NULL, toSTR(REG_CurrentSubnetMask0));
 	csv_gev_reg_add(REG_CurrentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pETH->GateWayAddr, NULL, NULL);
+		4, pETH->GateWayAddr, NULL, toSTR(REG_CurrentDefaultGateway0));
+
 	csv_gev_reg_add(REG_ManufacturerName, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		32, 0, pGP->ManufacturerName, NULL);
+		32, 0, pGP->ManufacturerName, toSTR(REG_ManufacturerName));
 	csv_gev_reg_add(REG_ModelName, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		32, 0, pGP->ModelName, NULL);
+		32, 0, pGP->ModelName, toSTR(REG_ModelName));
 	csv_gev_reg_add(REG_DeviceVersion, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		32, 0, pGP->DeviceVersion, NULL);
+		32, 0, pGP->DeviceVersion, toSTR(REG_DeviceVersion));
 	csv_gev_reg_add(REG_ManufacturerInfo, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		48, 0, pGP->ManufacturerInfo, NULL);
+		48, 0, pGP->ManufacturerInfo, toSTR(REG_ManufacturerInfo));
 	csv_gev_reg_add(REG_SerialNumber, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		16, 0, pGP->SerialNumber, NULL);
+		16, 0, pGP->SerialNumber, toSTR(REG_SerialNumber));
 	csv_gev_reg_add(REG_UserdefinedName, GEV_REG_TYPE_MEM, GEV_REG_RDWR, 
-		16, 0, pGP->UserdefinedName, NULL);
+		16, 0, pGP->UserdefinedName, toSTR(REG_UserdefinedName));
 	csv_gev_reg_add(REG_FirstURL, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		512, 0, pGP->FirstURL, NULL);
+		512, 0, pGP->FirstURL, toSTR(REG_FirstURL));
 	csv_gev_reg_add(REG_SecondURL, GEV_REG_TYPE_MEM, GEV_REG_READ, 
-		512, 0, pGP->SecondURL, NULL);
+		512, 0, pGP->SecondURL, toSTR(REG_SecondURL));
+
 	csv_gev_reg_add(REG_NumberofNetworkInterfaces, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 1, NULL, NULL);
+		4, 1, NULL, toSTR(REG_NumberofNetworkInterfaces));
+
 	csv_gev_reg_add(REG_PersistentIPAddress, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pETH->IPAddress, NULL, toSTR(REG_PersistentIPAddress));
 	csv_gev_reg_add(REG_PersistentSubnetMask0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pETH->IPMask, NULL, toSTR(REG_PersistentSubnetMask0));
 	csv_gev_reg_add(REG_PersistentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pETH->GateWayAddr, NULL, toSTR(REG_PersistentDefaultGateway0));
 	csv_gev_reg_add(REG_LinkSpeed0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_LinkSpeed0));
 
 	csv_gev_reg_add(REG_NumberofMessageChannels, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 1, NULL, toSTR(REG_NumberofMessageChannels));
 	csv_gev_reg_add(REG_NumberofStreamChannels, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, TOTAL_CAMS, NULL, toSTR(REG_NumberofStreamChannels));
 	csv_gev_reg_add(REG_NumberofActionSignals, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 1, NULL, toSTR(REG_NumberofActionSignals));
 	csv_gev_reg_add(REG_ActionDeviceKey, GEV_REG_TYPE_REG, GEV_REG_WRITE, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ActionDeviceKey, NULL, toSTR(REG_ActionDeviceKey));
 	csv_gev_reg_add(REG_NumberofActiveLinks, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 1, NULL, toSTR(REG_NumberofActiveLinks));
 
 	csv_gev_reg_add(REG_GVSPCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_GVSPCapability));
 	csv_gev_reg_add(REG_MessageChannelCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_MessageChannelCapability));
 	csv_gev_reg_add(REG_GVCPCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_GVCPCapability));
 	csv_gev_reg_add(REG_HeartbeatTimeout, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->HeartbeatTimeout, NULL, toSTR(REG_HeartbeatTimeout));
 	csv_gev_reg_add(REG_TimestampTickFrequencyHigh, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_TimestampTickFrequencyHigh));
 	csv_gev_reg_add(REG_TimestampTickFrequencyLow, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_TimestampTickFrequencyLow));
 	csv_gev_reg_add(REG_TimestampControl, GEV_REG_TYPE_REG, GEV_REG_WRITE, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->TimestampControl, NULL, toSTR(REG_TimestampControl));
 	csv_gev_reg_add(REG_TimestampValueHigh, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_TimestampValueHigh));
 	csv_gev_reg_add(REG_TimestampValueLow, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_TimestampValueLow));
 	csv_gev_reg_add(REG_DiscoveryACKDelay, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->DiscoveryACKDelay, NULL, toSTR(REG_DiscoveryACKDelay));
 	csv_gev_reg_add(REG_GVCPConfiguration, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->GVCPConfiguration, NULL, toSTR(REG_GVCPConfiguration));
 	csv_gev_reg_add(REG_PendingTimeout, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_PendingTimeout));
 	csv_gev_reg_add(REG_ControlSwitchoverKey, GEV_REG_TYPE_REG, GEV_REG_WRITE, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ControlSwitchoverKey, NULL, toSTR(REG_ControlSwitchoverKey));
 	csv_gev_reg_add(REG_GVSPConfiguration, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->GVSPConfiguration, NULL, toSTR(REG_GVSPConfiguration));
 	csv_gev_reg_add(REG_PhysicalLinkConfigurationCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_PhysicalLinkConfigurationCapability));
 	csv_gev_reg_add(REG_PhysicalLinkConfiguration, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->PhysicalLinkConfiguration, NULL, toSTR(REG_PhysicalLinkConfiguration));
 	csv_gev_reg_add(REG_IEEE1588Status, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_IEEE1588Status));
 	csv_gev_reg_add(REG_ScheduledActionCommandQueueSize, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_ScheduledActionCommandQueueSize));
+
 	csv_gev_reg_add(REG_ControlChannelPrivilege, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x80000001, NULL, NULL);
+		4, pGP->ControlChannelPrivilege, NULL, toSTR(REG_ControlChannelPrivilege));
 	csv_gev_reg_add(REG_PrimaryApplicationPort, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->PrimaryPort, NULL, toSTR(REG_PrimaryApplicationPort));
 	csv_gev_reg_add(REG_PrimaryApplicationIPAddress, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->PrimaryAddress, NULL, toSTR(REG_PrimaryApplicationIPAddress));
 
 	csv_gev_reg_add(REG_MessageChannelPort, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->MessagePort, NULL, toSTR(REG_MessageChannelPort));
 	csv_gev_reg_add(REG_MessageChannelDestination, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->MessageAddress, NULL, toSTR(REG_MessageChannelDestination));
 	csv_gev_reg_add(REG_MessageChannelTransmissionTimeout, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->MessageTimeout, NULL, toSTR(REG_MessageChannelTransmissionTimeout));
 	csv_gev_reg_add(REG_MessageChannelRetryCount, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->MessageRetryCount, NULL, toSTR(REG_MessageChannelRetryCount));
 	csv_gev_reg_add(REG_MessageChannelSourcePort, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->MessageSourcePort, NULL, toSTR(REG_MessageChannelSourcePort));
 
 	csv_gev_reg_add(REG_StreamChannelPort0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelPort0, NULL, toSTR(REG_StreamChannelPort0));
 	csv_gev_reg_add(REG_StreamChannelPacketSize0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelPacketSize0, NULL, toSTR(REG_StreamChannelPacketSize0));
 	csv_gev_reg_add(REG_StreamChannelPacketDelay0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelPacketDelay0, NULL, toSTR(REG_StreamChannelPacketDelay0));
 	csv_gev_reg_add(REG_StreamChannelDestinationAddress0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelAddress0, NULL, toSTR(REG_StreamChannelDestinationAddress0));
 	csv_gev_reg_add(REG_StreamChannelSourcePort0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StreamChannelSourcePort0));
 	csv_gev_reg_add(REG_StreamChannelCapability0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StreamChannelCapability0));
 	csv_gev_reg_add(REG_StreamChannelConfiguration0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelConfiguration0, NULL, toSTR(REG_StreamChannelConfiguration0));
 	csv_gev_reg_add(REG_StreamChannelZone0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StreamChannelZone0));
 	csv_gev_reg_add(REG_StreamChannelZoneDirection0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StreamChannelZoneDirection0));
 
 	csv_gev_reg_add(REG_StreamChannelPort1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelPort1, NULL, toSTR(REG_StreamChannelPort1));
 	csv_gev_reg_add(REG_StreamChannelPacketSize1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelPacketSize1, NULL, toSTR(REG_StreamChannelPacketSize1));
 	csv_gev_reg_add(REG_StreamChannelPacketDelay1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelPacketDelay1, NULL, toSTR(REG_StreamChannelPacketDelay1));
 	csv_gev_reg_add(REG_StreamChannelDestinationAddress1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelAddress1, NULL, toSTR(REG_StreamChannelDestinationAddress1));
 	csv_gev_reg_add(REG_StreamChannelSourcePort1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StreamChannelSourcePort1));
 	csv_gev_reg_add(REG_StreamChannelCapability1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StreamChannelCapability1));
 	csv_gev_reg_add(REG_StreamChannelConfiguration1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, pGP->ChannelConfiguration1, NULL, toSTR(REG_StreamChannelConfiguration1));
 	csv_gev_reg_add(REG_StreamChannelZone1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StreamChannelZone1));
 	csv_gev_reg_add(REG_StreamChannelZoneDirection1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StreamChannelZoneDirection1));
 
 	csv_gev_reg_add(REG_OtherStreamChannelsRegisters, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_OtherStreamChannelsRegisters));
 
 	// stream 2-3 to add more
 
 	csv_gev_reg_add(REG_ManifestTable, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_ManifestTable));
 
 	csv_gev_reg_add(REG_ActionGroupKey0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_ActionGroupKey0));
 	csv_gev_reg_add(REG_ActionGroupMask0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_ActionGroupMask0));
 
 	csv_gev_reg_add(REG_ActionGroupKey1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_ActionGroupKey1));
 	csv_gev_reg_add(REG_ActionGroupMask1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_ActionGroupMask1));
 
 	csv_gev_reg_add(REG_OtherActionSignalsRegisters, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_OtherActionSignalsRegisters));
 
 	csv_gev_reg_add(REG_StartofManufacturerSpecificRegisterSpace, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, 0x00000000, NULL, NULL);
+		4, 0x00000000, NULL, toSTR(REG_StartofManufacturerSpecificRegisterSpace));
 
 	log_info("OK : enroll gev reg");
 }
@@ -635,6 +643,7 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	uint16_t reg_addr = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	uint32_t nTemp = 0;
+	char *desc = NULL;
 
 	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
@@ -649,7 +658,7 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 			return -1;
 		}
 
-		type = csv_gev_reg_type_get(reg_addr);
+		type = csv_gev_reg_type_get(reg_addr, &desc);
 		if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_MEM == type)) {
 			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
 			return -1;
@@ -659,6 +668,10 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 		if (ret < 0) {
 			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
 			return -1;
+		}
+
+		if (NULL != desc) {
+			log_debug("read reg : %s", desc);
 		}
 
 		*pRegData++ = htonl(nTemp);
@@ -863,6 +876,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	uint8_t type = GEV_REG_TYPE_NONE;
 	int nIndex = MAX_WRITEREG_INDEX;
 	uint32_t reg_data = 0;
+	char *desc = NULL;
 
 	WRITEREG_CMD_MSG *pRegMsg = (WRITEREG_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 	for (i = 0; i < nRegs; i++) {
@@ -874,10 +888,14 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 			return -1;
 		}
 
-		type = csv_gev_reg_type_get(reg_addr);
+		type = csv_gev_reg_type_get(reg_addr, &desc);
 		if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_MEM == type)) {
 			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
 			return -1;
+		}
+
+		if (NULL != desc) {
+			log_debug("write reg : %s", desc);
 		}
 
 		ret = csv_gev_reg_value_set(reg_addr, reg_data);
@@ -928,13 +946,14 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	READMEM_CMD_MSG *pReadMem = (READMEM_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 	uint16_t mem_addr = (uint16_t)ntohl(pReadMem->nMemAddress);
 	uint16_t mem_len = ntohs(pReadMem->nMemLen);
+	char *desc = NULL;
 
 	if (mem_addr % 4) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
 	}
 
-	type = csv_gev_reg_type_get(mem_addr);
+	type = csv_gev_reg_type_get(mem_addr, &desc);
 	if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_REG == type)) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
@@ -943,6 +962,10 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	if (mem_len % 4) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
+	}
+
+	if (NULL != desc) {
+		log_debug("read mem : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_get(mem_addr, &info);
@@ -1003,16 +1026,21 @@ static int csv_gvcp_writemem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	uint16_t mem_addr = (uint16_t)ntohl(pWriteMem->nMemAddress);
 	uint16_t len_info = 0;
 	char *info = (char *)pWriteMem->chWriteMemData;
+	char *desc = NULL;
 
 	if (mem_addr % 4) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
 	}
 
-	type = csv_gev_reg_type_get(mem_addr);
+	type = csv_gev_reg_type_get(mem_addr, &desc);
 	if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_REG == type)) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
+	}
+
+	if (NULL != desc) {
+		log_debug("write mem : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_set(mem_addr, info);
@@ -1222,7 +1250,7 @@ static int csv_gvcp_server_close (struct csv_gev_t *pGEV)
 	return 0;
 }
 
-static int csv_gev_message_open (struct gev_message_t *pMsg)
+static int csv_gvcp_message_open (struct gev_message_t *pMsg)
 {
 	int ret = 0;
 	int fd = -1;
@@ -1261,14 +1289,15 @@ static int csv_gev_message_open (struct gev_message_t *pMsg)
 	getsockname(fd, (struct sockaddr *)&local_addr, &sin_size);
 
 	pMsg->fd = fd;
+	pMsg->port = ntohs(local_addr.sin_port);
 
 	log_info("OK : bind '%s' : '%d/udp' as fd(%d).", pMsg->name, 
-		ntohs(local_addr.sin_port), pMsg->fd);
+		pMsg->port, pMsg->fd);
 
 	return 0;
 }
 
-static int csv_gvsp_open (struct gvsp_param_t *pStream)
+static int csv_gvsp_client_open (struct gvsp_param_t *pStream)
 {
 	int ret = 0;
 	int fd = -1;
@@ -1323,9 +1352,10 @@ static int csv_gvsp_open (struct gvsp_param_t *pStream)
 	getsockname(fd, (struct sockaddr *)&local_addr, &sin_size);
 
 	pStream->fd = fd;
+	pStream->port = ntohs(local_addr.sin_port);
 
 	log_info("OK : bind '%s' : '%d/udp' as fd(%d).", pStream->name, 
-		ntohs(local_addr.sin_port), pStream->fd);
+		pStream->port, pStream->fd);
 
 	return 0;
 }
@@ -1354,12 +1384,14 @@ int csv_gev_init (void)
 	for (i = 0; i < TOTAL_CAMS; i++) {
 		pStream = &pGEV->stream[i];
 		pStream->fd = -1;
-		ret |= csv_gvsp_open(pStream);
+		ret |= csv_gvsp_client_open(pStream);
+		csv_gev_reg_value_set(REG_StreamChannelSourcePort0+0x40*i, pStream->port);
 	}
 
 	pMsg->fd = -1;
 	pMsg->name = NAME_GEV_MSG;
-	ret |= csv_gev_message_open(pMsg);
+	ret |= csv_gvcp_message_open(pMsg);
+	csv_gev_reg_value_set(REG_MessageChannelSourcePort, pMsg->port);
 
 	ret |= csv_gvcp_server_open(pGEV);
 

@@ -21,14 +21,14 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 
 	switch (pstImageInfo->enPixelType) {
 	case PixelType_Gvsp_Mono8:
-		outImgMat = cv::Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC1, pData);
+		outImgMat = Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC1, pData);
 		break;
 	case PixelType_Gvsp_RGB8_Packed:
 		if (needRGB) {		// rgb 格式
-			outImgMat = cv::Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC3, pData);
+			outImgMat = Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC3, pData);
 		} else {			// Mono 格式，RGB 转 MONO
-			Mat rgbMat = cv::Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC3, pData);
-			cvtColor(rgbMat, outImgMat, cv::COLOR_RGB2GRAY);
+			Mat rgbMat = Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC3, pData);
+			cvtColor(rgbMat, outImgMat, COLOR_RGB2GRAY);
 		}
 		break;
 	default:
@@ -65,11 +65,11 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 		if (ret == 0) {
 			if (left.channels() > 1){
-				cvtColor(left, left, cv::COLOR_RGB2GRAY);
+				cvtColor(left, left, COLOR_RGB2GRAY);
 			}
 
 			if (right.channels() > 1){
-				cvtColor(right, right, cv::COLOR_RGB2GRAY);
+				cvtColor(right, right, COLOR_RGB2GRAY);
 			}
 
 			leftsize = left.cols * left.rows * left.channels();

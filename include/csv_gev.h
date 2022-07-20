@@ -45,6 +45,7 @@ struct reglist_t {
 struct gvsp_param_t {
 	int						fd;
 	char					*name;
+	uint16_t				port;		///< 本地系统分配端口号
 	struct sockaddr_in		peer_addr;
 
 };
@@ -52,6 +53,7 @@ struct gvsp_param_t {
 struct gev_message_t {
 	int						fd;
 	char					*name;
+	uint16_t				port;		///< 本地系统分配端口号
 	struct sockaddr_in		peer_addr;
 
 };
@@ -76,6 +78,7 @@ struct csv_gev_t {
 	struct sockaddr_in		from_addr;		///< 来源地址参数
 };
 
+extern int csv_gev_reg_value_set (uint16_t addr, uint32_t value);
 
 extern int csv_gvcp_trigger (struct csv_gev_t *pGEV);
 

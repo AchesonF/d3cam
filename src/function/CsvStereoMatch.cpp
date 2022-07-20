@@ -1,20 +1,16 @@
-//#include <iostream>
 #include "CsvStereoMatch.hpp"
 
-//#include <syslog.h>
-//#include "csv_utility.h"
-//#include "log.h"
-
+#include "inc_files.h"
 
 
 CsvStereoMatchBM::CsvStereoMatchBM()
 {
 	if (loadCameraParam("camera_param.yml")) {
-//		log_info("OK : load camera param.");
-    } else {
- //       log_info("ERROR : load camera param.");
-        return;
-    }
+		log_info("OK : load camera param.");
+	} else {
+		log_info("ERROR : load camera param.");
+		return;
+	}
 
     initUndistortRectifyMap(leftcam_M_, leftcam_D_, leftcam_R_, leftcam_P_, 
     	Size(nWidth, nHeight), CV_16SC2, rmap_[0][0], rmap_[0][1]);
@@ -23,7 +19,7 @@ CsvStereoMatchBM::CsvStereoMatchBM()
     //int ndisparities = 192;   // Range of disparity
     int SADWindowSize = 21; // Size of the block window. Must be odd
     
-    stereo_bm = cv::StereoBM::create(NumDisparities, SADWindowSize);
+    stereo_bm = StereoBM::create(NumDisparities, SADWindowSize);
 
     Rect leftROI, rightROI;
     stereo_bm->setPreFilterSize(9);
@@ -89,9 +85,10 @@ void CsvStereoMatchBM::stereoMatch(const Mat& left_image, const Mat& right_image
 	stereo_bm->setBlockSize(BlockSize);
 	stereo_bm->setMinDisparity(0);
 
-	//log_info("compute disp.");
+	log_debug("compute disp.");
 	stereo_bm->compute(rleft_image, rright_image, disp);
-	//log_info("disp:cols=%d rows=%d deep=%d datatype=%d", disp.cols, disp.rows, disp.channels(), disp.type());
+	log_debug("disp:cols=%d rows=%d deep=%d datatype=%d", 
+		disp.cols, disp.rows, disp.channels(), disp.type());
 
 }
 

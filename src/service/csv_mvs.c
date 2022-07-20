@@ -255,7 +255,7 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 		}
 	}
 
-	// TODO sort/switch side
+	csv_gev_reg_value_set(REG_NumberofStreamChannels, pMVS->cnt_mvs);
 
 	return pMVS->cnt_mvs;
 }
