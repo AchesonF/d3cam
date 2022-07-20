@@ -25,9 +25,9 @@ struct csv_eth_t {
 	char				mac[MAX_LEN_IP+2];		///< 物理地址字符串
 
 	uint8_t				MACAddr[8];				///< mac地址
-	uint32_t			IPAddress;				///< IP地址
-	uint32_t			GateWayAddr;			///< 网关地址
-	uint32_t			IPMask;					///< 子网掩码
+	uint32_t			IPAddr;					///< IP地址
+	uint32_t			GatewayAddr;			///< 网关地址
+	uint32_t			NetmaskAddr;			///< 子网掩码
 	uint32_t			BroadcastAddr;			///< 广播地址
 	uint32_t			DNSAddr;				///< DNS地址
 
