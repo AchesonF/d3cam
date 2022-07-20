@@ -21,20 +21,60 @@ extern "C" {
 //number of the version, the two least-significant bytes for the minor number.
 #define REG_Version											(0x0000)
 
+// [0-15]major 
+#define GEV_VERSION_MAJOR					(2u)
+// [16-31]minor
+#define GEV_VERSION_MINOR					(0u)
+
 // M R 4 Information about device mode of operation.
 #define REG_DeviceMode										(0x0004)
+
+// [0]endianess 
+#define DM_ENDIANESS						(1u<<0)
+// [1-3]device_class 
+#define	DM_CLASS_TRANSMITTER				(0u<<1)
+#define	DM_CLASS_RECEIVER					(1u<<1)
+#define	DM_CLASS_TRANSCEIVER				(2u<<1)
+#define	DM_CLASS_PERIPHERAL					(3u<<1)
+// [4-7]current link configuration 
+#define DM_CLC_SingleLC						(0u<<4)
+#define DM_CLC_MultipleLC					(1u<<4)
+#define DM_CLC_StaticLC						(2u<<4)
+#define DM_CLC_DynamicLC					(3u<<4)
+// [8-23]reserved 
+// [24-31]character set index
+#define DM_CHARACTER_RESERVED				(0u<<24)
+#define DM_CHARACTER_UTF8					(1u<<24)
+#define DM_CHARACTER_ASCII					(2u<<24)
 
 //(Network interface #0) M R 4 The two most-significant bytes of this area are reserved
 //and will return 0. Upper 2 bytes of the MAC address are
 //stored in the lower 2 significant bytes of this register.
 #define REG_DeviceMACAddressHigh0							(0x0008)
 
+// [0-15]reserved
+// [16-31]mac address upper two bytes of MAC address
+
 //(Network interface #0) M R 4 Lower 4 bytes of the MAC address
 #define REG_DeviceMACAddressLow0							(0x000C)
+
+// [0-31]mac address lower four bytes of MAC address
 
 //(Network interface #0)M R 4 Supported IP Configuration and PAUSE schemes.
 //Bits can be OR-ed. All other bits are reserved and set to0. DHCP and LLA bits must be on.
 #define REG_NetworkInterfaceCapability0						(0x0010)
+
+// [0]pause reception (PR)
+#define NICap0_PR							(1u<<0)
+// [1]pause generation (PG)
+#define NICap0_PG							(1u<<1)
+// [2-28]reserved
+// [29]link local address is supported. always 1.
+#define NICap0_LLA							(1u<<29)
+// [30]dhcp is supported. always 1.
+#define NICap0_DHCP							(1u<<30)
+// [31]persistent ip is support. 0 otherwise. 1 supported.
+#define NICap0_PIP							(1u<<31)
 
 //(Network interface #0)M R/W 4 Activated IP Configuration and PAUSE schemes.
 //Bits can be OR-ed. LLA is always activated and is readonly.PAUSE settings might be hard-coded.
@@ -289,13 +329,76 @@ extern "C" {
 //non-mandatory stream channel features are supported.
 #define REG_GVSPCapability									(0x092C)
 
+// [0]SCSPx (Stream Channel Source Port) registers supported.
+#define GVSPCap_SP							(1<<0)
+// [1]Indicates this GVSP transmitter or receiver can support 16-bit block_id.
+// Note that GigE Vision 2.0 transmitters and receivers MUST support 64-bit block_id64.
+// When 16-bit block_id are used, then 24-bit packet_id must be used. 
+// When 64-bit block_id64 are used, then 32-bit packet_id32 must be used.
+#define GVSPCap_LB							(1<<1)
+// [2-31]reserved
+
 //M R 4 Indicates the capabilities of the message channel. It lists
 // which of the non-mandatory message channel features are supported.
 #define REG_MessageChannelCapability						(0x0930)
 
+// [0]MCSP (Message Channel Source Port) register is available for message channel.
+#define MSGCap_MCSP							(1<<0)
+// [1-31]reserved
+
 //M R 4 This is a capability register indicating which one of the
 //non-mandatory GVCP features are supported by this device.
 #define REG_GVCPCapability									(0x0934)
+
+// supported follow:
+// [0]User-defined Name register
+#define GVCPCap_UN							(1u<<0)
+// [1]Serial Number register
+#define GVCPCap_SN							(1u<<1)
+// [2]Heartbeat can be Disable
+#define GVCPCap_HD							(1u<<2)
+// [3]link Speed registers
+#define GVCPCap_LS							(1u<<3)
+// [4]CCP Application Port and IP address register
+#define GVCPCap_CAP							(1u<<4)
+// [5]Mainifest Table. when supported application must usr MT to retrieve the XML desc file.
+#define GVCPCap_MT							(1u<<5)
+// [6]Test packet is filled with Data from the LFSR generator.
+#define GVCPCap_TD							(1u<<6)
+// [7]Discovery ACK Delay register.
+#define GVCPCap_DD							(1u<<7)
+// [8]When Discovery ACK Delay reigister id supported, 
+//   this bit indicates that the application can write it. If this bit is 0, the register is Read-Only.
+#define GVCPCap_WD							(1u<<8)
+// [9]Support generation of Extended Status codes introduced in spec 1.1
+//  PACKET_(RESEND / NOT_YET_AVAILABLE / AND_PREV_REMOVED_FROM_MEMORY / REMOVED_FROM_MEMORY)
+#define GVCPCap_ES							(1u<<9)
+// [10]Primary application switchover capability.
+#define GVCPCap_PAS							(1u<<10)
+// [11]Uncoditional ACTION_CMD.
+#define GVCPCap_UA							(1u<<11)
+// [12]Support for IEEE1588 PTP
+#define GVCPCap_PTP							(1u<<12)
+// [13]Support generation of Extended Status codes introduces in spec 2.0
+//  PACKET_TEMPORARILY_UNAVAILABLE / OVERFLOW / NO_REF_TIME
+#define GVCPCap_ES2							(1u<<13)
+// [14]Scheduled Action Commands.
+#define GVCPCap_SAC							(1u<<14)
+// [15-24]reserved
+// [25]ACTION_CMD and ACTION_ACK are supported
+#define GVCPCap_A							(1u<<25)
+// [26]PENDING_ACK is supported.
+#define GVCPCap_PA							(1u<<26)
+// [27]EVENTDATA_CMD and EVENTDATA_ACK are supported
+#define GVCPCap_ED							(1u<<27)
+// [28]EVENT_CMD and EVENT_ACK are supported
+#define GVCPCap_E							(1u<<28)
+// [29]PACKETRESEND_CMD is supported
+#define GVCPCap_PR							(1u<<29)
+// [30]WRITEMEM_CMD and WRITEMEM_ACK are supported
+#define GVCPCap_W							(1u<<30)
+// [31]Multiple operations in a single message are supported.
+#define GVCPCap_C							(1u<<31)
 
 //M R/W 4 In msec, default is 3000 msec. Internally, the heartbeat is rounded according to the clock used for heartbeat. The
 //heartbeat timeout shall have a minimum precision of 100ms. The minimal value is 500 ms.
@@ -351,6 +454,15 @@ extern "C" {
 
 //(CCP)M R/W 4 Control Channel Privilege register.
 #define REG_ControlChannelPrivilege							(0x0A00)
+
+// [0-15]control switchover key
+// [16-28]reserved
+// [29]control switchover_enable
+#define CCP_CSE								(1u<<29)
+// [30]control access
+#define CCP_CA								(1u<<30)
+// [31]exclusive access
+#define CCP_EA								(1u<<31)
 
 //O R 4 UDP source port of the control channel of the primary application.
 #define REG_PrimaryApplicationPort							(0x0A04)
@@ -513,6 +625,18 @@ extern "C" {
 //- - - Start of manufacturer-specific registers. These are not
 //covered by the specification and should be reported through the XML device description file.
 #define REG_StartofManufacturerSpecificRegisterSpace		(0xA000)
+
+#define REG_XML_AcquisitionStart							(0x30804)
+#define REG_XML_AcquisitionStop								(0x30808)
+#define REG_XML_Width										(0x30360)
+#define REG_XML_Height										(0x303A0)
+#define REG_XML_OffsetX										(0x303E0)
+#define REG_XML_OffsetY										(0x30420)
+
+//O R 536(max) Start of XML file ... size 1M bytes  [0x100000-0x1FFFFF]
+#define REG_StartOfXmlFile									(0x100000)
+
+
 
 #ifdef __cplusplus
 }

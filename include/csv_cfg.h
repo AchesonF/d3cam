@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-
 struct device_param_t {
 	int					device_type;
 	uint8_t				camera_leftright_type;
@@ -27,23 +26,32 @@ struct depthimg_param_t {
 
 
 struct gev_param_t {
-	uint32_t				Version;	// hi16 major, low16 minor
-	uint32_t				DeviceMode;
+	uint16_t				VersionMajor;
+	uint16_t				VersionMinor;
+	uint32_t				DeviceMode;	// 
 	uint32_t				MacHi;		// mac[0-1]
 	uint32_t				MacLow;		// mac[2-5]
 
 	uint32_t				IfCapability0;
 	uint32_t				IfConfiguration0;
+	uint32_t				CurrentIPAddress0;
+	uint32_t				CurrentSubnetMask0;
+	uint32_t				CurrentDefaultGateway0;
+
 	char					ManufacturerName[32];
 	char					ModelName[32];
 	char					DeviceVersion[32];
 	char					ManufacturerInfo[48];
 	char					SerialNumber[16];
 	char					UserdefinedName[16];
-	char					FirstURL[512];
-	char					SecondURL[512];
+	char					FirstURL[GVCP_URL_MAX_LEN];
+	char					SecondURL[GVCP_URL_MAX_LEN];
+	char					*strXmlfile;
 
+	uint32_t				GVSPCapability;
+	uint32_t				MessageCapability;
 	uint32_t				ActionDeviceKey;
+	uint32_t				GVCPCapability;
 	uint32_t				HeartbeatTimeout;
 	uint32_t				TimestampControl;
 	uint32_t				DiscoveryACKDelay;

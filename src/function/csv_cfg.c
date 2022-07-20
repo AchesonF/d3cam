@@ -35,15 +35,31 @@ int csv_cfg_init (void)
 	strcpy(pCFG->calib_param.path, "data/calibImage");
 	strcpy(pCFG->calib_param.calibFile, "grayCodeParams.xml");
 
-	pGP->Version = (GEV_VERSION_MAJOR<<16) | GEV_VERSION_MINOR;
-	pGP->DeviceMode = GEV_DEVICE_MODE;
-	pGP->IfCapability0 = 7;
-	pGP->IfConfiguration0 = 6;
+	pGP->VersionMajor = GEV_VERSION_MAJOR;
+	pGP->VersionMinor = GEV_VERSION_MINOR;
+	pGP->DeviceMode = (DM_ENDIANESS|DM_CLASS_TRANSMITTER|DM_CLC_SingleLC|DM_CHARACTER_UTF8);
+	pGP->IfCapability0 = (NICap0_LLA|NICap0_DHCP|NICap0_PIP);
+	pGP->IfConfiguration0 = (NICap0_LLA|NICap0_DHCP);
+
 	strcpy(pGP->ManufacturerName, "CSVision");
-	strcpy(pGP->ModelName, "CS-3D001-28HS");
+	strcpy(pGP->ModelName, GEV_DEVICE_MODEL_NAME);
 	strcpy(pGP->DeviceVersion, SOFTWARE_VERSION);
 	strcpy(pGP->ManufacturerInfo, "CS vision 3d infomation");
 	strcpy(pGP->SerialNumber, "CS300128001"); // todo update
+
+	uint32_t file_size = 0;
+	pGP->strXmlfile = GEV_XML_FILENAME;
+	csv_file_get_size(pGP->strXmlfile, &file_size);
+	snprintf(pGP->FirstURL, GVCP_URL_MAX_LEN, "local:%s;%x;%x", 
+		pGP->strXmlfile, REG_StartOfXmlFile, file_size);
+
+	pGP->GVSPCapability = GVSPCap_SP|GVSPCap_LB;
+	pGP->MessageCapability = MSGCap_MCSP;
+	pGP->GVCPCapability = GVCPCap_UN|GVCPCap_SN|GVCPCap_HD|GVCPCap_CAP
+		|GVCPCap_DD|GVCPCap_PR|GVCPCap_W|GVCPCap_C;
+
+	pGP->ControlChannelPrivilege = (CCP_CSE|CCP_CA|CCP_EA);
+
 
 	return 0;
 }

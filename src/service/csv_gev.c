@@ -18,7 +18,7 @@ static struct reglist_t *csv_gev_reg_malloc (void)
 	return cur;
 }
 
-static void csv_gev_reg_add (uint16_t addr, uint8_t type, uint8_t mode,
+static void csv_gev_reg_add (uint32_t addr, uint8_t type, uint8_t mode,
 	uint16_t length, uint32_t value, char *info, char *desc)
 {
 	int len = 0;
@@ -72,7 +72,7 @@ static void csv_gev_reg_add (uint16_t addr, uint8_t type, uint8_t mode,
 	}
 }
 
-static uint32_t csv_gev_reg_value_get (uint16_t addr, uint32_t *value)
+static uint32_t csv_gev_reg_value_get (uint32_t addr, uint32_t *value)
 {
 	int ret = -1;
 	struct list_head *pos = NULL;
@@ -102,7 +102,7 @@ static uint32_t csv_gev_reg_value_get (uint16_t addr, uint32_t *value)
 	return ret;
 }
 
-static int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
+static int csv_gev_reg_value_set (uint32_t addr, uint32_t value)
 {
 	int ret = -1;	// !0 : not save
 	struct list_head *pos = NULL;
@@ -134,7 +134,7 @@ static int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
 	return ret;
 }
 
-int csv_gev_reg_value_update (uint16_t addr, uint32_t value)
+int csv_gev_reg_value_update (uint32_t addr, uint32_t value)
 {
 	int ret = -1;
 	struct list_head *pos = NULL;
@@ -161,7 +161,7 @@ int csv_gev_reg_value_update (uint16_t addr, uint32_t value)
 	return ret;
 }
 
-static uint16_t csv_gev_mem_info_get_length (uint16_t addr)
+static uint16_t csv_gev_mem_info_get_length (uint32_t addr)
 {
 	uint16_t length = 0;
 	struct list_head *pos = NULL;
@@ -185,7 +185,7 @@ static uint16_t csv_gev_mem_info_get_length (uint16_t addr)
 	return length;
 }
 
-static int csv_gev_mem_info_get (uint16_t addr, char **info)
+static int csv_gev_mem_info_get (uint32_t addr, char **info)
 {
 	int ret = -1;
 	struct list_head *pos = NULL;
@@ -215,7 +215,7 @@ static int csv_gev_mem_info_get (uint16_t addr, char **info)
 	return ret;
 }
 
-int csv_gev_mem_info_set (uint16_t addr, char *info)
+int csv_gev_mem_info_set (uint32_t addr, char *info)
 {
 	int ret = -1;
 	struct list_head *pos = NULL;
@@ -264,7 +264,7 @@ int csv_gev_mem_info_set (uint16_t addr, char *info)
 	return ret;
 }
 
-static uint8_t csv_gev_reg_type_get (uint16_t addr, char **desc)
+static uint8_t csv_gev_reg_type_get (uint32_t addr, char **desc)
 {
 	uint8_t type = GEV_REG_TYPE_NONE;
 	struct list_head *pos = NULL;
@@ -300,7 +300,7 @@ static void csv_gev_reg_enroll (void)
 	//struct csv_mvs_t *pMVS = &gCSV->mvs;
 
 	csv_gev_reg_add(REG_Version, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGP->Version, NULL, toSTR(REG_Version));
+		4, (pGP->VersionMinor<<16)|pGP->VersionMajor, NULL, toSTR(REG_Version));
 	csv_gev_reg_add(REG_DeviceMode, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGP->DeviceMode, NULL, toSTR(REG_DeviceMode));
 	csv_gev_reg_add(REG_DeviceMACAddressHigh0, GEV_REG_TYPE_REG, GEV_REG_READ, 
@@ -312,11 +312,11 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_NetworkInterfaceConfiguration0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGP->IfConfiguration0, NULL, toSTR(REG_NetworkInterfaceConfiguration0));
 	csv_gev_reg_add(REG_CurrentIPAddress0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pETH->IPAddress, NULL, toSTR(REG_CurrentIPAddress0));
+		4, pGP->CurrentIPAddress0, NULL, toSTR(REG_CurrentIPAddress0));
 	csv_gev_reg_add(REG_CurrentSubnetMask0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pETH->IPMask, NULL, toSTR(REG_CurrentSubnetMask0));
+		4, pGP->CurrentSubnetMask0, NULL, toSTR(REG_CurrentSubnetMask0));
 	csv_gev_reg_add(REG_CurrentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pETH->GateWayAddr, NULL, toSTR(REG_CurrentDefaultGateway0));
+		4, pGP->CurrentDefaultGateway0, NULL, toSTR(REG_CurrentDefaultGateway0));
 
 	csv_gev_reg_add(REG_ManufacturerName, GEV_REG_TYPE_MEM, GEV_REG_READ, 
 		32, 0, pGP->ManufacturerName, toSTR(REG_ManufacturerName));
@@ -339,11 +339,11 @@ static void csv_gev_reg_enroll (void)
 		4, 1, NULL, toSTR(REG_NumberofNetworkInterfaces));
 
 	csv_gev_reg_add(REG_PersistentIPAddress, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pETH->IPAddress, NULL, toSTR(REG_PersistentIPAddress));
+		4, pETH->IPAddr, NULL, toSTR(REG_PersistentIPAddress));
 	csv_gev_reg_add(REG_PersistentSubnetMask0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pETH->IPMask, NULL, toSTR(REG_PersistentSubnetMask0));
+		4, pETH->NetmaskAddr, NULL, toSTR(REG_PersistentSubnetMask0));
 	csv_gev_reg_add(REG_PersistentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pETH->GateWayAddr, NULL, toSTR(REG_PersistentDefaultGateway0));
+		4, pETH->GatewayAddr, NULL, toSTR(REG_PersistentDefaultGateway0));
 	csv_gev_reg_add(REG_LinkSpeed0, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, 0x00000000, NULL, toSTR(REG_LinkSpeed0));
 
@@ -359,11 +359,11 @@ static void csv_gev_reg_enroll (void)
 		4, 1, NULL, toSTR(REG_NumberofActiveLinks));
 
 	csv_gev_reg_add(REG_GVSPCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_GVSPCapability));
+		4, pGP->GVSPCapability, NULL, toSTR(REG_GVSPCapability));
 	csv_gev_reg_add(REG_MessageChannelCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_MessageChannelCapability));
+		4, pGP->MessageCapability, NULL, toSTR(REG_MessageChannelCapability));
 	csv_gev_reg_add(REG_GVCPCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_GVCPCapability));
+		4, pGP->GVCPCapability, NULL, toSTR(REG_GVCPCapability));
 	csv_gev_reg_add(REG_HeartbeatTimeout, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGP->HeartbeatTimeout, NULL, toSTR(REG_HeartbeatTimeout));
 	csv_gev_reg_add(REG_TimestampTickFrequencyHigh, GEV_REG_TYPE_REG, GEV_REG_READ, 
@@ -475,6 +475,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_StartofManufacturerSpecificRegisterSpace, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, toSTR(REG_StartofManufacturerSpecificRegisterSpace));
 
+
 	log_info("OK : enroll gev reg");
 }
 
@@ -566,8 +567,8 @@ static int csv_gvcp_discover_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	struct csv_eth_t *pETH = &gCSV->eth;
 	struct gev_param_t *pGP = &gCSV->cfg.gp;
 
-	pAckMsg->nMajorVer			= htons((pGP->Version>>16)&0xFFFF);
-	pAckMsg->nMinorVer			= htons(pGP->Version&0xFFFF);
+	pAckMsg->nMajorVer			= htons(pGP->VersionMajor);
+	pAckMsg->nMinorVer			= htons(pGP->VersionMajor);
 	pAckMsg->nDeviceMode		= htonl(pGP->DeviceMode);
 	pAckMsg->nMacAddrHigh		= htons(pGP->MacHi)&0xFFFF;
 	pAckMsg->nMacAddrLow		= htonl(pGP->MacLow);
@@ -604,18 +605,18 @@ static int csv_gvcp_forceip_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 	// TODO compare mac
 
-	pETH->IPAddress = pFIP->nStaticIp;
-	pETH->GateWayAddr = pFIP->nStaticDefaultGateWay;
-	pETH->IPMask = pFIP->nStaticSubNetMask;
+	pETH->IPAddr = pFIP->nStaticIp;
+	pETH->GatewayAddr = pFIP->nStaticDefaultGateWay;
+	pETH->NetmaskAddr = pFIP->nStaticSubNetMask;
 
 	struct in_addr addr;
-	addr.s_addr = pETH->IPAddress;
+	addr.s_addr = pETH->IPAddr;
 	strcpy(pETH->ip, inet_ntoa(addr));
 
-	addr.s_addr = pETH->GateWayAddr;
+	addr.s_addr = pETH->GatewayAddr;
 	strcpy(pETH->gw, inet_ntoa(addr));
 
-	addr.s_addr = pETH->IPMask;
+	addr.s_addr = pETH->NetmaskAddr;
 	strcpy(pETH->nm, inet_ntoa(addr));
 
 	// TODO effective ip
@@ -667,7 +668,7 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	uint32_t *pRegAddr = (uint32_t *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 	uint32_t *pRegData = (uint32_t *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
 	int nRegs = pHDR->nLength / sizeof(uint32_t); // GVCP_READ_REG_MAX_NUM
-	uint16_t reg_addr = 0;
+	uint32_t reg_addr = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	uint32_t nTemp = 0;
 	char *desc = NULL;
@@ -678,7 +679,7 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	pAckHdr->nAckId				= htons(pHDR->nReqId);
 
 	for (i = 0; i < nRegs; i++) {
-		reg_addr = (uint16_t)ntohl(*pRegAddr);
+		reg_addr = ntohl(*pRegAddr);
 
 		if (reg_addr % 4) {
 			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
@@ -715,7 +716,7 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	return csv_gvcp_sendto(pGEV);
 }
 
-static int csv_gvcp_writereg_effective (uint16_t regAddr, uint32_t regData)
+static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 {
 	struct csv_gev_t *pGEV = &gCSV->gev;
 	struct gev_param_t *pGP = &gCSV->cfg.gp;
@@ -768,6 +769,7 @@ static int csv_gvcp_writereg_effective (uint16_t regAddr, uint32_t regData)
 
 	case REG_ControlChannelPrivilege:
 		pGP->ControlChannelPrivilege = regData;
+		
 		break;
 
 	case REG_PrimaryApplicationPort:
@@ -899,7 +901,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	pAckHdr->nLength			= htons(sizeof(WRITEREG_ACK_MSG));
 	pAckHdr->nAckId				= htons(pHDR->nReqId);
 
-	uint16_t reg_addr = 0;
+	uint32_t reg_addr = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	int nIndex = MAX_WRITEREG_INDEX;
 	uint32_t reg_data = 0;
@@ -907,7 +909,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 	WRITEREG_CMD_MSG *pRegMsg = (WRITEREG_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 	for (i = 0; i < nRegs; i++) {
-		reg_addr = (uint16_t)ntohl(pRegMsg->nRegAddress);
+		reg_addr = ntohl(pRegMsg->nRegAddress);
 		reg_data = ntohl(pRegMsg->nRegData);
 
 		if (reg_addr % 4) {
@@ -940,7 +942,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	}
 
 	WRITEREG_ACK_MSG *pAckMsg = (WRITEREG_ACK_MSG *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
-	pAckMsg->nReserved			= htons(0x00);
+	pAckMsg->nReserved			= htons(0x0000);
 	pAckMsg->nIndex				= htons(nIndex);
 
 	if (ret == 0) {
@@ -971,7 +973,7 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	uint16_t len_info = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	READMEM_CMD_MSG *pReadMem = (READMEM_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
-	uint16_t mem_addr = (uint16_t)ntohl(pReadMem->nMemAddress);
+	uint32_t mem_addr = ntohl(pReadMem->nMemAddress);
 	uint16_t mem_len = ntohs(pReadMem->nMemLen);
 	char *desc = NULL;
 
@@ -980,13 +982,21 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 		return -1;
 	}
 
+	// branch 1 读取 xml 文件
+	if ((mem_addr >= REG_StartOfXmlFile)&&(mem_addr < REG_StartOfXmlFile+GEV_XML_FILE_MAX_SIZE)) {
+
+
+		return csv_gvcp_sendto(pGEV);
+	}
+
+	// branch 2 读取常规 mem
 	type = csv_gev_reg_type_get(mem_addr, &desc);
 	if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_REG == type)) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
 	}
 
-	if (mem_len % 4) {
+	if ((mem_len % 4)||(mem_len > GVCP_READ_MEM_MAX_LEN)) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
@@ -1050,13 +1060,18 @@ static int csv_gvcp_writemem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	int ret = -1;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	WRITEMEM_CMD_MSG *pWriteMem = (WRITEMEM_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
-	uint16_t mem_addr = (uint16_t)ntohl(pWriteMem->nMemAddress);
+	uint32_t mem_addr = ntohl(pWriteMem->nMemAddress);
 	uint16_t len_info = 0;
 	char *info = (char *)pWriteMem->chWriteMemData;
 	char *desc = NULL;
 
 	if (mem_addr % 4) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
+		return -1;
+	}
+
+	if (strlen(info) > GVCP_WRITE_MEM_MAX_LEN) {
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
 

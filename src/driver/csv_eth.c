@@ -644,17 +644,17 @@ int csv_eth_get (struct csv_eth_t *pETH)
 
 	ret = csv_eth_ipaddr_get(pETH->ip);
 	if (ret == 0) {
-		pETH->IPAddress = inet_addr(pETH->ip);
+		pETH->IPAddr = inet_addr(pETH->ip);
 	}
 
 	ret |= csv_eth_mask_get(pETH->nm);
 	if (ret == 0) {
-		pETH->IPMask = inet_addr(pETH->nm);
+		pETH->NetmaskAddr = inet_addr(pETH->nm);
 	}
 
 	ret |= csv_eth_gateway_get(pETH->gw);
 	if (ret == 0) {
-		pETH->GateWayAddr = inet_addr(pETH->gw);
+		pETH->GatewayAddr = inet_addr(pETH->gw);
 	}
 
 	ret |= csv_eth_broadcast_get(pETH->bc);
@@ -686,9 +686,11 @@ int csv_eth_init (void)
 
 	csv_eth_get(pETH);
 
-	pGP->MacHi = (uint32_t)u8v_to_u16(&gCSV->eth.MACAddr[0]);
-	pGP->MacLow = u8v_to_u32(&gCSV->eth.MACAddr[2]);
-
+	pGP->MacHi = (uint32_t)u8v_to_u16(&pETH->MACAddr[0]);
+	pGP->MacLow = u8v_to_u32(&pETH->MACAddr[2]);
+	pGP->CurrentIPAddress0 = pETH->IPAddr;
+	pGP->CurrentSubnetMask0 = pETH->NetmaskAddr;
+	pGP->CurrentDefaultGateway0 = pETH->GatewayAddr;
 
 
 	return 0;

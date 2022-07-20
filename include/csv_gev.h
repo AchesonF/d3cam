@@ -11,9 +11,8 @@ extern "C" {
 
 #define NAME_GEV_MSG				"'gev_msg'"
 
-#define GEV_VERSION_MAJOR			(0x0001)
-#define GEV_VERSION_MINOR			(0x0002)
-#define GEV_DEVICE_MODE				(1)
+#define GEV_DEVICE_MODEL_NAME		"CS-3D001-28HS"
+#define GEV_XML_FILENAME			GEV_DEVICE_MODEL_NAME ".xml" // GEV_DEVICE_MODEL_NAME ".zip" 
 
 
 enum {
@@ -27,10 +26,10 @@ enum {
 #define GEV_REG_RDWR		(GEV_REG_READ|GEV_REG_WRITE)	///< 可读可写
 
 struct reg_info_t {
-	uint16_t				addr;
+	uint32_t				addr;
+	uint32_t				value;		// reg 值
 	uint8_t					type;		// GEV_REG_TYPE_REG/GEV_REG_TYPE_MEM
 	uint8_t					mode;		// GEV_REG_RDWR
-	uint32_t				value;		// reg 值
 	uint16_t				length;		// 长度
 	char					*info;		// mem内容
 	char					*desc;		// 寄存器描述
@@ -78,7 +77,7 @@ struct csv_gev_t {
 	struct sockaddr_in		from_addr;		///< 来源地址参数
 };
 
-extern int csv_gev_reg_value_update (uint16_t addr, uint32_t value);
+extern int csv_gev_reg_value_update (uint32_t addr, uint32_t value);
 
 extern int csv_gvcp_trigger (struct csv_gev_t *pGEV);
 

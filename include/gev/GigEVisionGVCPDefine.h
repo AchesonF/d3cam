@@ -120,6 +120,8 @@ extern "C" {
 
 #define GVCP_URL_MAX_LEN				(512)
 
+#define GEV_XML_FILE_MAX_SIZE			(1<<20)  // xml 文件大小不超 1MB
+
 #define GVCP_SC_X_ADDRESS_UNIT			(0x40)
 
 /*IP HEADER(20)+UDP HEADER(8)+GVSP HEADER(8)+PAYLOAD DATA LEN(1000)*/
