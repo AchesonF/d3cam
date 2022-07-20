@@ -102,7 +102,7 @@ static uint32_t csv_gev_reg_value_get (uint16_t addr, uint32_t *value)
 	return ret;
 }
 
-int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
+static int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
 {
 	int ret = -1;	// !0 : not save
 	struct list_head *pos = NULL;
@@ -128,6 +128,33 @@ int csv_gev_reg_value_set (uint16_t addr, uint32_t value)
 				ret = -2;	// can't be write
 				break;
 			}
+		}
+	}
+
+	return ret;
+}
+
+int csv_gev_reg_value_update (uint16_t addr, uint32_t value)
+{
+	int ret = -1;
+	struct list_head *pos = NULL;
+	struct reglist_t *task = NULL;
+	struct reg_info_t *pRI = NULL;
+
+	list_for_each(pos, &gCSV->gev.head_reg.list) {
+		task = list_entry(pos, struct reglist_t, list);
+		if (task == NULL) {
+			break;
+		}
+
+		pRI = &task->ri;
+
+		if (addr == pRI->addr) {
+			if (value != pRI->value) {
+				pRI->value = value;
+			}
+			ret = 0;
+			break;
 		}
 	}
 
@@ -1385,13 +1412,13 @@ int csv_gev_init (void)
 		pStream = &pGEV->stream[i];
 		pStream->fd = -1;
 		ret |= csv_gvsp_client_open(pStream);
-		csv_gev_reg_value_set(REG_StreamChannelSourcePort0+0x40*i, pStream->port);
+		csv_gev_reg_value_update(REG_StreamChannelSourcePort0+0x40*i, pStream->port);
 	}
 
 	pMsg->fd = -1;
 	pMsg->name = NAME_GEV_MSG;
 	ret |= csv_gvcp_message_open(pMsg);
-	csv_gev_reg_value_set(REG_MessageChannelSourcePort, pMsg->port);
+	csv_gev_reg_value_update(REG_MessageChannelSourcePort, pMsg->port);
 
 	ret |= csv_gvcp_server_open(pGEV);
 

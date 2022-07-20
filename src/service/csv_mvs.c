@@ -255,7 +255,7 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 		}
 	}
 
-	csv_gev_reg_value_set(REG_NumberofStreamChannels, pMVS->cnt_mvs);
+	csv_gev_reg_value_update(REG_NumberofStreamChannels, pMVS->cnt_mvs);
 
 	return pMVS->cnt_mvs;
 }
@@ -936,7 +936,9 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	if (SUFFIX_PNG == gCSV->cfg.device_param.img_type) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
 	} else {
-		ret = point_cloud_calc();
+		if (pPC->enable) {
+			ret = point_cloud_calc();
+		}
 	}
 
 	pMVS->grabing = false;

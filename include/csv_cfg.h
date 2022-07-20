@@ -81,6 +81,7 @@ struct pointcloud_param_t {
 	char					imgPrefixNameL[128];///< 左图名称前缀
 	char					imgPrefixNameR[128];///< 右图名称前缀
 	char					outFileXYZ[256];	///< 生成文件名
+	uint8_t					enable;				///< 使能计算
 };
 
 // 标定

@@ -119,6 +119,7 @@ static void *csv_png_loop (void *data)
 	}
 
 	struct csv_png_t *pPNG = (struct csv_png_t *)data;
+	struct pointcloud_param_t *pPC = &gCSV->cfg.pointcloud_param;
 
 	int ret = 0;
 
@@ -139,7 +140,7 @@ static void *csv_png_loop (void *data)
 
 			encode_image(pPP->payload, pPP->length, pPP->width, pPP->height, 8, pPP->filename);
 
-			if (pPP->end_pc) {
+			if ((pPP->end_pc)&&(pPC->enable)) {
 				sleep(1);
 				point_cloud_calc();
 			}

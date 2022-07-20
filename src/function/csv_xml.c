@@ -536,6 +536,12 @@ static int csv_xml_PointCloudParameters (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
+	xml_strlcpy(key_pair[nums].key, "enable", MAX_KEY_SIZE);
+	key_pair[nums].value = &pPC->enable;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
 	if (mode == XML_GET) {
 		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
 			"PointCloudParameters", key_pair, nums, 0);

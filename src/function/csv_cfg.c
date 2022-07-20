@@ -29,6 +29,7 @@ int csv_cfg_init (void)
 	strcpy(pCFG->pointcloud_param.imgPrefixNameL, "CSV_001C1S00P");
 	strcpy(pCFG->pointcloud_param.imgPrefixNameR, "CSV_001C2S00P");
 	strcpy(pCFG->pointcloud_param.outFileXYZ, "pointcloud.xyz");
+	pCFG->pointcloud_param.enable = 0;
 
 	pCFG->calib_param.groupDemarcate = 1;
 	strcpy(pCFG->calib_param.path, "data/calibImage");
