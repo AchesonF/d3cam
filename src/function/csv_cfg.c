@@ -51,9 +51,16 @@ int csv_cfg_init (void)
 
 	uint32_t file_size = 0;
 	pGC->strXmlfile = GEV_XML_FILENAME;
+	pGC->xmlData = NULL;
 	csv_file_get_size(pGC->strXmlfile, &file_size);
 	snprintf(pGC->FirstURL, GVCP_URL_MAX_LEN, "local:%s;%x;%x", 
 		pGC->strXmlfile, REG_StartOfXmlFile, file_size);
+	if (file_size > 0) {
+		pGC->xmlData = (uint8_t *)malloc(file_size);
+		if (NULL != pGC->xmlData) {
+			csv_file_read_data(pGC->strXmlfile, pGC->xmlData, file_size);
+		}
+	}
 
 	pGC->GVSPCapability = GVSPCap_SP|GVSPCap_LB;
 	pGC->MessageCapability = MSGCap_MCSP;
@@ -66,7 +73,18 @@ int csv_cfg_init (void)
 	return 0;
 }
 
+int csv_cfg_deinit (void)
+{
+	struct csv_cfg_t *pCFG = &gCSV->cfg;
+	struct gev_conf_t *pGC = &pCFG->gigecfg;
 
+	if (NULL != pGC->xmlData) {
+		free(pGC->xmlData);
+		pGC->xmlData = NULL;
+	}
+
+	return 0;
+}
 
 #ifdef __cplusplus
 }

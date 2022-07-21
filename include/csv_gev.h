@@ -12,7 +12,7 @@ extern "C" {
 #define NAME_GEV_MSG				"'gev_msg'"
 
 #define GEV_DEVICE_MODEL_NAME		"CS-3D001-28HS"
-#define GEV_XML_FILENAME			GEV_DEVICE_MODEL_NAME ".xml" // GEV_DEVICE_MODEL_NAME ".zip" 
+#define GEV_XML_FILENAME			GEV_DEVICE_MODEL_NAME ".zip" //GEV_DEVICE_MODEL_NAME ".xml" // GEV_DEVICE_MODEL_NAME ".zip" 
 
 
 enum {

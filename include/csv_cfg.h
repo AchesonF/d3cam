@@ -48,6 +48,7 @@ struct gev_conf_t {
 	char					FirstURL[GVCP_URL_MAX_LEN];
 	char					SecondURL[GVCP_URL_MAX_LEN];
 	char					*strXmlfile;
+	uint8_t					*xmlData;
 
 	uint32_t				GVSPCapability;
 	uint32_t				MessageCapability;
@@ -113,7 +114,7 @@ struct csv_cfg_t {
 
 extern int csv_cfg_init (void);
 
-
+extern int csv_cfg_deinit (void);
 
 #ifdef __cplusplus
 }

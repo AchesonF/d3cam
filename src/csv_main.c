@@ -25,6 +25,8 @@ struct csv_product_t gPdct = {
 
 static void csv_deinit (void)
 {
+	csv_cfg_deinit();
+
 	csv_gev_deinit();
 
 	csv_gpi_deinit();

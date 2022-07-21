@@ -300,7 +300,7 @@ static void csv_gev_reg_enroll (void)
 	//struct csv_mvs_t *pMVS = &gCSV->mvs;
 
 	csv_gev_reg_add(REG_Version, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, (pGC->VersionMinor<<16)|pGC->VersionMajor, NULL, toSTR(REG_Version));
+		4, (pGC->VersionMajor<<16)|pGC->VersionMinor, NULL, toSTR(REG_Version));
 	csv_gev_reg_add(REG_DeviceMode, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGC->DeviceMode, NULL, toSTR(REG_DeviceMode));
 	csv_gev_reg_add(REG_DeviceMACAddressHigh0, GEV_REG_TYPE_REG, GEV_REG_READ, 
@@ -474,6 +474,10 @@ static void csv_gev_reg_enroll (void)
 
 	csv_gev_reg_add(REG_StartofManufacturerSpecificRegisterSpace, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, toSTR(REG_StartofManufacturerSpecificRegisterSpace));
+
+	// add more from genicam xml.
+
+
 
 
 	log_info("OK : enroll gev reg");
@@ -973,8 +977,11 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	uint16_t len_info = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	READMEM_CMD_MSG *pReadMem = (READMEM_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
+	READMEM_ACK_MSG *pMemAck = (READMEM_ACK_MSG *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
 	uint32_t mem_addr = ntohl(pReadMem->nMemAddress);
 	uint16_t mem_len = ntohs(pReadMem->nMemLen);
+	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 	char *desc = NULL;
 
 	if (mem_addr % 4) {
@@ -982,9 +989,29 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 		return -1;
 	}
 
+	if ((mem_len % 4)||(mem_len > GVCP_READ_MEM_MAX_LEN)) {
+		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
+		return -1;
+	}
+
 	// branch 1 读取 xml 文件
 	if ((mem_addr >= REG_StartOfXmlFile)&&(mem_addr < REG_StartOfXmlFile+GEV_XML_FILE_MAX_SIZE)) {
+		if (NULL == pGC->xmlData) {
+			csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_ACCESS_DENIED);
+			return -1;
+		}
 
+		uint32_t offset_addr = mem_addr-REG_StartOfXmlFile;
+		pMemAck->nMemAddress = pReadMem->nMemAddress;
+		memset(pMemAck->chReadMemData, 0, GVCP_MAX_PAYLOAD_LEN);
+		memcpy(pMemAck->chReadMemData, pGC->xmlData+offset_addr, mem_len);
+
+		pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
+		pAckHdr->nAckMsgValue		= htons(GEV_READMEM_ACK);
+		pAckHdr->nLength			= htons(sizeof(uint32_t) + mem_len);
+		pAckHdr->nAckId				= htons(pHDR->nReqId);
+
+		pGEV->txlen = sizeof(ACK_MSG_HEADER) + sizeof(uint32_t) + mem_len;
 
 		return csv_gvcp_sendto(pGEV);
 	}
@@ -993,11 +1020,6 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	type = csv_gev_reg_type_get(mem_addr, &desc);
 	if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_REG == type)) {
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_ADDRESS);
-		return -1;
-	}
-
-	if ((mem_len % 4)||(mem_len > GVCP_READ_MEM_MAX_LEN)) {
-		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
 
@@ -1020,7 +1042,6 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 		return -1;
 	}
 
-	READMEM_ACK_MSG *pMemAck = (READMEM_ACK_MSG *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
 	pMemAck->nMemAddress = pReadMem->nMemAddress;
 	memset(pMemAck->chReadMemData, 0, GVCP_MAX_PAYLOAD_LEN);
 	if (NULL != info) {
@@ -1031,7 +1052,6 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 		}
 	}
 
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_READMEM_ACK);
 	pAckHdr->nLength			= htons(sizeof(uint32_t) + mem_len);
