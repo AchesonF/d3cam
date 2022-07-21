@@ -119,7 +119,7 @@ static void *csv_png_loop (void *data)
 	}
 
 	struct csv_png_t *pPNG = (struct csv_png_t *)data;
-	struct pointcloud_param_t *pPC = &gCSV->cfg.pointcloud_param;
+	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	int ret = 0;
 

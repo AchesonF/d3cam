@@ -35,7 +35,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	// 导入C1相机图像
 	vector<cv::Mat> src1list;
 	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + "/" + gCSV->cfg.pointcloud_param.imgPrefixNameL 
+		string path = pathRoot + "/" + gCSV->cfg.pointcloudcfg.imgPrefixNameL 
 			+ to_zero_lead(i + 1, 3) + ".bmp";
 
 		cout << "Read Image : " << path << endl;
@@ -49,7 +49,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 	// 导入2相机图像
 	vector<cv::Mat> src2list;
 	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + "/" + gCSV->cfg.pointcloud_param.imgPrefixNameR 
+		string path = pathRoot + "/" + gCSV->cfg.pointcloudcfg.imgPrefixNameR 
 		+ to_zero_lead(i + 1, 3) + ".bmp";
 
 		cout << "Read Image : " << path << endl;
@@ -65,14 +65,14 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupLi
 
 int point_cloud_calc(void)
 {
-	if ((NULL == gCSV->cfg.calib_param.calibFile)
-		||(!csv_file_isExist(gCSV->cfg.calib_param.calibFile))) {
+	if ((NULL == gCSV->cfg.calibcfg.calibFile)
+		||(!csv_file_isExist(gCSV->cfg.calibcfg.calibFile))) {
 		log_info("ERROR : calibFile null");
 		return -1;
 	}
 
-	if ((NULL == gCSV->cfg.pointcloud_param.imgRoot)
-		||(!csv_file_isExist(gCSV->cfg.pointcloud_param.imgRoot))) {
+	if ((NULL == gCSV->cfg.pointcloudcfg.imgRoot)
+		||(!csv_file_isExist(gCSV->cfg.pointcloudcfg.imgRoot))) {
 		log_info("ERROR : imgRoot null");
 		return -1;
 	}
@@ -81,8 +81,8 @@ int point_cloud_calc(void)
 	cout << version << endl;
 
 	CSV::CsvCreatePoint3DParam param;
-	param.calibXml = string(gCSV->cfg.calib_param.calibFile);
-	//param.outfile = string(gCSV->cfg.pointcloud_param.outFileXYZ);
+	param.calibXml = string(gCSV->cfg.calibcfg.calibFile);
+	//param.outfile = string(gCSV->cfg.pointcloudcfg.outFileXYZ);
 	param.type = CSV::CSV_DataFormatType::FixPoint64bits;
 
 	csvSetCreatePoint3DParam(param); //set params
@@ -92,7 +92,7 @@ int point_cloud_calc(void)
 	cout << param0.calibXml << endl;
 	cout << param0.type << endl;
 
-	string imgRoot = string(gCSV->cfg.pointcloud_param.imgRoot);
+	string imgRoot = string(gCSV->cfg.pointcloudcfg.imgRoot);
 	vector<vector<cv::Mat>> imgGroupList;
 	loadSrcImageEx(imgRoot, imgGroupList);
 

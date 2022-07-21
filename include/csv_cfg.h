@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-struct device_param_t {
+struct device_cfg_t {
 	int					device_type;
 	uint8_t				camera_leftright_type;
 	uint8_t				camera_img_type;
@@ -18,14 +18,15 @@ struct device_param_t {
 	uint8_t				img_type;		// SUFFIX_BMP
 };
 
-struct depthimg_param_t {
+struct depthimg_cfg_t {
 	int					numDisparities;
 	int					blockSize;
 	int					uniqRatio;
 };
 
 
-struct gev_param_t {
+/* GigE Version regiseter's parameters */
+struct gev_conf_t {
 	uint16_t				VersionMajor;
 	uint16_t				VersionMinor;
 	uint32_t				DeviceMode;	// 
@@ -84,7 +85,7 @@ struct gev_param_t {
 
 };
 
-struct pointcloud_param_t {
+struct pointcloud_cfg_t {
 	char					imgRoot[128];	///< 相对路径
 	char					imgPrefixNameL[128];///< 左图名称前缀
 	char					imgPrefixNameR[128];///< 右图名称前缀
@@ -93,7 +94,7 @@ struct pointcloud_param_t {
 };
 
 // 标定
-struct calib_param_t {
+struct calib_conf_t {
 	char					path[128];		///< 图片相对路径
 	char					calibFile[128];	///< 标定文件名
 	uint8_t					groupDemarcate;	///< 标定次数, need to save for next boot
@@ -101,12 +102,12 @@ struct calib_param_t {
 };
 
 struct csv_cfg_t {
-	struct device_param_t	device_param;
-	struct depthimg_param_t depthimg_param;
-	struct pointcloud_param_t	pointcloud_param;
+	struct device_cfg_t		devicecfg;
+	struct depthimg_cfg_t	depthimgcfg;
+	struct pointcloud_cfg_t	pointcloudcfg;
 
-	struct calib_param_t	calib_param;
-	struct gev_param_t		gp;				///< gev参数
+	struct calib_conf_t		calibcfg;
+	struct gev_conf_t		gigecfg;			///< gev参数
 };
 
 

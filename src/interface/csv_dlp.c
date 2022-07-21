@@ -13,12 +13,13 @@ static int csv_dlp_encode (struct csv_dlp_t *pDLP, uint8_t cmd)
 		return -1;
 	}
 
+	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 	pDLP->tbuf[0] = DLP_HEAD_A;
 	pDLP->tbuf[1] = DLP_HEAD_B;
 	pDLP->tbuf[2] = cmd;
-	pDLP->tbuf[3] = (uint8_t)gCSV->cfg.device_param.dlp_rate;
-	u16_to_u8v(swap16((uint16_t)gCSV->cfg.device_param.dlp_brightness), &pDLP->tbuf[4]);
-	u32_to_u8v(swap32((uint32_t)gCSV->cfg.device_param.exposure_time), &pDLP->tbuf[6]);
+	pDLP->tbuf[3] = (uint8_t)pDevC->dlp_rate;
+	u16_to_u8v(swap16((uint16_t)pDevC->dlp_brightness), &pDLP->tbuf[4]);
+	u32_to_u8v(swap32((uint32_t)pDevC->exposure_time), &pDLP->tbuf[6]);
 	pDLP->tbuf[10] = 0xAA;	// no crc check
 	pDLP->tbuf[11] = 0xAA;
 

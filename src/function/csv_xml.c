@@ -389,51 +389,52 @@ static int csv_xml_DeviceParameters (
 	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[10];
+	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	xml_strlcpy(key_pair[nums].key, "device_type", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.device_param.device_type;
+	key_pair[nums].value = &pDevC->device_type;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "camera_leftright_type", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.device_param.camera_leftright_type;
+	key_pair[nums].value = &pDevC->camera_leftright_type;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "camera_img_type", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.device_param.camera_img_type;
+	key_pair[nums].value = &pDevC->camera_img_type;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "exposure_time", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.device_param.exposure_time;
+	key_pair[nums].value = &pDevC->exposure_time;
 	key_pair[nums].value_type = XML_VALUE_FLOAT;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "exposure_time_for_rgb", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.device_param.exposure_time_for_rgb;
+	key_pair[nums].value = &pDevC->exposure_time_for_rgb;
 	key_pair[nums].value_type = XML_VALUE_FLOAT;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "dlp_rate", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.device_param.dlp_rate;
+	key_pair[nums].value = &pDevC->dlp_rate;
 	key_pair[nums].value_type = XML_VALUE_FLOAT;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "dlp_brightness", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.device_param.dlp_brightness;
+	key_pair[nums].value = &pDevC->dlp_brightness;
 	key_pair[nums].value_type = XML_VALUE_FLOAT;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "img_type", MAX_KEY_SIZE);
-	key_pair[nums].value = &gCSV->cfg.device_param.img_type;
+	key_pair[nums].value = &pDevC->img_type;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -464,22 +465,22 @@ static int csv_xml_DepthImgParameters (
 	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[4];
-	struct depthimg_param_t *pDEP = &gCSV->cfg.depthimg_param;
+	struct depthimg_cfg_t *pDepC = &gCSV->cfg.depthimgcfg;
 
 	xml_strlcpy(key_pair[nums].key, "numDisparities", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDEP->numDisparities;
+	key_pair[nums].value = &pDepC->numDisparities;
 	key_pair[nums].value_type = XML_VALUE_UINT32;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "blockSize", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDEP->blockSize;
+	key_pair[nums].value = &pDepC->blockSize;
 	key_pair[nums].value_type = XML_VALUE_UINT32;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
 	xml_strlcpy(key_pair[nums].key, "uniqRatio", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDEP->uniqRatio;
+	key_pair[nums].value = &pDepC->uniqRatio;
 	key_pair[nums].value_type = XML_VALUE_UINT32;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -510,7 +511,7 @@ static int csv_xml_PointCloudParameters (
 	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[6];
-	struct pointcloud_param_t *pPC = &gCSV->cfg.pointcloud_param;
+	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	xml_strlcpy(key_pair[nums].key, "imgRoot", MAX_KEY_SIZE);
 	key_pair[nums].value = &pPC->imgRoot;
@@ -568,7 +569,7 @@ static int csv_xml_CalibParameters (
 	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[4];
-	struct calib_param_t *pCALIB = &gCSV->cfg.calib_param;
+	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
 
 	xml_strlcpy(key_pair[nums].key, "path", MAX_KEY_SIZE);
 	key_pair[nums].value = &pCALIB->path;
@@ -779,15 +780,15 @@ static int csv_xml_directories_prepare (void)
 
 	memset(str_cmd, 0, 512);
 
-	if ((NULL != pCFG->pointcloud_param.imgRoot)
-	  &&(!csv_file_isExist(pCFG->pointcloud_param.imgRoot))) {
-		snprintf(str_cmd, 512, "mkdir -p %s", pCFG->pointcloud_param.imgRoot);
+	if ((NULL != pCFG->pointcloudcfg.imgRoot)
+	  &&(!csv_file_isExist(pCFG->pointcloudcfg.imgRoot))) {
+		snprintf(str_cmd, 512, "mkdir -p %s", pCFG->pointcloudcfg.imgRoot);
 		ret = system(str_cmd);
 	}
 
-	if ((NULL != pCFG->calib_param.path)
-	  &&(!csv_file_isExist(pCFG->calib_param.path))) {
-		snprintf(str_cmd, 512, "mkdir -p %s", pCFG->calib_param.path);
+	if ((NULL != pCFG->calibcfg.path)
+	  &&(!csv_file_isExist(pCFG->calibcfg.path))) {
+		snprintf(str_cmd, 512, "mkdir -p %s", pCFG->calibcfg.path);
 		ret = system(str_cmd);
 	}
 

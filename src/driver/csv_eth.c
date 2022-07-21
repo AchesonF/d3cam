@@ -676,7 +676,7 @@ int csv_eth_get (struct csv_eth_t *pETH)
 int csv_eth_init (void)
 {
 	struct csv_eth_t *pETH = &gCSV->eth;
-	struct gev_param_t *pGP = &gCSV->cfg.gp;
+	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
 	pETH->name = DEV_ETH;
 	pETH->fd = -1;
@@ -686,11 +686,11 @@ int csv_eth_init (void)
 
 	csv_eth_get(pETH);
 
-	pGP->MacHi = (uint32_t)u8v_to_u16(&pETH->MACAddr[0]);
-	pGP->MacLow = u8v_to_u32(&pETH->MACAddr[2]);
-	pGP->CurrentIPAddress0 = pETH->IPAddr;
-	pGP->CurrentSubnetMask0 = pETH->NetmaskAddr;
-	pGP->CurrentDefaultGateway0 = pETH->GatewayAddr;
+	pGC->MacHi = (uint32_t)u8v_to_u16(&pETH->MACAddr[0]);
+	pGC->MacLow = u8v_to_u32(&pETH->MACAddr[2]);
+	pGC->CurrentIPAddress0 = pETH->IPAddr;
+	pGC->CurrentSubnetMask0 = pETH->NetmaskAddr;
+	pGC->CurrentDefaultGateway0 = pETH->GatewayAddr;
 
 
 	return 0;
