@@ -41,12 +41,51 @@ struct reglist_t {
 };
 
 
-struct gvsp_param_t {
+
+
+
+
+struct image_info_t {
+	uint64_t				timestamp;	// ms
+	uint32_t				format;		// pixel
+	uint32_t				width;
+	uint32_t				height;
+	uint32_t				offset_x;
+	uint32_t				offset_y;
+	uint16_t				padding_x;
+	uint16_t				padding_y;
+	uint8_t					*payload;
+};
+
+struct stream_list_t {
+	struct image_info_t		img;
+	struct list_head		list;
+};
+
+#define GRAB_STATUS_NONE			0
+#define GRAB_STATUS_RUNNING			1
+#define GRAB_STATUS_STOP			2
+
+struct gvsp_stream_t {
 	int						fd;
 	char					*name;
+	uint8_t					idx;
+	uint8_t					grab_status;	///< 抓图状态 0:未知 1:抓取中 2:结束
+	uint32_t				blockid;
+	uint32_t				packetid;
+	uint32_t				re_packetid;	///< 请求重发id
 	uint16_t				port;		///< 本地系统分配端口号
 	struct sockaddr_in		peer_addr;
 
+	struct stream_list_t	head_stream;
+
+	const char				*name_stream;	///< 流
+	pthread_t				thr_stream;		///< ID
+	pthread_mutex_t			mutex_stream;	///< 锁
+	pthread_cond_t			cond_stream;	///< 条件
+
+	const char				*name_grab;		///< 抓图
+	pthread_t				thr_grab;
 };
 
 struct gev_message_t {
@@ -71,7 +110,7 @@ struct csv_gev_t {
 
 	struct reglist_t		head_reg;		///< 寄存器链表
 
-	struct gvsp_param_t		stream[TOTAL_CAMS];
+	struct gvsp_stream_t	stream[TOTAL_CAMS];
 	struct gev_message_t	message;
 
 	struct sockaddr_in		from_addr;		///< 来源地址参数
@@ -80,6 +119,9 @@ struct csv_gev_t {
 extern int csv_gev_reg_value_update (uint32_t addr, uint32_t value);
 
 extern int csv_gvcp_trigger (struct csv_gev_t *pGEV);
+
+
+extern int csv_mvs_cam_grab_thread (uint8_t idx);
 
 extern int csv_gev_init (void);
 

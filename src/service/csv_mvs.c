@@ -309,6 +309,12 @@ int csv_mvs_cams_open (struct csv_mvs_t *pMVS)
 		}
 
 		if (!pCAM->grabbing) {
+			nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_ON);
+			if (MV_OK != nRet) {
+				log_info("ERROR : SetEnumValue 'TriggerMode' failed. [0x%08X]", nRet);
+				errNum++;
+			}
+
 			log_info("StartGrabbing CAM '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
 
 			// 准备开始取数据流

@@ -572,7 +572,7 @@ static int csv_gvcp_discover_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
 	pAckMsg->nMajorVer			= htons(pGC->VersionMajor);
-	pAckMsg->nMinorVer			= htons(pGC->VersionMajor);
+	pAckMsg->nMinorVer			= htons(pGC->VersionMinor);
 	pAckMsg->nDeviceMode		= htonl(pGC->DeviceMode);
 	pAckMsg->nMacAddrHigh		= htons(pGC->MacHi)&0xFFFF;
 	pAckMsg->nMacAddrLow		= htonl(pGC->MacLow);
@@ -1359,7 +1359,150 @@ static int csv_gvcp_message_open (struct gev_message_t *pMsg)
 	return 0;
 }
 
-static int csv_gvsp_client_open (struct gvsp_param_t *pStream)
+int csv_gvsp_sendto (int fd, struct sockaddr_in *peer, uint8_t *txbuf, uint32_t txlen)
+{
+	socklen_t size_len = sizeof(struct sockaddr_in);
+
+	return sendto(fd, txbuf, txlen, 0, 
+		(struct sockaddr *)&peer, size_len);
+}
+
+int csv_gvsp_packet_leader (void)
+{
+
+	return 0;
+}
+
+int csv_gvsp_packet_payload (void)
+{
+
+	return 0;
+}
+
+int csv_gvsp_packet_trailer (void)
+{
+
+	return 0;
+}
+
+static int csv_gvsp_image_fetch (struct gvsp_stream_t *pStream, 
+	uint8_t *imgData, uint32_t imgLength, uint16_t width, uint16_t height)
+{
+	if ((NULL == pStream)||(NULL == imgData)||(0 == imgLength)) {
+		return -1;
+	}
+
+
+
+
+
+
+	return 0;
+}
+
+static void *csv_mvs_cam_grab_loop (void *pData)
+{
+	if (NULL == pData) {
+		return NULL;
+	}
+
+	struct gvsp_stream_t *pStream = (struct gvsp_stream_t *)pData;
+
+	if (pStream->idx >= TOTAL_CAMS) {
+		return NULL;
+	}
+
+	int nRet = MV_OK;
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct cam_spec_t *pCAM = &pMVS->Cam[pStream->idx];
+
+	if (pMVS->grabing) {
+		return NULL;
+	}
+
+	if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
+		return NULL;
+	}
+
+	nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_OFF);
+	if (MV_OK != nRet) {
+		log_info("ERROR : SetEnumValue 'TriggerMode' failed. [0x%08X]", nRet);
+	}
+
+	nRet = MV_CC_StartGrabbing(pCAM->pHandle);
+	if (MV_OK != nRet) {
+		log_info("ERROR : StartGrabbing failed. [0x%08X]", nRet);
+		return NULL;
+	}
+
+	pMVS->grabing = true;
+
+	while (1) {
+		if (pStream->grab_status != GRAB_STATUS_RUNNING) {
+			break;
+		}
+
+		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
+			pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
+		if (nRet != MV_OK) {
+			log_info("ERROR : CAM '%s' : GetOneFrameTimeout, [0x%08X]", pCAM->serialNum, nRet);
+			continue;
+		}
+		log_debug("OK : CAM '%s' : GetOneFrame[%d] %d x %d", pCAM->serialNum, 
+			pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+
+		csv_gvsp_image_fetch(pStream, pCAM->imgData, pCAM->stParam.nCurValue, 
+			pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+
+	}
+
+	nRet = MV_CC_StopGrabbing(pCAM->pHandle);
+	if (MV_OK != nRet) {
+		log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->serialNum, nRet);
+	}
+
+	nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_ON);
+	if (MV_OK != nRet) {
+		log_info("ERROR : SetEnumValue 'TriggerMode' failed. [0x%08X]", nRet);
+	}
+
+	pMVS->grabing = false;
+
+	pStream->thr_grab = 0;
+
+	pthread_exit(NULL);
+
+	return NULL;
+}
+
+int csv_mvs_cam_grab_thread (uint8_t idx)
+{
+	int ret = -1;
+
+	if (idx >= TOTAL_CAMS) {
+		return -1;
+	}
+
+	pthread_attr_t attr;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+	struct gvsp_stream_t *pStream = &gCSV->gev.stream[idx];
+
+	ret = pthread_create(&pStream->thr_grab, &attr, csv_mvs_cam_grab_loop, (void *)pStream);
+	if (ret < 0) {
+		log_err("ERROR : create pthread %s", pStream->name_grab);
+		return -1;
+	} else {
+		log_info("OK : create pthread %s @ (%p)", pStream->name_grab, pStream->thr_grab);
+	}
+
+	return ret;
+}
+
+static int csv_gvsp_client_open (struct gvsp_stream_t *pStream)
 {
 	int ret = 0;
 	int fd = -1;
@@ -1422,12 +1565,107 @@ static int csv_gvsp_client_open (struct gvsp_param_t *pStream)
 	return 0;
 }
 
+static void *csv_gvsp_client_loop (void *data)
+{
+	if (NULL == data) {
+		return NULL;
+	}
+
+	struct gvsp_stream_t *pStream = (struct gvsp_stream_t *)data;
+
+	int ret = 0;
+
+	ret = csv_gvsp_client_open(pStream);
+	if (ret < 0) {
+		goto exit_thr;
+	}
+
+	csv_gev_reg_value_update(REG_StreamChannelSourcePort0+0x40*pStream->idx, pStream->port);
+
+	struct timeval now;
+	struct timespec timeo;
+	struct list_head *pos = NULL, *n = NULL;
+	struct stream_list_t *task = NULL;
+	struct image_info_t *pIMG = NULL;
+
+	while (1) {
+		list_for_each_safe(pos, n, &pStream->head_stream.list) {
+			task = list_entry(pos, struct stream_list_t, list);
+			if (task == NULL) {
+				break;
+			}
+
+			pIMG = &task->img;
+
+			// todo sendto
+
+			if (NULL != pIMG->payload) {
+				free(pIMG->payload);
+				pIMG->payload = NULL;
+			}
+
+			list_del(&task->list);
+			free(task);
+			task = NULL;
+		}
+
+
+		gettimeofday(&now, NULL);
+		timeo.tv_sec = now.tv_sec + 5;
+		timeo.tv_nsec = now.tv_usec * 1000;
+
+		ret = pthread_cond_timedwait(&pStream->cond_stream, &pStream->mutex_stream, &timeo);
+		if (ret == ETIMEDOUT) {
+			// use timeo as a block and than retry.
+		}
+	}
+
+	log_info("WARN : exit pthread %s", pStream->name_stream);
+
+exit_thr:
+
+	pStream->thr_stream = 0;
+
+	pthread_exit(NULL);
+
+	return NULL;
+}
+
+int csv_gvsp_client_thread (struct gvsp_stream_t *pStream)
+{
+	int ret = -1;
+
+	pthread_attr_t attr;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    if (pthread_mutex_init(&pStream->mutex_stream, NULL) != 0) {
+		log_err("ERROR : mutex %s", pStream->name_stream);
+        return -1;
+    }
+
+    if (pthread_cond_init(&pStream->cond_stream, NULL) != 0) {
+		log_err("ERROR : cond %s", pStream->name_stream);
+        return -1;
+    }
+
+	ret = pthread_create(&pStream->thr_stream, &attr, csv_gvsp_client_loop, (void *)pStream);
+	if (ret < 0) {
+		log_err("ERROR : create pthread %s", pStream->name_stream);
+		return -1;
+	} else {
+		log_info("OK : create pthread %s @ (%p)", pStream->name_stream, pStream->thr_stream);
+	}
+
+	return ret;
+}
 
 int csv_gev_init (void)
 {
 	int ret = 0, i = 0;
 	struct csv_gev_t *pGEV = &gCSV->gev;
-	struct gvsp_param_t *pStream = NULL;
+	struct gvsp_stream_t *pStream = NULL;
 	struct gev_message_t *pMsg = &pGEV->message;
 
 	pGEV->fd = -1;
@@ -1441,13 +1679,19 @@ int csv_gev_init (void)
 
 	csv_gev_reg_enroll();
 
-	pGEV->stream[CAM_LEFT].name = "stream"toSTR(CAM_LEFT);
-	pGEV->stream[CAM_RIGHT].name = "stream"toSTR(CAM_RIGHT);
+	pGEV->stream[CAM_LEFT].name = "stream_"toSTR(CAM_LEFT);
+	pGEV->stream[CAM_LEFT].name_stream = "thr_"toSTR(CAM_LEFT);
+	pGEV->stream[CAM_LEFT].name_grab = "grab_"toSTR(CAM_LEFT);
+	pGEV->stream[CAM_RIGHT].name = "stream_"toSTR(CAM_RIGHT);
+	pGEV->stream[CAM_RIGHT].name_stream = "thr_"toSTR(CAM_RIGHT);
+	pGEV->stream[CAM_RIGHT].name_grab = "grab_"toSTR(CAM_RIGHT);
 	for (i = 0; i < TOTAL_CAMS; i++) {
 		pStream = &pGEV->stream[i];
+		pStream->idx = i;
 		pStream->fd = -1;
-		ret |= csv_gvsp_client_open(pStream);
-		csv_gev_reg_value_update(REG_StreamChannelSourcePort0+0x40*i, pStream->port);
+		pStream->grab_status = 0;
+		INIT_LIST_HEAD(&pStream->head_stream.list);
+		ret |= csv_gvsp_client_thread(pStream);
 	}
 
 	pMsg->fd = -1;

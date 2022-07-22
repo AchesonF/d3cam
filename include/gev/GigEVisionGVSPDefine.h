@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-#define GIGEVISION_MAJOR_VERSION		(1)	// (2)
+#define GIGEVISION_MAJOR_VERSION		GEV_VERSION_MAJOR	//(2)
+
+
 
 #if (GIGEVISION_MAJOR_VERSION == 1)
 
