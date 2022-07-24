@@ -35,7 +35,7 @@ int csv_cfg_init (void)
 
 	pCFG->calibcfg.groupDemarcate = 1;
 	strcpy(pCFG->calibcfg.path, "data/calibImage");
-	strcpy(pCFG->calibcfg.calibFile, "grayCodeParams.xml");
+	strcpy(pCFG->calibcfg.calibFile, "CSV_Cali_HST_L21D_C0280.xml");
 
 	pGC->VersionMajor = GEV_VERSION_MAJOR;
 	pGC->VersionMinor = GEV_VERSION_MINOR;

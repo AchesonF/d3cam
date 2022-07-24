@@ -14,7 +14,7 @@ namespace CSV {
 		initialize();
 		m_modelfileName = filename;
 
-		//std::string xmlFile = root + "target/grayCodeParams.xml";
+		//std::string xmlFile = root + "target/CSV_Cali_HST_L21D_C0280.xml";
 		std::string xmlFile = m_modelfileName;
 		//cv::Mat M1, D1, M2, D2, R, T;
 		cv::Size imageSize;
