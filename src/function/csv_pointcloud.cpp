@@ -114,11 +114,14 @@ int point_cloud_calc(void)
 		imageGroups.emplace_back(imgs);
 	}
 
-	steady_clock::time_point t1 = steady_clock::now();
+	gCSV->mvs.firstTimestamp = utility_get_microsecond();
+	log_debug("create 3d @ %ld us.", gCSV->mvs.firstTimestamp);
+
 	bool result = csvCreatePoint3D(imageGroups, pointCloud);
-	steady_clock::time_point t2 = steady_clock::now();
-	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-	cout << "It took me " << time_span.count() << " seconds."  << result << endl;
+
+	gCSV->mvs.lastTimestamp = utility_get_microsecond();
+	log_debug("create3d take %ld us. %d", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp, result);
+
 
 	return 0;
 
