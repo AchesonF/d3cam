@@ -1,8 +1,6 @@
 #include "CsvVersion.h"
 #include "csvCreatePoint3D.hpp"
 #include "CsvMeasure3D.hpp"
-#include <memory>
-
 
 namespace CSV {
 
@@ -36,14 +34,17 @@ namespace CSV {
 	}
 
 	//setting only one time after power on
-	bool csvSetCreatePoint3DParam(const CsvCreatePoint3DParam &param) {
+	bool CsvSetCreatePoint3DParam(const CsvCreatePoint3DParam &param) {
+		std::string version = csvGetCreatePoint3DALgVersion();
+		std::cout << version << std::endl;
+
 		g_classifyEngine = SingleObject::getInstance();
 		g_classifyEngine->loadModel(param.calibXml);
 		g_param = param;
 		return true;
 	}
 
-	bool csvGetCreatePoint3DParam(CsvCreatePoint3DParam &param) {
+	bool CsvGetCreatePoint3DParam(CsvCreatePoint3DParam &param) {
 		param = g_param;
 		return true;
 	}
@@ -52,9 +53,9 @@ namespace CSV {
 		std::vector<std::vector<cv::Mat>> imageGroup;
 
 		int rows = inImages[0][0].m_height, cols = inImages[0][0].m_width;
-		for (unsigned int g = 0; g < inImages.size(); g++) {
+		for (int g = 0; g < inImages.size(); g++) {
 			std::vector<cv::Mat> imgs;
-			for (unsigned int i = 0; i < inImages[g].size(); i++) {
+			for (int i = 0; i < inImages[g].size(); i++) {
 				const CsvImageSimple* m = &(inImages[g][i]);
 				void* data = static_cast<void*>(m->m_data);
 				cv::Mat img(rows, cols, CV_8UC1, data, m->m_widthStep);
@@ -72,7 +73,7 @@ namespace CSV {
 
 		//size_t Mat::total() - return number of elements
 		cv::Mat flat = cvPointCloud.reshape(1, cvPointCloud.total() * cvPointCloud.channels());
-		pointCloud.m_point3DData = flat; 
+		pointCloud.m_point3DData = cvPointCloud.isContinuous() ? flat : flat.clone(); 
 		pointCloud.m_type = g_param.type;
 
 		// change type of point cloud

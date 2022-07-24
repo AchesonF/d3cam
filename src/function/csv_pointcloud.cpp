@@ -85,10 +85,10 @@ int point_cloud_calc(void)
 	//param.outfile = string(gCSV->cfg.pointcloudcfg.outFileXYZ);
 	param.type = CSV::CSV_DataFormatType::FixPoint64bits;
 
-	csvSetCreatePoint3DParam(param); //set params
+	CsvSetCreatePoint3DParam(param); //set params
 
 	CSV::CsvCreatePoint3DParam param0;
-	csvGetCreatePoint3DParam(param0);
+	CsvGetCreatePoint3DParam(param0);
 	cout << param0.calibXml << endl;
 	cout << param0.type << endl;
 
@@ -114,11 +114,14 @@ int point_cloud_calc(void)
 		imageGroups.emplace_back(imgs);
 	}
 
-	steady_clock::time_point t1 = steady_clock::now();
+	gCSV->mvs.firstTimestamp = utility_get_microsecond();
+	log_debug("create 3d @ %ld us.", gCSV->mvs.firstTimestamp);
+
 	bool result = csvCreatePoint3D(imageGroups, pointCloud);
-	steady_clock::time_point t2 = steady_clock::now();
-	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-	cout << "It took me " << time_span.count() << " seconds."  << result << endl;
+
+	gCSV->mvs.lastTimestamp = utility_get_microsecond();
+	log_debug("create3d take %ld us. %d", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp, result);
+
 
 	return 0;
 

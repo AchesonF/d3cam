@@ -46,6 +46,9 @@ struct csv_mvs_t {
 	// todo bind dev
 	uint8_t					grabing;		///< 正在抓图
 
+	uint64_t				firstTimestamp;	///< ms
+	uint64_t				lastTimestamp;
+
 	const char				*name_mvs;		///< 消息
 	pthread_t				thr_mvs;		///< ID
 	pthread_mutex_t			mutex_mvs;		///< 锁

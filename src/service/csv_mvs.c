@@ -904,6 +904,9 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	// 13 高速光
 	ret = csv_dlp_just_write(CMD_HIGH_SPEED);
 
+	pMVS->firstTimestamp = utility_get_microsecond();
+	log_debug("grabing start @ %ld us.", pMVS->firstTimestamp);
+
 	while (idx <= nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
 			pCAM = &pMVS->Cam[i];
@@ -941,6 +944,9 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 
 		idx++;
 	}
+
+	pMVS->lastTimestamp = utility_get_microsecond();
+	log_debug("grab take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
 	if (SUFFIX_PNG == pDevC->img_type) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
@@ -1160,6 +1166,8 @@ int csv_mvs_init (void)
 	pMVS->cnt_mvs = 0;
 	pMVS->name_mvs = NAME_THREAD_MVS;
 	pMVS->name_grab = NAME_THREAD_GRAB;
+	pMVS->firstTimestamp = 0;
+	pMVS->lastTimestamp = 0;
 
 	ret = csv_mvs_thread(pMVS);
 	ret |= csv_mvs_grab_thread(pMVS);
