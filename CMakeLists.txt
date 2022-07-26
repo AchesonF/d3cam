@@ -81,13 +81,6 @@ if (USING_WEB_SERVER)
 	)
 endif ()
 
-option(USING_POINTCLOUD "Add point 3d cloud" ON)
-if (USING_POINTCLOUD)
-	set(INC_POINTCLOUD
-		"include/cloud"
-	)
-endif ()
-
 option(USING_SPNG "Add png maker" ON)
 if (USING_SPNG)
 	set(INC_SPNG
@@ -101,11 +94,11 @@ include_directories(
 	"include/mvs"
 	"include/gev"
 	"include/so"
+	"include/pointcloud"
 	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}
 	${libXML_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
-	${INC_POINTCLOUD}
 	${INC_SPNG}
 )
 

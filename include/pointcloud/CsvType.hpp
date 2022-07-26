@@ -11,6 +11,8 @@
 typedef unsigned char uchar;
 #endif // !uchar
 
+using namespace std;
+
 namespace CSV {
 
 #define CREATE_GRAYCODE_PATTERN 0
@@ -206,9 +208,9 @@ namespace CSV {
 	public:
 		int width;		// 图像宽度
 		int height;		// 图像高度
-		std::vector<int> x, y;		// 坐标索引x，y
-		std::vector<double> data;	// 深度图
-		std::vector<int> alpah;		// 透明度
+		vector<int> x, y;		// 坐标索引x，y
+		vector<double> data;	// 深度图
+		vector<int> alpah;		// 透明度
 
 	private:
 
@@ -315,13 +317,6 @@ namespace CSV {
 
 		const Mat33 & t(void){ double temp = data[1]; data[1] = data[3]; data[3] = temp; temp = data[2]; data[2] = data[6]; data[6] = temp; temp = data[5]; data[5] = data[7]; data[7] = temp; return *this; };
 		Mat33 t(void) const { return Mat33(data[0], data[3], data[6], data[1], data[4], data[7], data[2], data[5], data[8]); };
-
-		//const Mat33 &inv(void);
-		//bool getInv(Mat33& rInvMat) const;
-		//Mat33 getInv(void) const;
-
-		//CSV_STATE calEigenValueVector(CsvVectorND* eigenValue, CsvVectorND* eigenVector) const;
-		//CSV_STATE SVD(Mat33* leftOrthogonalMatrix, Mat33* diagonalMatrix, Mat33* rightOrthogonalMatrix) const;
 
 	private:
 		double data[9];

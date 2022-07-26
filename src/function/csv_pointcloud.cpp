@@ -1,8 +1,6 @@
 
 #include "inc_files.h"
 
-#if (USING_POINTCLOUD3D==1)
-
 #include "csvCreatePoint3D.hpp"
 
 #include <iostream>
@@ -13,7 +11,6 @@
 #include <chrono>
 #include <opencv2/opencv.hpp>
 
-#include "csvCreatePoint3D.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,10 +114,10 @@ int point_cloud_calc(void)
 	gCSV->mvs.firstTimestamp = utility_get_microsecond();
 	log_debug("create 3d @ %ld us.", gCSV->mvs.firstTimestamp);
 
-	bool result = csvCreatePoint3D(imageGroups, pointCloud);
+	csvCreatePoint3D(imageGroups, pointCloud);
 
 	gCSV->mvs.lastTimestamp = utility_get_microsecond();
-	log_debug("create3d take %ld us. %d", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp, result);
+	log_debug("create3d take %ld us. %d", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp);
 
 	Mat out = Mat(rows, cols, CV_32FC3, pointCloud.m_point3DData.data());
 	ofstream outfile(gCSV->cfg.pointcloudcfg.outFileXYZ);
@@ -147,4 +144,3 @@ int point_cloud_calc(void)
 }
 #endif
 
-#endif

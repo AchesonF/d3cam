@@ -4,12 +4,14 @@
 #include <string>
 #include "csvPoint3DCloud.hpp"
 
+using namespace std;
+
 namespace CSV {
 	//interface between Jetson and 3D measure
 	class CsvCreatePoint3DParam
 	{
 	public:
-		std::string calibXml; // calibration file (xml) of cameras
+		string calibXml; // calibration file (xml) of cameras
 		CSV_DataFormatType type; //type of output point cloud
 
 		CsvCreatePoint3DParam() {
@@ -37,13 +39,15 @@ namespace CSV {
 		unsigned int  m_widthStep; // number of bytes in a line
 	};
 
-	std::string csvGetCreatePoint3DALgVersion();
+	string csvGetCreatePoint3DALgVersion();
 	bool CsvSetCreatePoint3DParam(const CsvCreatePoint3DParam &param); //setting only one time after power on
 	bool CsvGetCreatePoint3DParam(CsvCreatePoint3DParam &param);
 	bool csvCreatePoint3D(
-		const std::vector<std::vector<CsvImageSimple>>& inImages,
+		const vector<vector<CsvImageSimple>>& inImages,
 		CsvPoint3DCloud &pointCloud
 		);
 
 };
 #endif
+
+
