@@ -48,6 +48,8 @@ bool IntrinsicParam::operator==(const IntrinsicParam& inparam) const
 			return false;
 		}
 	}
+
+	return true;
 }
 
 bool IntrinsicParam::operator!=(const IntrinsicParam& param) const
@@ -56,14 +58,14 @@ bool IntrinsicParam::operator!=(const IntrinsicParam& param) const
 }
 
 /*
-*@brief  »ñÈ¡Ïà»úÏà¹ØĞÅÏ¢£¬Ğ¾Æ¬¿í¸ß£¬Í¼Ïñ¿í¸ß£¬¾µÍ·½¹¾à
+*@brief  è·å–ç›¸æœºç›¸å…³ä¿¡æ¯ï¼ŒèŠ¯ç‰‡å®½é«˜ï¼Œå›¾åƒå®½é«˜ï¼Œé•œå¤´ç„¦è·
 *@author HORSETAIL
-*@param[out]  double& chipw  Ğ¾Æ¬¿í¶È£¬µ¥Î»£ºmm
-*@param[out]  double& chiph  Ğ¾Æ¬¸ß¶È£¬µãÎ»£ºmm
-*@param[out]  int& imw  Í¼Ïñ¿í£¬µ¥Î»£ºpixel
-*@param[out]  int& imh  Í¼Ïñ¸ß£¬µ¥Î»£ºpixel
-*@param[out]  double& focus  ¾µÍ·½¹¾à£¬µ¥Î»£ºmm
-*@return     int  ×´Ì¬Öµ
+*@param[out]  double& chipw  èŠ¯ç‰‡å®½åº¦ï¼Œå•ä½ï¼šmm
+*@param[out]  double& chiph  èŠ¯ç‰‡é«˜åº¦ï¼Œç‚¹ä½ï¼šmm
+*@param[out]  int& imw  å›¾åƒå®½ï¼Œå•ä½ï¼špixel
+*@param[out]  int& imh  å›¾åƒé«˜ï¼Œå•ä½ï¼špixel
+*@param[out]  double& focus  é•œå¤´ç„¦è·ï¼Œå•ä½ï¼šmm
+*@return     int  çŠ¶æ€å€¼
 */
 CsvStatus IntrinsicParam::getInfo(double& chipw, double& chiph, int& imw, int& imh, double& focus, double& rms)
 {
@@ -78,14 +80,14 @@ CsvStatus IntrinsicParam::getInfo(double& chipw, double& chiph, int& imw, int& i
 }
 
 /*
-*@brief  ÉèÖÃÏà»úÏà¹ØĞÅÏ¢£¬Ğ¾Æ¬¿í¸ß£¬Í¼Ïñ¿í¸ß£¬¾µÍ·½¹¾à
+*@brief  è®¾ç½®ç›¸æœºç›¸å…³ä¿¡æ¯ï¼ŒèŠ¯ç‰‡å®½é«˜ï¼Œå›¾åƒå®½é«˜ï¼Œé•œå¤´ç„¦è·
 *@author HORSETAIL
-*@param[in]  double chipw  Ğ¾Æ¬¿í¶È£¬µ¥Î»£ºmm
-*@param[in]  double chiph  Ğ¾Æ¬¸ß¶È£¬µãÎ»£ºmm
-*@param[in]  int imw  Í¼Ïñ¿í£¬µ¥Î»£ºpixel
-*@param[in]  int imh  Í¼Ïñ¸ß£¬µ¥Î»£ºpixel
-*@param[in]  double focus  ¾µÍ·½¹¾à£¬µ¥Î»£ºmm
-*@return     int  ×´Ì¬Öµ
+*@param[in]  double chipw  èŠ¯ç‰‡å®½åº¦ï¼Œå•ä½ï¼šmm
+*@param[in]  double chiph  èŠ¯ç‰‡é«˜åº¦ï¼Œç‚¹ä½ï¼šmm
+*@param[in]  int imw  å›¾åƒå®½ï¼Œå•ä½ï¼špixel
+*@param[in]  int imh  å›¾åƒé«˜ï¼Œå•ä½ï¼špixel
+*@param[in]  double focus  é•œå¤´ç„¦è·ï¼Œå•ä½ï¼šmm
+*@return     int  çŠ¶æ€å€¼
 */
 CsvStatus IntrinsicParam::setInfo(double chipw, double chiph, int imw, int imh, double focus, double rms)
 {
@@ -100,11 +102,11 @@ CsvStatus IntrinsicParam::setInfo(double chipw, double chiph, int imw, int imh, 
 }
 
 /*
-*@brief  ÉèÖÃ²ÎÊı
+*@brief  è®¾ç½®å‚æ•°
 *@author HORSETAIL
 *@param[out] 
-*@param[in]  double * intrinsic  Ïà»úÄÚ²ÎÊı
-*@return     int  ×´Ì¬·µ»ØÖµ
+*@param[in]  double * intrinsic  ç›¸æœºå†…å‚æ•°
+*@return     int  çŠ¶æ€è¿”å›å€¼
 */
 CsvStatus IntrinsicParam::getParam(double* intrinsic)
 {
@@ -114,10 +116,10 @@ CsvStatus IntrinsicParam::getParam(double* intrinsic)
 }
 
 /*
-*@brief  ÉèÖÃ²ÎÊı
+*@brief  è®¾ç½®å‚æ•°
 *@author HORSETAIL
 *@param[out] 
-*@param[in]  const double * intrinsic  Ïà»úÄÚ²ÎÊı
+*@param[in]  const double * intrinsic  ç›¸æœºå†…å‚æ•°
 *@return     int  
 */
 CsvStatus IntrinsicParam::setParam(const double* param)
@@ -128,7 +130,7 @@ CsvStatus IntrinsicParam::setParam(const double* param)
 }
 
 /*
-*@brief  ¼ÆËãÏñËØ¼¶µÄ½¹¾àf,¼ÆËã¹«Ê½£ºf_pixel = focus * sqrt(imw^2+imh^2)/sqrt(chipw^2+chiph^2)
+*@brief  è®¡ç®—åƒç´ çº§çš„ç„¦è·f,è®¡ç®—å…¬å¼ï¼šf_pixel = focus * sqrt(imw^2+imh^2)/sqrt(chipw^2+chiph^2)
 *@author HORSETAIL
 *@param[out] 
 *@param[in]  double & f  
@@ -148,7 +150,7 @@ CsvStatus IntrinsicParam::focusPixel(double& f_pixel)
 }
 
 /*
-*@brief  ¼ÆËã½ÃÕıºóµÄÄÚ²Î
+*@brief  è®¡ç®—çŸ«æ­£åçš„å†…å‚
 *@author HORSETAIL
 *@param[out] 
 *@param[in]  IntrinsicParam & undistParam  
@@ -230,11 +232,11 @@ CsvStatus IntrinsicParam::undistortParam(IntrinsicParam& undistParam)
 }
 
 /*
-*@brief  ½«Ğ£ÕıºóµÄ×ø±êµã×ª»¯Îª½ÃÕıÇ°µÄ×ø±êµã
+*@brief  å°†æ ¡æ­£åçš„åæ ‡ç‚¹è½¬åŒ–ä¸ºçŸ«æ­£å‰çš„åæ ‡ç‚¹
 *@author HORSETAIL
 *@param[out] 
-*@param[in]  const Point2d& undist	½ÃÕıºóµÄ×ø±êµã
-*@param[in]  Point2d & dist			½ÃÕıÇ°µÄ×ø±êµã
+*@param[in]  const Point2d& undist	çŸ«æ­£åçš„åæ ‡ç‚¹
+*@param[in]  Point2d & dist			çŸ«æ­£å‰çš„åæ ‡ç‚¹
 *@return     CsvStatus  
 */
 CsvStatus IntrinsicParam::distort(const Point2d &undist, Point2d &dist)
@@ -290,11 +292,11 @@ CsvStatus IntrinsicParam::distort(const Point2d &undist, Point2d &dist)
 }
 
 /*
-*@brief  ½«Ğ£ÕıºóµÄ×ø±êµã×ª»¯Îª½ÃÕıÇ°µÄ×ø±êµã
+*@brief  å°†æ ¡æ­£åçš„åæ ‡ç‚¹è½¬åŒ–ä¸ºçŸ«æ­£å‰çš„åæ ‡ç‚¹
 *@author HORSETAIL
 *@param[out]
-*@param[in]  const Point2d& undist	½ÃÕıºóµÄ×ø±êµã
-*@param[in]  Point2d & dist			½ÃÕıÇ°µÄ×ø±êµã
+*@param[in]  const Point2d& undist	çŸ«æ­£åçš„åæ ‡ç‚¹
+*@param[in]  Point2d & dist			çŸ«æ­£å‰çš„åæ ‡ç‚¹
 *@return     CsvStatus
 *@notes The coordinates before the correction are the digital(image) coordinates, 
 the coordinates after the correction are normalized coordinates
@@ -383,10 +385,10 @@ CsvStatus IntrinsicParam::undistort(const Point2d &dist, Point2d &undist)
 
 
 	/*
-	*@brief  ³õÊ¼»¯²ÎÊı
+	*@brief  åˆå§‹åŒ–å‚æ•°
 	*@author HORSETAIL
 	*@param[out] 
-	*@return     int  ×´Ì¬·µ»ØÖµ
+	*@return     int  çŠ¶æ€è¿”å›å€¼
 	*/
 
 	CsvStatus IntrinsicParam::init()

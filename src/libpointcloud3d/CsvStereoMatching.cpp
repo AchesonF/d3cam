@@ -28,8 +28,8 @@ namespace CSV
 		//double d = 207;
 		//double pw = 1.0f / (d * Q32 + Q33);
 		//double z = Q23 * pw;
-		min_disparity = (Q23 / settingZmin - Q33) / Q32;		// ×îĞ¡ÊÓ²î
-		max_disparity = (Q23 / settingZmax - Q33) / Q32;		// ×î´óÊÓ²î
+		min_disparity = (Q23 / settingZmin - Q33) / Q32;		// æœ€å°è§†å·®
+		max_disparity = (Q23 / settingZmax - Q33) / Q32;		// æœ€å¤§è§†å·®
 
 		phaseOffsetThreshold = 2.1;
 		return true;
@@ -37,19 +37,19 @@ namespace CSV
 
 	void CsvStereoMatching::ComputeCost(const cv::Mat& img_left, const cv::Mat& img_right, cv::Mat& disp_left) {
 
-		// ²éÕÒ¾ø¶ÔÏàÎ»²î×îĞ¡µÄ×óÓÒÍ¼Ïñ¶ÔÓ¦µãÎªÍ¬Ãûµã£¨»ùÓÚ¾ø¶ÔÏàÎ»µÄÅ·ÊÏ¾àÀë£©
+		// æŸ¥æ‰¾ç»å¯¹ç›¸ä½å·®æœ€å°çš„å·¦å³å›¾åƒå¯¹åº”ç‚¹ä¸ºåŒåç‚¹ï¼ˆåŸºäºç»å¯¹ç›¸ä½çš„æ¬§æ°è·ç¦»ï¼‰
 		for (int y = 0; y < height_; y++) {
 			const float* img_left_ = img_left.ptr<float>(y);
 			const float* img_right_ = img_right.ptr<float>(y);
 			float* disp_left_ = disp_left.ptr<float>(y);
-			if (y == 547) {
+			/*if (y == 547) {
 				int kk = 0;
-			}
+			}*/
 			for (int x = 0; x < width_; x++) {
 				float leftPhase = img_left_[x];
-				// ÕÒµ½×îĞ¡´ú¼ÛÖµ¶ÔÓ¦µÄÊÓ²î
+				// æ‰¾åˆ°æœ€å°ä»£ä»·å€¼å¯¹åº”çš„è§†å·®
 				float minDist = std::numeric_limits<float>::max();
-				int minD = min_disparity; //ÓÒÍ¼×îĞ¡¾àÀëµÄÆ«ÒÆÏñËØ
+				int minD = min_disparity; //å³å›¾æœ€å°è·ç¦»çš„åç§»åƒç´ 
 				float rightPhase = std::numeric_limits<float>::max();
 				for (int d = min_disparity; d < max_disparity; d++) {
 					if (x - d < 0 || x - d >= width_) {
@@ -63,15 +63,15 @@ namespace CSV
 						rightPhase = right;
 					}
 				}
-				float disparity = (float)minD; //¼ÆËãÕûÊıÊÓ²î d;
-				// 1 - ÏàÎ»²î¹ıÂË
+				float disparity = (float)minD; //è®¡ç®—æ•´æ•°è§†å·® d;
+				// 1 - ç›¸ä½å·®è¿‡æ»¤
 				if (std::abs(leftPhase - rightPhase) > phaseOffsetThreshold) {
 					disparity = invalidDisparity;
 				}
 				//else if (std::abs() > xThreshold) {
 				//	disparity = invalidDisparity;
 				//}
-				// 2 - ËÑË÷ÔÚ X-axis ·¶Î§ÄÚ
+				// 2 - æœç´¢åœ¨ X-axis èŒƒå›´å†…
 
 				// 2 - 
 				disp_left_[x] = disparity;
@@ -86,7 +86,7 @@ namespace CSV
 		if (disp_range <= 0) {
 			return false;
 		}
-		invalidDisparity = std::numeric_limits<float>::infinity(); //²»ÊÇÊı¼´¿ÉºóÃæ¹ıÂË
+		invalidDisparity = std::numeric_limits<float>::infinity(); //ä¸æ˜¯æ•°å³å¯åé¢è¿‡æ»¤
 
 		cv::Mat disparity(disp_left.size(), CV_32FC1, cv::Scalar(invalidDisparity));
 		ComputeCost(img_left, img_right, disparity);
@@ -105,7 +105,7 @@ namespace CSV
 		const int radius = wnd_size / 2;
 		const int size = wnd_size * wnd_size;
 
-		// ´æ´¢¾Ö²¿´°¿ÚÄÚµÄÊı¾İ
+		// å­˜å‚¨å±€éƒ¨çª—å£å†…çš„æ•°æ®
 		std::vector<float> wnd_data;
 		wnd_data.reserve(size);
 		const float* in = (const float*)inM.data;
@@ -115,7 +115,7 @@ namespace CSV
 			for (int j = 0; j < width; j++) {
 				wnd_data.clear();
 
-				// »ñÈ¡¾Ö²¿´°¿ÚÊı¾İ
+				// è·å–å±€éƒ¨çª—å£æ•°æ®
 				for (int r = -radius; r <= radius; r++) {
 					for (int c = -radius; c <= radius; c++) {
 						const int row = i + r;
@@ -126,9 +126,9 @@ namespace CSV
 					}
 				}
 
-				// ÅÅĞò
+				// æ’åº
 				std::sort(wnd_data.begin(), wnd_data.end());
-				// È¡ÖĞÖµ
+				// å–ä¸­å€¼
 				out[i * width + j] = wnd_data[wnd_data.size() / 2];
 			}
 		}

@@ -11,12 +11,12 @@ namespace CSV
 
 	int VisionHeadParam::load(std::string calib_file_path)
 	{
-		// ´Ó±ê¶¨ÎÄ¼şµ¼Èë±ê¶¨²ÎÊı
+		// ä»æ ‡å®šæ–‡ä»¶å¯¼å…¥æ ‡å®šå‚æ•°
 		CalibFileInfo calbinfo;
 		std::string calib_path = calib_file_path;
 		calbinfo.load(calib_path.c_str());
 
-		// ³£¹æ²ÎÊıÉèÖÃ
+		// å¸¸è§„å‚æ•°è®¾ç½®
 		memcpy(board_length, calbinfo.board_length, sizeof(double) * 4);
 		file_flag = calbinfo.file_flag;
 		stamp = calbinfo.stamp;
@@ -26,9 +26,9 @@ namespace CSV
 		memcpy(move_center, calbinfo.move_center, sizeof(double) * 3);
 		memcpy(move_range, calbinfo.move_range, sizeof(double) * 3);
 
-		// ÉèÖÃÏà»ú²ÎÊı
+		// è®¾ç½®ç›¸æœºå‚æ•°
 		int came_num = calbinfo.cam_info.number;
-		for (size_t i = 0; i < came_num; i++)
+		for (int i = 0; i < came_num; i++)
 		{
 			CameraParam camparam;
 			IntrinsicParam inparam;
@@ -41,9 +41,9 @@ namespace CSV
 
 			camparam_list.push_back(camparam);
 		}
-		// ÉèÖÃÍ¶Ó°ÒÇ²ÎÊı
+		// è®¾ç½®æŠ•å½±ä»ªå‚æ•°
 		int prj_num = calbinfo.prj_info.number;
-		for (size_t i = 0; i < prj_num; i++)
+		for (int i = 0; i < prj_num; i++)
 		{
 			CameraParam prjparam;
 			IntrinsicParam inparam;

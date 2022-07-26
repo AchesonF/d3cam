@@ -22,6 +22,7 @@ int csv_cfg_init (void)
 	pDevC->dlp_rate = 0x002D;
 	pDevC->dlp_brightness = 700;
 	pDevC->img_type = SUFFIX_BMP;
+	pDevC->strSuffix = ".bmp";
 
 	pDepC->numDisparities = 816;
 	pDepC->blockSize = 21;

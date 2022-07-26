@@ -52,7 +52,7 @@ namespace CSV {
 #endif
 
 	private:
-		std::shared_ptr<VisionHeadParam> vhead_param_; // ÊÓ¾õÍ·²ÎÊı
+		std::shared_ptr<VisionHeadParam> vhead_param_; // è§†è§‰å¤´å‚æ•°
 		int m_idxC1, m_idxC2;
 		cv::Mat m_moveRange; // columu vector : x / y / z / dx / dy / dz
 
@@ -60,7 +60,7 @@ namespace CSV {
 		cv::Mat M1, D1, M2, D2, R, T, m_Q;
 		cv::Mat atanMap, g2dmap;
 		std::vector<std::vector<cv::Mat>> imgGroupList;
-		std::vector<cv::Mat> unwrapPhaseList; //¾ø¶ÔÏàÎ»Í¼
+		std::vector<cv::Mat> unwrapPhaseList; //ç»å¯¹ç›¸ä½å›¾
 		std::vector<cv::Mat> undistortPhaseList; //
 		cv::Mat m_pointCloud;
 	private:

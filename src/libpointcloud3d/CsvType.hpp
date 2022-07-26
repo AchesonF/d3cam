@@ -27,7 +27,7 @@ namespace CSV {
 #define SHOW_PHASESHIFT_PATTERN 0
 
 //////////////////////////////////////////////////////////////////////////
-/// ¸ñÀ×ÏàÒÆËã·¨ºê¶¨Òå
+/// æ ¼é›·ç›¸ç§»ç®—æ³•å®å®šä¹‰
 #define  CSV_PI		  3.14159265358979323846
 #define  CSV_PI_HALF  1.57079632679489661923
 #define  CSV_PI_3HALF 4.71238898038468985769
@@ -53,12 +53,12 @@ namespace CSV {
 #define IM_PRJ_WIDTH IM_PRJ_WIDTH_1920
 #define IM_PRJ_HEIGHT IM_PRJ_HEIGHT_1080
 
-#define WHITE_BLACK_NUM  2  //°× ºÚ ¹² 2 ¸ö
-#define GRAY_CODE_NUM 7     //¸ñÀ×ÂëÍ¼ ¹² 7 ¸ö
-#define PHASE_SHIFT_NUM 4   //ÏàÒÆÍ¼ ¹² 4 ¸ö
+#define WHITE_BLACK_NUM  2  //ç™½ é»‘ å…± 2 ä¸ª
+#define GRAY_CODE_NUM 7     //æ ¼é›·ç å›¾ å…± 7 ä¸ª
+#define PHASE_SHIFT_NUM 4   //ç›¸ç§»å›¾ å…± 4 ä¸ª
 
 //////////////////////////////////////////////////////////////////////////
-	///ÄÚ²ÎÊı
+	///å†…å‚æ•°
 #define INTRINSIC_DISTORTED_MAX_LOOP_NUM		5
 #define INTRINSIC_FOCUS_IDX			0
 #define INTRINSIC_CENTER_IDX		2
@@ -75,7 +75,7 @@ namespace CSV {
 		CSV_OK = 0,
 		CSV_ERROR = -1,
 		
-		// Ïà»úÄÚ²Î´íÎóĞÅÏ¢
+		// ç›¸æœºå†…å‚é”™è¯¯ä¿¡æ¯
 		ERR_ILLEGAL_INTRINSIC_PARAM			= -10001,
 		ERR_INTRINSIC_CALC_DENOMINATOR_ZERO	= -10001,
 		ERR_INTRINSIC_DENOMINATOR_ZERO		= -10003,
@@ -204,11 +204,11 @@ namespace CSV {
 	class PointCloud
 	{
 	public:
-		int width;		// Í¼Ïñ¿í¶È
-		int height;		// Í¼Ïñ¸ß¶È
-		std::vector<int> x, y;		// ×ø±êË÷Òıx£¬y
-		std::vector<double> data;	// Éî¶ÈÍ¼
-		std::vector<int> alpah;		// Í¸Ã÷¶È
+		int width;		// å›¾åƒå®½åº¦
+		int height;		// å›¾åƒé«˜åº¦
+		std::vector<int> x, y;		// åæ ‡ç´¢å¼•xï¼Œy
+		std::vector<double> data;	// æ·±åº¦å›¾
+		std::vector<int> alpah;		// é€æ˜åº¦
 
 	private:
 

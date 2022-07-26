@@ -1,6 +1,3 @@
-//#pragma warning ( push )
-//#pragma warning ( disable : 4100 )
-
 #include<time.h> 
 #include <string>
 #include <vector>
@@ -8,9 +5,6 @@
 #include "tinyxml.h"
 #include "CalibFileInfo.hpp"
 #include "CsvType.hpp"
-
-//#define GLOG_OUTPUT
-//#define CHECK_ROBOT_TYPE
 
 
 #define CALIB_FILE_MAX_CAMERA_NUM		16
@@ -54,19 +48,6 @@ static std::vector<double> splitStringToDouble(const std::string &str){
 	return data;
 }
 
-static void createComment(TiXmlElement *parent, const std::string& comment) {
-	TiXmlComment *commentNode = new TiXmlComment();
-	commentNode->SetValue(comment.c_str());
-	parent->LinkEndChild(commentNode);
-}
-
-static void createXmlItem(TiXmlElement *parent, const std::string& nodeName, const std::string& value)
-{
-	TiXmlElement *pXmlElement = new TiXmlElement(nodeName.c_str());
-	TiXmlText * pXmlText = new TiXmlText(value.c_str());
-	pXmlElement->LinkEndChild(pXmlText);
-	parent->LinkEndChild(pXmlElement);
-}
 
 namespace CSV {
 	bool CalibFileInfo::loadV4_0(const char *filename)
@@ -92,20 +73,14 @@ namespace CSV {
 		version = atof(value);
 
 		bool loadResult = true;
-		do {//only once
+		do {
 			TiXmlElement* xmlCalibSubNode = NULL;
 
 			if ((xmlCalibSubNode = xmlnodeCalibration->FirstChildElement("calibrationBoardSize")) == NULL) { loadResult = false; break; }
 			board_length[0] = board_length[1] = board_length[2] = board_length[3] = atof(xmlCalibSubNode->GetText());
 			if ((xmlCalibSubNode = xmlnodeCalibration->FirstChildElement("calibType")) == NULL) { loadResult = false; break; }
 			calib_type = atoi(xmlCalibSubNode->GetText());
-#ifdef CHECK_ROBOT_TYPE
-			if (calib_type != CALIB_FIX_STEREO && calib_type != CALIB_MOVE_STEREO && calib_type != CALIB_NONROBO)
-			{
-				std::cout << "Invalid calib type " << calib_type;
-				break;
-			}
-#endif
+
 			if ((xmlCalibSubNode = xmlnodeCalibration->FirstChildElement("updateFlag")) != NULL) {
 				int flag = atoi(xmlCalibSubNode->GetText());
 				if (flag < 0 || flag >= UpdateFlagNum) flag = UpdateFlagNotUpdate;
@@ -118,7 +93,6 @@ namespace CSV {
 			move_center[0] = data[0]; move_center[1] = data[1]; move_center[2] = data[2];
 			move_range[0] = data[3]; move_range[1] = data[4]; move_range[2] = data[5];
 
-#pragma region "camera information"
 			TiXmlElement * xmlCamera = xmlnodeCalibration->FirstChildElement("camera");
 			if (NULL == xmlCamera) { loadResult = false; break; }
 			cam_info.number = atoi(xmlCamera->Attribute("cameraNumber"));
@@ -187,9 +161,6 @@ namespace CSV {
 				cam_info.calib_param.push_back(cameraCalibParam);
 			}
 			if (loadResult == false) break;
-#pragma endregion "camera information"
-
-#pragma region "projector information"
 
 			TiXmlElement * xmlProjector = xmlnodeCalibration->FirstChildElement("projector");
 			if (NULL == xmlProjector) { loadResult = false; break; }
@@ -256,8 +227,6 @@ namespace CSV {
 			}
 
 			if (false == loadResult) break;
-
-#pragma endregion "projector information"
 
 			//Robot information
 			if ((xmlCalibSubNode = xmlnodeCalibration->FirstChildElement("Robot")) == NULL) { loadResult = false; break; }
@@ -384,7 +353,6 @@ namespace CSV {
 			}
 		}
 
-#pragma region "check cameras"
 		const int cameraNum = this->cam_info.number;
 		if (cameraNum<0 || cameraNum > CALIB_FILE_MAX_CAMERA_NUM) {
 			std::cout << "Camera number should be between 0 and " << CALIB_FILE_MAX_CAMERA_NUM << std::endl;
@@ -413,7 +381,7 @@ namespace CSV {
 				return false;
 			}
 
-			double x[3], y[3], z[3], trans[3];
+			double x[3], y[3], z[3];//, trans[3];
 			x[0] = cam_info.calib_param[c].exparam[0];
 			y[0] = cam_info.calib_param[c].exparam[1];
 			z[0] = cam_info.calib_param[c].exparam[2];
@@ -423,9 +391,9 @@ namespace CSV {
 			x[2] = cam_info.calib_param[c].exparam[6];
 			y[2] = cam_info.calib_param[c].exparam[7];
 			z[2] = cam_info.calib_param[c].exparam[8];
-			trans[0] = cam_info.calib_param[c].exparam[9];
-			trans[1] = cam_info.calib_param[c].exparam[10];
-			trans[2] = cam_info.calib_param[c].exparam[11];
+			//trans[0] = cam_info.calib_param[c].exparam[9];
+			//trans[1] = cam_info.calib_param[c].exparam[10];
+			//trans[2] = cam_info.calib_param[c].exparam[11];
 			//unit vector
 			if (std::abs(x[0] * x[0] + x[1] * x[1] + x[2] * x[2] - 1.0) > 0.01 ||
 				std::abs(y[0] * y[0] + y[1] * y[1] + y[2] * y[2] - 1.0) > 0.01 ||
@@ -451,9 +419,9 @@ namespace CSV {
 				return false;
 			}
 		}
-#pragma endregion "check cameras"
 
 		return true;
 	}
 
 }
+

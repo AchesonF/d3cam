@@ -16,6 +16,7 @@ struct device_cfg_t {
 	float				dlp_brightness;
 
 	uint8_t				img_type;		// SUFFIX_BMP
+	char				*strSuffix;
 };
 
 struct depthimg_cfg_t {

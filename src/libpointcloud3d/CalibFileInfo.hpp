@@ -187,5 +187,4 @@ namespace CSV{
 	};
 }
 
-#pragma warning(pop)
 #endif

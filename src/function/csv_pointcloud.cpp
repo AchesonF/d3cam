@@ -22,6 +22,7 @@ extern "C" {
 using namespace std;
 using namespace std::chrono;
 using namespace CSV;
+using namespace cv;
 
 string to_zero_lead(const int value, const unsigned precision)
 {
@@ -30,31 +31,31 @@ string to_zero_lead(const int value, const unsigned precision)
 	return oss.str();
 }
 
-static void loadSrcImageEx(string &pathRoot, vector<vector<cv::Mat>> &imgGroupList)
+static void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 {
 	// 导入C1相机图像
-	vector<cv::Mat> src1list;
+	vector<Mat> src1list;
 	for (int i = 0; i < 13; i++) {
 		string path = pathRoot + "/" + gCSV->cfg.pointcloudcfg.imgPrefixNameL 
-			+ to_zero_lead(i + 1, 3) + ".bmp";
+			+ to_zero_lead(i + 1, 3) + gCSV->cfg.devicecfg.strSuffix;
 
 		cout << "Read Image : " << path << endl;
 
-		cv::Mat im = cv::imread(path, cv::IMREAD_GRAYSCALE);
+		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src1list.emplace_back(im);
 	}
 	imgGroupList.push_back(src1list);
 	cout << "Read Image Num : " << src1list.size() << endl;
 
 	// 导入2相机图像
-	vector<cv::Mat> src2list;
+	vector<Mat> src2list;
 	for (int i = 0; i < 13; i++) {
 		string path = pathRoot + "/" + gCSV->cfg.pointcloudcfg.imgPrefixNameR 
-		+ to_zero_lead(i + 1, 3) + ".bmp";
+		+ to_zero_lead(i + 1, 3) + gCSV->cfg.devicecfg.strSuffix;
 
 		cout << "Read Image : " << path << endl;
 
-		cv::Mat im = cv::imread(path, cv::IMREAD_GRAYSCALE);
+		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src2list.emplace_back(im);
 
 	}
@@ -82,7 +83,6 @@ int point_cloud_calc(void)
 
 	CSV::CsvCreatePoint3DParam param;
 	param.calibXml = string(gCSV->cfg.calibcfg.calibFile);
-	//param.outfile = string(gCSV->cfg.pointcloudcfg.outFileXYZ);
 	param.type = CSV::CSV_DataFormatType::FixPoint64bits;
 
 	CsvSetCreatePoint3DParam(param); //set params
@@ -93,7 +93,7 @@ int point_cloud_calc(void)
 	cout << param0.type << endl;
 
 	string imgRoot = string(gCSV->cfg.pointcloudcfg.imgRoot);
-	vector<vector<cv::Mat>> imgGroupList;
+	vector<vector<Mat>> imgGroupList;
 	loadSrcImageEx(imgRoot, imgGroupList);
 
 	vector<vector<CSV::CsvImageSimple>> imageGroups;
@@ -122,6 +122,19 @@ int point_cloud_calc(void)
 	gCSV->mvs.lastTimestamp = utility_get_microsecond();
 	log_debug("create3d take %ld us. %d", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp, result);
 
+	Mat out = Mat(rows, cols, CV_32FC3, pointCloud.m_point3DData.data());
+	ofstream outfile(gCSV->cfg.pointcloudcfg.outFileXYZ);
+	for (int i = 0; i < out.rows; i++) {
+		Vec3f *p0 = out.ptr<Vec3f>(i);
+		for (int j = 0; j < out.cols; j++) {
+			Vec3f p = p0[j];
+			if (isnan(p[0]) || isnan(p[1]) || isnan(p[2])){
+				continue;
+			}
+			outfile << p[0] << " " << p[1] << " " << p[2] << " " << "\n";
+		}
+	}
+	outfile.close();
 
 	return 0;
 

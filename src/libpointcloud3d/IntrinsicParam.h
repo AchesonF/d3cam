@@ -40,19 +40,19 @@ namespace CSV
 	private:
 		CsvStatus init();
 	public:
-		double	rms;	// Ïà»úÖØÍ¶Ó°Îó²î
-		double	chiph;	// Ğ¾Æ¬¸ß¶È£¬µ¥Î»£ºmm
-		double	chipw;	// Ğ¾Æ¬¿í¶È£¬µ¥Î»£ºmm
-		int		imh;	// Í¼Ïñ¸ß¶È£¬µ¥Î»£ºpixel
-		int		imw;	// Í¼Ïñ¿í¶È£¬µ¥Î»£ºpixel
-		double	focus;	// ¾µÍ·½¹¾à£¬µ¥Î»£ºmm
+		double	rms;	// ç›¸æœºé‡æŠ•å½±è¯¯å·®
+		double	chiph;	// èŠ¯ç‰‡é«˜åº¦ï¼Œå•ä½ï¼šmm
+		double	chipw;	// èŠ¯ç‰‡å®½åº¦ï¼Œå•ä½ï¼šmm
+		int		imh;	// å›¾åƒé«˜åº¦ï¼Œå•ä½ï¼špixel
+		int		imw;	// å›¾åƒå®½åº¦ï¼Œå•ä½ï¼špixel
+		double	focus;	// é•œå¤´ç„¦è·ï¼Œå•ä½ï¼šmm
 		// -          -
 		// | fx s  cx |
 		// | 0  fx cy |
 		// | 0  0  1  |
 		// -          - 
 		// 
-		double	param[INTRIN_PARAM_NUM];	// ÄÚ²Î£¬Êı×éË³Ğò£ºfx, fy, cx, cy, s, k1, k2, k3, p1, p2
+		double	param[INTRIN_PARAM_NUM];	// å†…å‚ï¼Œæ•°ç»„é¡ºåºï¼šfx, fy, cx, cy, s, k1, k2, k3, p1, p2
 	};
 }
 

@@ -66,7 +66,7 @@ namespace CSV {
 
 		csvMakeAtan2Map();
 		csvMakeg2dMap();
-		unwarpGrayCodePhaseShift(); //¼ÆËã¾ø¶ÔÏàÎ»
+		unwarpGrayCodePhaseShift(); //è®¡ç®—ç»å¯¹ç›¸ä½
 		stereoRectifyPhaseImage(); //stereoRectify
 		calcPointCloud();
 		return CSV_OK;
@@ -132,12 +132,12 @@ namespace CSV {
 			T_fromWtoC2 = (cv::Mat_<double>(3, 1) << m.x, m.y, m.z);
 		}
 
-		//OpenCVÁ¢Ìå±ê¶¨ÖĞµÄµÄR±íÊ¾ÓÒÏà»úÏà¶ÔÓÚ×óÏà»úµÄĞı×ª R_fromC1_toC2
+		//OpenCVç«‹ä½“æ ‡å®šä¸­çš„çš„Rè¡¨ç¤ºå³ç›¸æœºç›¸å¯¹äºå·¦ç›¸æœºçš„æ—‹è½¬ R_fromC1_toC2
 		cv::Mat R = R_fromWtoC2 * R_fromWtoC1.t();
 		cv::Mat T = T_fromWtoC2 - R * T_fromWtoC1;
 
 		bool isExchangeCameraPose = false;
-		if (T.at<double>(0, 0) < 0.0) { //C2 ÒªÔÚ C1 µÄ X Õı·½Ïò£¬·ñÔò¾ÍÊÇ·´µÄ
+		if (T.at<double>(0, 0) < 0.0) { //C2 è¦åœ¨ C1 çš„ X æ­£æ–¹å‘ï¼Œå¦åˆ™å°±æ˜¯åçš„
 			isExchangeCameraPose = true;
 		}
 
@@ -159,7 +159,7 @@ namespace CSV {
 		m_idxC1 = idxC1;
 		m_idxC2 = idxC2;
 		{
-			double d[INTRIN_PARAM_NUM]; // ÄÚ²Î£¬Êı×éË³Ğò£ºfx, fy, cx, cy, s, k1, k2, k3, p1, p2	
+			double d[INTRIN_PARAM_NUM]; // å†…å‚ï¼Œæ•°ç»„é¡ºåºï¼šfx, fy, cx, cy, s, k1, k2, k3, p1, p2	
 			vhead_param_->camparam_list[idxC1].inparam.getParam(d);
 			double fx = d[0], fy = d[1], cx = d[2], cy = d[3];
 			double k1 = d[5], k2 = d[6], k3 = d[7];
@@ -169,7 +169,7 @@ namespace CSV {
 			D1 = (cv::Mat_<double>(1, 5) << k1, k2, p1, p2, k3); // k1,k2,p1,p2,k3
 		}
 		{
-			double d[INTRIN_PARAM_NUM]; // ÄÚ²Î£¬Êı×éË³Ğò£ºfx, fy, cx, cy, s, k1, k2, k3, p1, p2	
+			double d[INTRIN_PARAM_NUM]; // å†…å‚ï¼Œæ•°ç»„é¡ºåºï¼šfx, fy, cx, cy, s, k1, k2, k3, p1, p2	
 			vhead_param_->camparam_list[idxC2].inparam.getParam(d);
 			double fx = d[0], fy = d[1], cx = d[2], cy = d[3];
 			double k1 = d[5], k2 = d[6], k3 = d[7];
@@ -202,7 +202,7 @@ namespace CSV {
 			T_fromWtoC2 = (cv::Mat_<double>(3, 1) << m.x, m.y, m.z);
 		}
 
-		//OpenCVÁ¢Ìå±ê¶¨ÖĞµÄµÄR±íÊ¾ÓÒÏà»úÏà¶ÔÓÚ×óÏà»úµÄĞı×ª R_fromC1_toC2
+		//OpenCVç«‹ä½“æ ‡å®šä¸­çš„çš„Rè¡¨ç¤ºå³ç›¸æœºç›¸å¯¹äºå·¦ç›¸æœºçš„æ—‹è½¬ R_fromC1_toC2
 		R = R_fromWtoC2 * R_fromWtoC1.t();
 		T = T_fromWtoC2 - R * T_fromWtoC1;
 	}
@@ -237,7 +237,7 @@ namespace CSV {
 	}
 
 
-	// ¾ùÖµÍ¼Ïñ
+	// å‡å€¼å›¾åƒ
 	void CsvMeasure3D::getMeanImage(cv::Mat& src, cv::Mat& mean) {
 		mean = cv::Mat(src.size(), CV_8UC1);
 		for (int y = 0; y < src.rows; y++) {
@@ -265,10 +265,10 @@ namespace CSV {
 	{
 		//src_list.size() == PHASE_SHIFT_NUM;
 
-		// Ïà¶ÔÏàÎ»°ü	
-		int offset = 0;
+		// ç›¸å¯¹ç›¸ä½åŒ…	
+		//int offset = 0;
 		float phase_value = 0;
-		int mean_value = 0;
+		//int mean_value = 0;
 		int rows = src_list[0].rows, cols = src_list[0].cols;
 		wrap_phase = cv::Mat(rows, cols, CV_32FC1);
 
@@ -279,10 +279,10 @@ namespace CSV {
 			const uchar* row_phase4_data = src_list[3].ptr<uchar>(r);
 			float* row_wrap_phase_data = wrap_phase.ptr<float>(r);
 			for (int c = 0; c < cols; c++) {
-				int x = row_phase1_data[c] - row_phase3_data[c] + 255;// +255 ÎªÁË²é±í
+				int x = row_phase1_data[c] - row_phase3_data[c] + 255;// +255 ä¸ºäº†æŸ¥è¡¨
 				int y = row_phase4_data[c] - row_phase2_data[c] + 255;
 				float m = atanMap.at<float>(y, x);
-				phase_value = m > 0 ? m : (m + CSV_PI_4HALF); // LUT²éÑ¯actan±í
+				phase_value = m > 0 ? m : (m + CSV_PI_4HALF); // LUTæŸ¥è¯¢actanè¡¨
 				row_wrap_phase_data[c] = phase_value;
 			}
 		}
@@ -294,7 +294,7 @@ namespace CSV {
 		grayCode = cv::Mat(wrap_phase.size(), CV_32SC1); //debug
 
 		unwrap_phase = cv::Mat(wrap_phase.size(), CV_32FC1);
-		// ¼ÆËã¾ø¶ÔÏàÎ»	
+		// è®¡ç®—ç»å¯¹ç›¸ä½	
 		cv::Mat_<int>& g2dmap_ = (cv::Mat_<int>&)g2dmap;
 		int rows = binary_list[0].rows, cols = binary_list[0].cols;
 		for (int r = 0; r < rows; r++) {
@@ -311,7 +311,7 @@ namespace CSV {
 			int* row_gray_code = grayCode.ptr<int>(r);
 
 			for (int c = 0; c < cols; c++) {
-				//¼ÆËã¸ñÀ×Âë
+				//è®¡ç®—æ ¼é›·ç 
 				int graycode6 = (row_bindata0[c] << 5) +
 					(row_bindata1[c] << 4) +
 					(row_bindata2[c] << 3) +
@@ -319,7 +319,7 @@ namespace CSV {
 					(row_bindata4[c] << 1) +
 					(row_bindata5[c]);
 				int graycode7 = (graycode6 << 1) + row_bindata6[c];
-				int k1 = g2dmap_(graycode6);// ¸ñÀ×Âë²é±í
+				int k1 = g2dmap_(graycode6);// æ ¼é›·ç æŸ¥è¡¨
 				int k2 = (g2dmap_(graycode7) + 1) >> 1;  // int((v2+1)/2)
 
 				row_gray_code[c] = k2; //debug
@@ -337,11 +337,11 @@ namespace CSV {
 
 		for (int group = 0; group < 2; group++) {
 			std::vector<cv::Mat> imgGroup = imgGroupList[group];
-			// 1 - ¾ùÖµÍ¼Ïñ
+			// 1 - å‡å€¼å›¾åƒ
 			cv::Mat mean;
 			getMeanImage(imgGroup[0], mean);
 
-			//2 -¸ñÀ×ÂëÍ¼Ïñ¶şÖµ»¯
+			//2 -æ ¼é›·ç å›¾åƒäºŒå€¼åŒ–
 			std::vector<cv::Mat> binaryList;
 			for (int i = WHITE_BLACK_NUM; i < GRAY_CODE_NUM + WHITE_BLACK_NUM; i++) {
 				cv::Mat grayImg = imgGroup[i];
@@ -356,7 +356,7 @@ namespace CSV {
 #endif
 			}
 
-			//3.ÏàÒÆÍ¼-Ïà¶ÔÏàÎ»£¨wrap£©
+			//3.ç›¸ç§»å›¾-ç›¸å¯¹ç›¸ä½ï¼ˆwrapï¼‰
 			cv::Mat wrap_phase;
 			std::vector<cv::Mat> phaseList;
 			for (int i = 0; i < PHASE_SHIFT_NUM; i++) {
@@ -371,7 +371,7 @@ namespace CSV {
 				cv::imwrite(f0001, vdisp);			
 			}
 #endif
-			//4.ÏàÒÆÍ¼-½â°ü£¨unwrap£©
+			//4.ç›¸ç§»å›¾-è§£åŒ…ï¼ˆunwrapï¼‰
 			cv::Mat unwrap_phase, grayCode;
 			csvUnwrapPhase(binaryList, unwrap_phase, wrap_phase, g2dmap, grayCode);
 #if (DEBUG_IMAGE_WRITE_FILE == 1)
@@ -438,7 +438,7 @@ namespace CSV {
 		std::cout << map11.type() << "  " << map12.type() << std::endl;
 		//std::cout << "pointsC1 :" << std::endl;
 		//for (size_t i = 0; i < pointsC1.size(); i++) {
-		//	//¸ù¾İ½ÃÕıÆ½ºóµÄÏñËØµã£¬ÕÒµ½½ÃÕıÇ°µÄÏñËØ
+		//	//æ ¹æ®çŸ«æ­£å¹³åçš„åƒç´ ç‚¹ï¼Œæ‰¾åˆ°çŸ«æ­£å‰çš„åƒç´ 
 		//	cv::Point p((int)pointsC1[i].x, (int)pointsC1[i].y);
 		//	float x = map11.at<float>(p.y, p.x);
 		//	float y = map12.at<float>(p.y, p.x);
@@ -446,7 +446,7 @@ namespace CSV {
 		//}
 		//std::cout << "pointsC2 :" << std::endl;
 		//for (size_t i = 0; i < pointsC2.size(); i++) {
-		//	//¸ù¾İ½ÃÕıÆ½ºóµÄÏñËØµã£¬ÕÒµ½½ÃÕıÇ°µÄÏñËØ
+		//	//æ ¹æ®çŸ«æ­£å¹³åçš„åƒç´ ç‚¹ï¼Œæ‰¾åˆ°çŸ«æ­£å‰çš„åƒç´ 
 		//	cv::Point p((int)pointsC2[i].x, (int)pointsC2[i].y);
 		//	float x = map21.at<float>(p.y, p.x);
 		//	float y = map22.at<float>(p.y, p.x);
@@ -548,7 +548,7 @@ namespace CSV {
 
 
 	// https://blog.csdn.net/yegeli/article/details/117354090
-	// Á¢ÌåĞ£ÕıÔ´Âë·ÖÎö(opencv)
+	// ç«‹ä½“æ ¡æ­£æºç åˆ†æ(opencv)
 	void CsvMeasure3D::csvStereoRectify(cv::Mat& M1, cv::Mat& D1, cv::Mat& M2, cv::Mat& D2, cv::Size imageSize,
 		cv::Mat& R, cv::Mat& T, cv::Mat& R1, cv::Mat& R2, cv::Mat& P1, cv::Mat& P2, cv::Mat& Q)
 	{
@@ -562,17 +562,17 @@ namespace CSV {
 			T.convertTo(T, CV_64F);
 		}
 
-		// (1)¹²Ãæ£ºÏÈ°ÑĞı×ª¾ØÕó±äÎªĞı×ªÏòÁ¿£¬¶ÔĞı×ªÏòÁ¿µÄÄ£³¤Æ½·Ö£¬ÕâÑùÊ¹Á½¸öÍ¼ÏñÆ½Ãæ¹²Ãæ£¬´ËÊ±ĞĞÎ´¶ÔÆë¡£
+		// (1)å…±é¢ï¼šå…ˆæŠŠæ—‹è½¬çŸ©é˜µå˜ä¸ºæ—‹è½¬å‘é‡ï¼Œå¯¹æ—‹è½¬å‘é‡çš„æ¨¡é•¿å¹³åˆ†ï¼Œè¿™æ ·ä½¿ä¸¤ä¸ªå›¾åƒå¹³é¢å…±é¢ï¼Œæ­¤æ—¶è¡Œæœªå¯¹é½ã€‚
 		cv::Mat om, r_r, t0, t;
 		cv::Rodrigues(R, om);
 		om *= -0.5;  // get average rotation
 
-		// (2)ĞĞ¶Ô×¼£º½¨Á¢ĞĞ¶Ô×¼»»ĞĞ¾ØÕóRrectÊ¹¼«µã×ª»»µ½ÎŞÇîÔ¶´¦¡£
-		cv::Rodrigues(om, r_r); // Ğı×ªÏòÁ¿×ª»»ÎªĞı×ª¾ØÕó
+		// (2)è¡Œå¯¹å‡†ï¼šå»ºç«‹è¡Œå¯¹å‡†æ¢è¡ŒçŸ©é˜µRrectä½¿æç‚¹è½¬æ¢åˆ°æ— ç©·è¿œå¤„ã€‚
+		cv::Rodrigues(om, r_r); // æ—‹è½¬å‘é‡è½¬æ¢ä¸ºæ—‹è½¬çŸ©é˜µ
 		//cout << r_r << endl;
 
 		t0 = r_r * T;
-		t = r_r * -T; // T ´Ó×óÖ¸ÏòÓÒ£¬¶ø´ÓÓÒÏò×óÊÇÏà»ú×ø±êÏµµÄÕıÏò£¬ËùÒÔÕâÀï¼Ó¸ººÅ
+		t = r_r * -T; // T ä»å·¦æŒ‡å‘å³ï¼Œè€Œä»å³å‘å·¦æ˜¯ç›¸æœºåæ ‡ç³»çš„æ­£å‘ï¼Œæ‰€ä»¥è¿™é‡ŒåŠ è´Ÿå·
 		//cout << t << endl;
 		int idx = 0;
 		if (fabs(T.at<double>(0, 0)) > fabs(T.at<double>(1, 0)))
@@ -675,15 +675,15 @@ namespace CSV {
 		}
 	}
 
-	//²ÎÊıËµÃ÷£º
-	//cameraMatrix¡ª¡ªÊäÈëµÄÉãÏñÍ·ÄÚ²ÎÊı¾ØÕó£¨3X3¾ØÕó£©
-	//distCoeffs¡ª¡ªÊäÈëµÄÉãÏñÍ·»û±äÏµÊı¾ØÕó£¨5X1¾ØÕó£©
-	//R¡ª¡ªÊäÈëµÄµÚÒ»ºÍµÚ¶şÉãÏñÍ·×ø±êÏµÖ®¼äµÄĞı×ª¾ØÕó
-	//newCameraMatrix¡ª¡ªÊäÈëµÄĞ£ÕıºóµÄ3X3ÉãÏñ»ú¾ØÕó
-	//size¡ª¡ªÉãÏñÍ·²É¼¯µÄÎŞÊ§ÕæÍ¼Ïñ³ß´ç
-	//m1type¡ª¡ªmap1µÄÊı¾İÀàĞÍ£¬¿ÉÒÔÊÇCV_32FC1»òCV_16SC2
-	//map1¡ª¡ªÊä³öµÄX×ø±êÖØÓ³Éä²ÎÊı
-	//map2¡ª¡ªÊä³öµÄY×ø±êÖØÓ³Éä²ÎÊı
+	//å‚æ•°è¯´æ˜ï¼š
+	//cameraMatrixâ€”â€”è¾“å…¥çš„æ‘„åƒå¤´å†…å‚æ•°çŸ©é˜µï¼ˆ3X3çŸ©é˜µï¼‰
+	//distCoeffsâ€”â€”è¾“å…¥çš„æ‘„åƒå¤´ç•¸å˜ç³»æ•°çŸ©é˜µï¼ˆ5X1çŸ©é˜µï¼‰
+	//Râ€”â€”è¾“å…¥çš„ç¬¬ä¸€å’Œç¬¬äºŒæ‘„åƒå¤´åæ ‡ç³»ä¹‹é—´çš„æ—‹è½¬çŸ©é˜µ
+	//newCameraMatrixâ€”â€”è¾“å…¥çš„æ ¡æ­£åçš„3X3æ‘„åƒæœºçŸ©é˜µ
+	//sizeâ€”â€”æ‘„åƒå¤´é‡‡é›†çš„æ— å¤±çœŸå›¾åƒå°ºå¯¸
+	//m1typeâ€”â€”map1çš„æ•°æ®ç±»å‹ï¼Œå¯ä»¥æ˜¯CV_32FC1æˆ–CV_16SC2
+	//map1â€”â€”è¾“å‡ºçš„Xåæ ‡é‡æ˜ å°„å‚æ•°
+	//map2â€”â€”è¾“å‡ºçš„Yåæ ‡é‡æ˜ å°„å‚æ•°
 
 	// https://github.com/egonSchiele/OpenCV/blob/master/modules/imgproc/src/undistort.cpp
 	void CsvMeasure3D::csvInitUndistortRectifyMap(cv::Mat& cameraMatrix, cv::Mat& distCoeffs,
@@ -697,7 +697,7 @@ namespace CSV {
 
 		//CV_Assert(A.size() == Size(3, 3) && A.size() == R.size());
 		//CV_Assert(Ar.size() == Size(3, 3) || Ar.size() == Size(4, 3));
-		cv::Mat_<double> iR = (Ar.colRange(0, 3)*R).inv(cv::DECOMP_LU); //Ê¹ÓÃnewCameraMatrixµÄÄæ£¬ÏñËØ×ø±êÏµ×ªÏà»ú×ø±êÏµ
+		cv::Mat_<double> iR = (Ar.colRange(0, 3)*R).inv(cv::DECOMP_LU); //ä½¿ç”¨newCameraMatrixçš„é€†ï¼Œåƒç´ åæ ‡ç³»è½¬ç›¸æœºåæ ‡ç³»
 		const double* ir = &iR(0, 0);
 
 		double u0 = A.at<double>(0, 2), v0 = A.at<double>(1, 2);
@@ -717,7 +717,7 @@ namespace CSV {
 		{
 			float* m1f = (float*)(map1.data + map1.step*i);
 			float* m2f = (float*)(map2.data + map2.step*i);
-			short* m1 = (short*)m1f;
+			//short* m1 = (short*)m1f;
 			//ushort* m2 = (ushort*)m2f;
 			double _x = i * ir[1] + ir[2], _y = i * ir[4] + ir[5], _w = i * ir[7] + ir[8];
 
@@ -782,7 +782,7 @@ namespace CSV {
 		cv::Mat C2 = undistortPhaseList[1];
 		
 		int rows = C1.rows, cols = C1.cols;
-		cv::Mat disparityImage(cv::Size(cols, rows), CV_32FC1); //ÊÓ²îÍ¼
+		cv::Mat disparityImage(cv::Size(cols, rows), CV_32FC1); //è§†å·®å›¾
 
 		
 		CsvStereoMatching csvSM;

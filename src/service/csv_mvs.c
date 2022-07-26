@@ -604,27 +604,25 @@ suffix : 后缀类型
 static int generate_image_filename (char *path, uint16_t group, 
 	int idx, int lr, uint8_t suffix, char *img_file)
 {
-	char *str_suffix = NULL;
-
 	switch (suffix) {
 	case SUFFIX_PNG:
-		str_suffix = ".png";
+		gCSV->cfg.devicecfg.strSuffix = ".png";
 		break;
 	case SUFFIX_JPG:
-		str_suffix = ".jpg";
+		gCSV->cfg.devicecfg.strSuffix = ".jpg";
 		break;
 	case SUFFIX_BMP:
 	default:
-		str_suffix = ".bmp";
+		gCSV->cfg.devicecfg.strSuffix = ".bmp";
 		break;
 	}
 
 	if (idx == 0) {
 		snprintf(img_file, 128, "%s/CSV_%03dC%d%s", 
-			path, group, lr+1, str_suffix);
+			path, group, lr+1, gCSV->cfg.devicecfg.strSuffix);
 	} else {
 		snprintf(img_file, 128, "%s/CSV_%03dC%dS00P%03d%s", 
-			path, group, lr+1, idx, str_suffix);
+			path, group, lr+1, idx, gCSV->cfg.devicecfg.strSuffix);
 	}
 
 	log_debug("img : '%s'", img_file);

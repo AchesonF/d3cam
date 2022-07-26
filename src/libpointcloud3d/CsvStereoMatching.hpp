@@ -24,10 +24,10 @@ namespace CSV
 		int settingZmin;					// Minimum drawing depth (Term : mm)
 		int settingZmax;					// Maximum depth during drawing
 		//
-		int min_disparity;		// ×îĞ¡ÊÓ²î
-		int	max_disparity;		// ×î´óÊÓ²î
+		int min_disparity;		// æœ€å°è§†å·®
+		int	max_disparity;		// æœ€å¤§è§†å·®
 
-		float phaseOffsetThreshold;	// Í¬ÃûµãÏàÎ»×î´óÆ«²îãĞÖµ
+		float phaseOffsetThreshold;	// åŒåç‚¹ç›¸ä½æœ€å¤§åå·®é˜ˆå€¼
 	};
 }
 

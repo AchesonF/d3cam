@@ -95,7 +95,7 @@ namespace CSV{
 		}
 
 		bool transformFromBytes(const std::vector<unsigned char> &data) {
-			int allBytes = 4;//sizeof(allBytes)
+			unsigned int allBytes = 4;//sizeof(allBytes)
 			allBytes += 16;//m_fixType,m_pointFrame
 			allBytes += 3 * 4;//sizeof(m_minPoint3D)
 			allBytes += 4;//sizeof(point3DNum)

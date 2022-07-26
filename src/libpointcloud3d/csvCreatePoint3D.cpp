@@ -53,9 +53,9 @@ namespace CSV {
 		std::vector<std::vector<cv::Mat>> imageGroup;
 
 		int rows = inImages[0][0].m_height, cols = inImages[0][0].m_width;
-		for (int g = 0; g < inImages.size(); g++) {
+		for (unsigned int g = 0; g < inImages.size(); g++) {
 			std::vector<cv::Mat> imgs;
-			for (int i = 0; i < inImages[g].size(); i++) {
+			for (unsigned int i = 0; i < inImages[g].size(); i++) {
 				const CsvImageSimple* m = &(inImages[g][i]);
 				void* data = static_cast<void*>(m->m_data);
 				cv::Mat img(rows, cols, CV_8UC1, data, m->m_widthStep);

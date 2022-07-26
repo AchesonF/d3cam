@@ -14,7 +14,7 @@ namespace CSV {
 		CameraParam();
 		
 		/*
-		*@brief  设置相机参数
+		*@brief  璁剧疆鐩告満鍙傛暟
 		*@author HORSETAIL
 		*@param[out] 
 		*@param[in]  const CameraParam & param  
@@ -23,7 +23,7 @@ namespace CSV {
 		int set(const CameraParam& param);
 
 		/*
-		*@brief  设置相机参数
+		*@brief  璁剧疆鐩告満鍙傛暟
 		*@author HORSETAIL
 		*@param[out] 
 		*@param[in]  const IntrinsicParam & inparam  
@@ -51,9 +51,9 @@ namespace CSV {
 		int setExtr(const ExtrinsicParam& exparam);
 
 	public:
-		// 相机内参
+		// 鐩告満鍐呭弬
 		IntrinsicParam inparam;
-		// 相机外参
+		// 鐩告満澶栧弬
 		ExtrinsicParam exparam;
 	};
 }
