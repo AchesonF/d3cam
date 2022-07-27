@@ -15,6 +15,12 @@ if (USING_SPNG)
 	set(LIB_SPNG "spng")
 endif ()
 
+if (USING_ZIP)
+	add_subdirectory(libzip)
+
+	set(LIB_ZIP "zip")
+endif ()
+
 # add some include directories
 #include_directories()
 
@@ -49,6 +55,7 @@ target_link_libraries(${EXE_TARGET}
 	${LIB_WEB_SERVER}
 	pointcloud3d
 	${LIB_SPNG}
+	${LIB_ZIP}
 )
 
 
