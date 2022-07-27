@@ -57,7 +57,7 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
     int len_err = 0;
     struct csv_mvs_t *pMVS = &gCSV->mvs;
 
-	csv_dlp_just_write(CMD_BRIGHT);
+	csv_dlp_just_write(DLP_CMD_BRIGHT);
 
 	ret = csv_mvs_cams_grab_both(pMVS);
 	if (ret == 0) {
@@ -137,7 +137,7 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
     int len_err = 0;
     struct csv_mvs_t *pMVS = &gCSV->mvs;
 
-	csv_dlp_just_write(CMD_BRIGHT);
+	csv_dlp_just_write(DLP_CMD_BRIGHT);
 
 	ret = csv_mvs_cams_grab_both(pMVS);
 	if (ret == 0) {

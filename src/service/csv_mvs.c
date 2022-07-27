@@ -427,17 +427,17 @@ int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime)
 			errNum++;
 		}
 */
-		if (pCAM->expoTime.fMax < pDevC->exposure_time) {
-			pDevC->exposure_time = pCAM->expoTime.fMax;
+		if (pCAM->expoTime.fMax < pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime) {
+			pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime = pCAM->expoTime.fMax;
 		}
 
-		if (pCAM->expoTime.fMin > pDevC->exposure_time) {
-			pDevC->exposure_time = pCAM->expoTime.fMin;
+		if (pCAM->expoTime.fMin > pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime) {
+			pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime = pCAM->expoTime.fMin;
 		}
 
-		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "ExposureTime", pDevC->exposure_time);
+		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "ExposureTime", pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime);
 		if (MV_OK == nRet) {
-			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->sn, pDevC->exposure_time);
+			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->sn, pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime);
 		} else {
 			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->sn, nRet);
 			errNum++;
@@ -793,7 +793,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 	}
 
 	// 1 亮光
-	ret = csv_dlp_just_write(CMD_BRIGHT);
+	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -816,9 +816,9 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 
 			memset(img_name, 0, 256);
 			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
-				pDevC->img_type, img_name);
+				pDevC->imageFormat, img_name);
 			ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, 
-				pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->img_type, img_name, 0);
+				pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->imageFormat, img_name, 0);
 		} else {
 			log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 				pCAM->sn, idx, i, nRet);
@@ -835,7 +835,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 	idx++;
 
 	// 22 标定
-	ret = csv_dlp_just_write(CMD_DEMARCATE);
+	ret = csv_dlp_just_write(DLP_CMD_DEMARCATE);
 
 	while (idx < nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
@@ -860,9 +860,9 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 
 				memset(img_name, 0, 256);
 				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
-					pDevC->img_type, img_name);
+					pDevC->imageFormat, img_name);
 				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, 
-					pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->img_type, img_name, 0);
+					pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->imageFormat, img_name, 0);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->sn, idx, i, nRet);
@@ -879,7 +879,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 		idx++;
 	}
 
-	if (SUFFIX_PNG == pDevC->img_type) {
+	if (SUFFIX_PNG == pDevC->imageFormat) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
 	}
 
@@ -902,7 +902,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	// 13 高速光
-	ret = csv_dlp_just_write(CMD_HIGH_SPEED);
+	ret = csv_dlp_just_write(DLP_CMD_HIGHSPEED);
 
 	pMVS->firstTimestamp = utility_get_microsecond();
 
@@ -932,9 +932,9 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 				}
 				memset(img_name, 0, 256);
 				generate_image_filename(pPC->imgRoot, 1, idx, i, 
-					pDevC->img_type, img_name);
+					pDevC->imageFormat, img_name);
 				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, 
-					pCAM->sizePayload.nCurValue, pDevC->img_type, img_name, end_pc);
+					pCAM->sizePayload.nCurValue, pDevC->imageFormat, img_name, end_pc);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->sn, idx, i, nRet);
@@ -955,7 +955,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	pMVS->lastTimestamp = utility_get_microsecond();
 	log_debug("highspeed 13 take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
-	if (SUFFIX_PNG == pDevC->img_type) {
+	if (SUFFIX_PNG == pDevC->imageFormat) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
 	} else {
 		if (pPC->enable) {

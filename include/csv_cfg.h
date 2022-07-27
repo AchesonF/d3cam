@@ -5,17 +5,22 @@
 extern "C" {
 #endif
 
+struct dlp_cfg_t {
+	char				name[64];
+	float				rate;
+	float				brightness;
+	float				expoTime;
+};
+
 struct device_cfg_t {
 	int					device_type;
 	uint8_t				camera_leftright_type;
 	uint8_t				camera_img_type;
-	float				exposure_time;
 	float				exposure_time_for_rgb;
 
-	float				dlp_rate;
-	float				dlp_brightness;
+	struct dlp_cfg_t	dlpcfg[TOTAL_DLP_CMDS];
 
-	uint8_t				img_type;		// SUFFIX_BMP
+	uint8_t				imageFormat;		// SUFFIX_BMP
 	char				*strSuffix;
 };
 

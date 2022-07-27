@@ -80,7 +80,6 @@ extern "C" {
 
 #include "csv_hb.h"
 #include "csv_file.h"
-#include "csv_cfg.h"
 #include "csv_xml.h"
 #include "csv_eth.h"
 #include "csv_gpi.h"
@@ -99,6 +98,7 @@ extern "C" {
 #include "csv_mvs.h"
 #include "csv_gev.h"
 #include "csv_so.h"
+#include "csv_cfg.h"
 #include "csv_main.h"
 
 #include "log.h"

@@ -1367,9 +1367,37 @@ int csv_gvsp_sendto (int fd, struct sockaddr_in *peer, uint8_t *txbuf, uint32_t 
 		(struct sockaddr *)&peer, size_len);
 }
 
-int csv_gvsp_packet_leader (void)
+int csv_gvsp_packet_leader (struct gvsp_stream_t *pStream, 
+	uint8_t *imgData, uint32_t imgLength, uint16_t width, uint16_t height)
 {
 
+/*
+    GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
+    pHdr->status				= htons(GEV_STATUS_SUCCESS);
+	pHdr->flag					= 0;
+	pHdr->ei					= 0;
+	pHdr->packet_format			= 0;
+	pHdr->packet_id				= pStream->packetid;
+	
+
+    pHdr->packet_format = htonl((GVSP_PACKET_FMT_LEADER << 24) | (_nPacketId & 0xffffff));
+
+    GVSP_IMAGE_DATA_LEADER* pDataLeader = (GVSP_IMAGE_DATA_LEADER*)(_cGvspPacket + sizeof(GVSP_PACKET_HEADER));
+    pDataLeader->reserved       = 0;
+    pDataLeader->payload_type   = htons(PayloadType);
+    pDataLeader->timestamp_high = htonl(0);  // TODO
+    pDataLeader->timestamp_low  = htonl(0);
+    pDataLeader->pixel_format   = htonl(nPixelFmt); // TODO
+    pDataLeader->size_x         = htonl(nSizeX);
+    pDataLeader->size_y         = htonl(nSizeY);
+    pDataLeader->offset_x       = htonl(0);  // TODO
+    pDataLeader->offset_y       = htonl(0);
+    pDataLeader->padding_x      = htons(0);
+    pDataLeader->padding_y      = htons(0);
+
+    //return (sizeof(GVSP_PACKET_HEADER) + sizeof(GVSP_IMAGE_DATA_LEADER));
+
+*/
 	return 0;
 }
 
@@ -1392,7 +1420,8 @@ static int csv_gvsp_image_fetch (struct gvsp_stream_t *pStream,
 		return -1;
 	}
 
-
+	pStream->packetid = 0;
+	
 
 
 
@@ -1641,21 +1670,21 @@ int csv_gvsp_client_thread (struct gvsp_stream_t *pStream)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     if (pthread_mutex_init(&pStream->mutex_stream, NULL) != 0) {
-		log_err("ERROR : mutex %s", pStream->name_stream);
+		log_err("ERROR : mutex '%s'", pStream->name_stream);
         return -1;
     }
 
     if (pthread_cond_init(&pStream->cond_stream, NULL) != 0) {
-		log_err("ERROR : cond %s", pStream->name_stream);
+		log_err("ERROR : cond '%s'", pStream->name_stream);
         return -1;
     }
 
 	ret = pthread_create(&pStream->thr_stream, &attr, csv_gvsp_client_loop, (void *)pStream);
 	if (ret < 0) {
-		log_err("ERROR : create pthread %s", pStream->name_stream);
+		log_err("ERROR : create pthread '%s'", pStream->name_stream);
 		return -1;
 	} else {
-		log_info("OK : create pthread %s @ (%p)", pStream->name_stream, pStream->thr_stream);
+		log_info("OK : create pthread '%s' @ (%p)", pStream->name_stream, pStream->thr_stream);
 	}
 
 	return ret;

@@ -14,6 +14,7 @@ extern "C" {
 #define GEV_DEVICE_MODEL_NAME		"CS-3D001-28HS"
 #define GEV_XML_FILENAME			GEV_DEVICE_MODEL_NAME ".zip" //GEV_DEVICE_MODEL_NAME ".xml" // GEV_DEVICE_MODEL_NAME ".zip" 
 
+#define GVSP_PACKET_MAX_SIZE		(9000)
 
 enum {
 	GEV_REG_TYPE_NONE		= 0,
@@ -74,10 +75,13 @@ struct gvsp_stream_t {
 	uint32_t				blockid;
 	uint32_t				packetid;
 	uint32_t				re_packetid;	///< 请求重发id
-	uint16_t				port;		///< 本地系统分配端口号
-	struct sockaddr_in		peer_addr;
+	uint16_t				port;			///< 本地系统分配端口号
+	struct sockaddr_in		peer_addr;		///< 目标地址/端口
 
 	struct stream_list_t	head_stream;
+
+	uint8_t					bufSend[GVSP_PACKET_MAX_SIZE];
+	uint32_t				lenSend;
 
 	const char				*name_stream;	///< 流
 	pthread_t				thr_stream;		///< ID

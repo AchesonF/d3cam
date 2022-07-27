@@ -17,12 +17,28 @@ int csv_cfg_init (void)
 	pDevC->device_type = 0;
 	pDevC->camera_leftright_type = false;
 	pDevC->camera_img_type = true;
-	pDevC->exposure_time = 40000.0f;
 	pDevC->exposure_time_for_rgb = 10000.0f;
-	pDevC->dlp_rate = 0x002D;
-	pDevC->dlp_brightness = 700;
-	pDevC->img_type = SUFFIX_BMP;
+	pDevC->imageFormat = SUFFIX_BMP;
 	pDevC->strSuffix = ".bmp";
+	strcpy(pDevC->dlpcfg[DLP_CMD_NORMAL].name, "normal");
+	pDevC->dlpcfg[DLP_CMD_NORMAL].rate = 0x50;
+	pDevC->dlpcfg[DLP_CMD_NORMAL].brightness = 700;
+	pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime = 30000;
+
+	strcpy(pDevC->dlpcfg[DLP_CMD_DEMARCATE].name, "demarcate");
+	pDevC->dlpcfg[DLP_CMD_DEMARCATE].rate = 0x50;
+	pDevC->dlpcfg[DLP_CMD_DEMARCATE].brightness = 700;
+	pDevC->dlpcfg[DLP_CMD_DEMARCATE].expoTime = 40000;
+
+	strcpy(pDevC->dlpcfg[DLP_CMD_BRIGHT].name, "bright");
+	pDevC->dlpcfg[DLP_CMD_BRIGHT].rate = 0x50;
+	pDevC->dlpcfg[DLP_CMD_BRIGHT].brightness = 700;
+	pDevC->dlpcfg[DLP_CMD_BRIGHT].expoTime = 40000;
+
+	strcpy(pDevC->dlpcfg[DLP_CMD_HIGHSPEED].name, "highspeed");
+	pDevC->dlpcfg[DLP_CMD_HIGHSPEED].rate = 0x50;
+	pDevC->dlpcfg[DLP_CMD_HIGHSPEED].brightness = 700;
+	pDevC->dlpcfg[DLP_CMD_HIGHSPEED].expoTime = 40000;
 
 	pDepC->numDisparities = 816;
 	pDepC->blockSize = 21;

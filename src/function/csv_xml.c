@@ -383,12 +383,86 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 	return 0;
 }
 
+static int csv_xml_DlpAttribute (
+	struct csv_xml_t *pXML, int inode, uint8_t mode)
+{
+	uint32_t nums = 0;
+	struct key_value_pair_t key_pair[6];
+	struct dlp_cfg_t *pDlp = &gCSV->cfg.devicecfg.dlpcfg[inode];
+
+	xml_strlcpy(key_pair[nums].key, "name", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDlp->name;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "rate", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDlp->rate;
+	key_pair[nums].value_type = XML_VALUE_FLOAT;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "brightness", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDlp->brightness;
+	key_pair[nums].value_type = XML_VALUE_FLOAT;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "expoTime", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDlp->expoTime;
+	key_pair[nums].value_type = XML_VALUE_FLOAT;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	int ret = 0;
+	if (mode == XML_GET) {
+		ret = xml_get_node_data(pXML->pDoc, pXML->pNode3,
+			"DlpCfg", key_pair, nums, inode);
+	} else {
+		ret = xml_set_node_data(pXML->pDoc, pXML->pNode3,
+			"DlpCfg", key_pair, nums, inode);
+	}
+
+	if (ret != 0) {
+		log_info("ERROR : DlpCfg");
+		return -1;
+	}
+
+	pXML->pNode4 = xml_get_node(pXML->pNode3, "DlpCfg", inode);
+	if (pXML->pNode4 == NULL) {
+		return -1;
+	}
+
+	char attr[32] = {0};
+	memset(attr, 0, 32);
+	sprintf(attr, "%d", inode);
+	xmlSetProp(pXML->pNode4, BAD_CAST "id", BAD_CAST attr);
+
+	return 0;
+}
+
+static int csv_xml_DlpParameters (
+	struct csv_xml_t *pXML, uint8_t mode)
+{
+	pXML->pNode3 = xml_get_node(pXML->pNode2, "DlpParameters", 0);
+	if (pXML->pNode3 == NULL) {
+		return -1;
+	}
+
+	int i = 0;
+	for (i = 0; i < TOTAL_DLP_CMDS; i++) {
+		csv_xml_DlpAttribute(pXML, i, mode);
+	}
+
+	return 0;
+}
+
 static int csv_xml_DeviceParameters (
 	struct csv_xml_t *pXML, uint8_t mode)
 {
 	int ret = 0;
 	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[10];
+	struct key_value_pair_t key_pair[6];
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	xml_strlcpy(key_pair[nums].key, "device_type", MAX_KEY_SIZE);
@@ -409,32 +483,14 @@ static int csv_xml_DeviceParameters (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
-	xml_strlcpy(key_pair[nums].key, "exposure_time", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->exposure_time;
-	key_pair[nums].value_type = XML_VALUE_FLOAT;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
 	xml_strlcpy(key_pair[nums].key, "exposure_time_for_rgb", MAX_KEY_SIZE);
 	key_pair[nums].value = &pDevC->exposure_time_for_rgb;
 	key_pair[nums].value_type = XML_VALUE_FLOAT;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
-	xml_strlcpy(key_pair[nums].key, "dlp_rate", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->dlp_rate;
-	key_pair[nums].value_type = XML_VALUE_FLOAT;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "dlp_brightness", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->dlp_brightness;
-	key_pair[nums].value_type = XML_VALUE_FLOAT;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "img_type", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->img_type;
+	xml_strlcpy(key_pair[nums].key, "imageFormat", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDevC->imageFormat;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -451,6 +507,13 @@ static int csv_xml_DeviceParameters (
 		log_info("ERROR : DeviceParameters");
 		return -1;
 	}
+
+	pXML->pNode2 = xml_get_node(pXML->pNode, "DeviceParameters", 0);
+	if (pXML->pNode2 == NULL) {
+		return -1;
+	}
+
+	csv_xml_DlpParameters(pXML, mode);
 
 	if (mode == XML_SET) {
 		pXML->SaveFile = true;

@@ -21,19 +21,19 @@ extern "C" {
 #define DLP_HEAD_B			(0xAA)
 
 // 类别
+#define CMD_NORMAL			(0x01)	// 13 普通采图
+#define CMD_DEMARCATE		(0x02)	// 22 标定
+#define CMD_BRIGHT			(0x05)	// 1 亮光
+#define CMD_HIGH_SPEED		(0x0A)	// 13 高速采图
+
 enum {
-	CMD_PINSTRIPE				= (0x01),	// 12 细条纹
-	CMD_DEMARCATE				= (0x02),	// 22 标定
-	CMD_WIDISTRIPE				= (0x03),	// 12 宽条纹
-	CMD_FOCUS					= (0x04),	// 1 调焦
-	CMD_BRIGHT					= (0x05),	// 1 亮光
-	CMD_SINGLE_SINE				= (0x06),	// 1 单张正弦
-	CMD_SINGLE_WIDESTRIPE_SINE	= (0x07),	// 1 单张宽条纹正弦
-	CMD_HIGH_SPEED				= (0x0A),	// 13 高速光
+	DLP_CMD_NORMAL				= (0),
+	DLP_CMD_DEMARCATE			= (1),
+	DLP_CMD_BRIGHT				= (2),
+	DLP_CMD_HIGHSPEED			= (3),
 
-	TOTAL_CMDS
+	TOTAL_DLP_CMDS				= (4)
 };
-
 
 
 
@@ -50,15 +50,19 @@ struct csv_dlp_t {
 
 	struct csv_tty_param_t	param;
 
+	uint8_t					rate;			///< 帧率
+	uint16_t				brightness;		///< 亮度
+	uint32_t				expoTime;		///< 曝光时间
+
 	const char				*name_dlp;		///< 消息
 	pthread_t				thr_dlp;		///< ID
 	pthread_mutex_t			mutex_dlp;		///< 锁
 	pthread_cond_t			cond_dlp;		///< 条件
 };
 
-extern int csv_dlp_just_write (uint8_t cmd);
+extern int csv_dlp_just_write (uint8_t idx);
 
-extern int csv_dlp_write_and_read (uint8_t cmd);
+extern int csv_dlp_write_and_read (uint8_t idx);
 
 extern int csv_dlp_init (void);
 
