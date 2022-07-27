@@ -124,14 +124,14 @@ int csv_tcp_local_accept (void)
     so_linger.l_linger = 0;
     ret = setsockopt(fd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
     if (ret < 0) {
-        log_err("ERROR : setsockopt %s", pTCPL->name);
+        log_err("ERROR : setsockopt 'SO_LINGER'");
         close(fd);
 
         return ret;
     }
 
     // 断线探测
-    int keepalive = 1;	// 开启 keepalive 属性
+/*    int keepalive = 1;	// 开启 keepalive 属性
     int keepidle = 5;		// 如果5s内无任何数据往来，进行探测
     int keepinterval = 3;	// 探测时发包的时间间隔3s
     int keepcount = 2;	// 探测尝试的次数。如果第1次探测包有响应，则后续不再发。
@@ -139,8 +139,8 @@ int csv_tcp_local_accept (void)
     setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, (void*)&keepidle, sizeof(keepidle));
     setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, (void*)&keepinterval, sizeof(keepinterval));
     setsockopt(fd, SOL_TCP, TCP_KEEPCNT, (void*)&keepcount, sizeof(keepcount));
-
-	int opt = 10*1024*1024;	// for send big data
+*/
+	int opt = 60*1024*1024;	// for send big data
 	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(int));
 
 

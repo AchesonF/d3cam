@@ -559,7 +559,7 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 	struct cam_spec_t *pCAM = NULL;
 
 	if (pMVS->grabing) {
-		return -1;
+		return -2;
 	}
 
 	pMVS->grabing = true;
@@ -569,11 +569,12 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 
 		if ((!pCAM->opened)||(NULL == pCAM->pHandle)||(NULL == pCAM->imgData)) {
 			errNum++;
+			nRet = -1;
 			continue;
 		}
 
 		memset(pCAM->imgData, 0x00, pCAM->stParam.nCurValue);
-		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+		memset(&pCAM->imageInfo, 0x00, sizeof(MV_FRAME_OUT_INFO_EX));
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
 			pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
 		if (nRet == MV_OK) {
@@ -786,7 +787,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	if (pMVS->grabing) {
-		return -1;
+		return -2;
 	}
 
 	if ((NULL == pCALIB->path)
@@ -894,7 +895,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	if (pMVS->grabing) {
-		return -1;
+		return -2;
 	}
 
 	pMVS->grabing = true;

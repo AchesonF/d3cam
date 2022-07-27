@@ -117,8 +117,9 @@ int point_cloud_calc(void)
 	csvCreatePoint3D(imageGroups, pointCloud);
 
 	gCSV->mvs.lastTimestamp = utility_get_microsecond();
-	log_debug("create3d take %ld us. %d", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp);
+	log_debug("create3d take %ld us.", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp);
 
+	gCSV->mvs.firstTimestamp = utility_get_microsecond();
 	Mat out = Mat(rows, cols, CV_32FC3, pointCloud.m_point3DData.data());
 	ofstream outfile(gCSV->cfg.pointcloudcfg.outFileXYZ);
 	for (int i = 0; i < out.rows; i++) {
@@ -132,6 +133,8 @@ int point_cloud_calc(void)
 		}
 	}
 	outfile.close();
+	gCSV->mvs.lastTimestamp = utility_get_microsecond();
+	log_debug("save pointcloud take %ld us.", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp);
 
 	return 0;
 

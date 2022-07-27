@@ -53,6 +53,8 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int len_msg = 0;
 	Mat left, right;
     int leftsize = 0, rightsize = 0;
+    char str_err[128] = {0};
+    int len_err = 0;
     struct csv_mvs_t *pMVS = &gCSV->mvs;
 
 	csv_dlp_just_write(CMD_BRIGHT);
@@ -113,9 +115,13 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 			return csv_msg_send(pACK);
 		}
+	} else if (-2 == ret) {
+		len_err = snprintf(str_err, 128, "Cams busy now.");
+	} else {
+		len_err = snprintf(str_err, 128, "Cams grab failed.");
 	}
 
-	csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
+	csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 
 	return csv_msg_send(pACK);
 }
@@ -127,6 +133,8 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int len_msg = 0;
 	Mat left, right;
     int leftsize = 0, rightsize = 0;
+    char str_err[128] = {0};
+    int len_err = 0;
     struct csv_mvs_t *pMVS = &gCSV->mvs;
 
 	csv_dlp_just_write(CMD_BRIGHT);
@@ -220,9 +228,13 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 			return csv_msg_send(pACK);
 		}
+	} else if (-2 == ret) {
+		len_err = snprintf(str_err, 128, "Cams busy now.");
+	} else {
+		len_err = snprintf(str_err, 128, "Cams grab failed.");
 	}
 
-	csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
+	csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 
 	return csv_msg_send(pACK);
 }
