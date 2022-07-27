@@ -62,8 +62,8 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	ret = csv_mvs_cams_grab_both(pMVS);
 	if (ret == 0) {
 		// TODO change side
-		ret = Convert2Mat(&pMVS->Cam[CAM_LEFT].imageInfo, pMVS->Cam[CAM_LEFT].imgData, left, false);
-		ret |= Convert2Mat(&pMVS->Cam[CAM_RIGHT].imageInfo, pMVS->Cam[CAM_RIGHT].imgData, right, false);
+		ret = Convert2Mat(&pMVS->Cam[CAM_LEFT].imgInfo, pMVS->Cam[CAM_LEFT].imgData, left, false);
+		ret |= Convert2Mat(&pMVS->Cam[CAM_RIGHT].imgInfo, pMVS->Cam[CAM_RIGHT].imgData, right, false);
 
 		if (ret == 0) {
 			if (left.channels() > 1){
@@ -142,8 +142,8 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	ret = csv_mvs_cams_grab_both(pMVS);
 	if (ret == 0) {
 		// TODO change side
-		ret = Convert2Mat(&pMVS->Cam[CAM_LEFT].imageInfo, pMVS->Cam[CAM_LEFT].imgData, left, true);
-		ret |= Convert2Mat(&pMVS->Cam[CAM_RIGHT].imageInfo, pMVS->Cam[CAM_RIGHT].imgData, right, true);
+		ret = Convert2Mat(&pMVS->Cam[CAM_LEFT].imgInfo, pMVS->Cam[CAM_LEFT].imgData, left, true);
+		ret |= Convert2Mat(&pMVS->Cam[CAM_RIGHT].imgInfo, pMVS->Cam[CAM_RIGHT].imgData, right, true);
 
 		if (ret == 0) {
 			leftsize = left.cols * left.rows * left.channels();

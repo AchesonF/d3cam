@@ -64,17 +64,17 @@ static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		memset(str_enums, 0, 1024);
 		switch (gCSV->cfg.devicecfg.device_type) {
 		case CAM1_LIGHT2:
-			len_msg = snprintf(str_enums, 1024, "%s", pCAMLEFT->serialNum);
+			len_msg = snprintf(str_enums, 1024, "%s", pCAMLEFT->sn);
 			break;
 /*
 		case CAM4_LIGHT1:
-			len_msg = snprintf(str_enums, 1024, "%s,%s,%s,%s", pCAMLEFT->serialNum, 
-				pCAMRIGHT->serialNum, pCAMFRONT->serialNum, pCAMBACK->serialNum);
+			len_msg = snprintf(str_enums, 1024, "%s,%s,%s,%s", pCAMLEFT->sn, 
+				pCAMRIGHT->sn, pCAMFRONT->sn, pCAMBACK->sn);
 			break;
 */
 		case CAM2_LIGHT1:
 		case RDM_LIGHT:
-			len_msg = snprintf(str_enums, 1024, "%s,%s", pCAMLEFT->serialNum, pCAMRIGHT->serialNum);
+			len_msg = snprintf(str_enums, 1024, "%s,%s", pCAMLEFT->sn, pCAMRIGHT->sn);
 		default:
 			break;
 		}
@@ -132,8 +132,8 @@ static int msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
 		len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
-			pCAMLEFT->serialNum, pCAMLEFT->exposureTime.fCurValue,
-			pCAMRIGHT->serialNum, pCAMRIGHT->exposureTime.fCurValue);
+			pCAMLEFT->sn, pCAMLEFT->expoTime.fCurValue,
+			pCAMRIGHT->sn, pCAMRIGHT->expoTime.fCurValue);
 
 		if (len_msg > 0) {
 			csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
@@ -178,8 +178,8 @@ int msg_cameras_rgb_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *p
 
 
 	len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serialNum, gCSV->cfg.devicecfg.exposure_time_for_rgb,
-		pCAMRIGHT->serialNum, gCSV->cfg.devicecfg.exposure_time_for_rgb);
+		pCAMLEFT->sn, gCSV->cfg.devicecfg.exposure_time_for_rgb,
+		pCAMRIGHT->sn, gCSV->cfg.devicecfg.exposure_time_for_rgb);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
@@ -224,8 +224,8 @@ static int msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
 		len_msg = snprintf(str_gain, 1024, "%s:%f;%s:%f", 
-			pCAMLEFT->serialNum, pCAMLEFT->gain.fCurValue,
-			pCAMRIGHT->serialNum, pCAMRIGHT->gain.fCurValue);
+			pCAMLEFT->sn, pCAMLEFT->gain.fCurValue,
+			pCAMRIGHT->sn, pCAMRIGHT->gain.fCurValue);
 
 		if (len_msg > 0) {
 			csv_msg_ack_package(pMP, pACK, str_gain, len_msg, 0);
@@ -319,8 +319,8 @@ static int msg_cameras_rate_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_rate, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serialNum, gCSV->cfg.devicecfg.dlp_rate,
-		pCAMRIGHT->serialNum, gCSV->cfg.devicecfg.dlp_rate);
+		pCAMLEFT->sn, gCSV->cfg.devicecfg.dlp_rate,
+		pCAMRIGHT->sn, gCSV->cfg.devicecfg.dlp_rate);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_rate, len_msg, 0);
@@ -358,8 +358,8 @@ static int msg_cameras_brightness_get (struct msg_package_t *pMP, struct msg_ack
 	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_bright, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serialNum, gCSV->cfg.devicecfg.dlp_brightness,
-		pCAMRIGHT->serialNum, gCSV->cfg.devicecfg.dlp_brightness);
+		pCAMLEFT->sn, gCSV->cfg.devicecfg.dlp_brightness,
+		pCAMRIGHT->sn, gCSV->cfg.devicecfg.dlp_brightness);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_bright, len_msg, 0);

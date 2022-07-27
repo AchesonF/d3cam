@@ -16,6 +16,7 @@ if (USING_SPNG)
 endif ()
 
 if (USING_ZIP)
+	add_definitions(-DZIP_SHARED)
 	add_subdirectory(libzip)
 
 	set(LIB_ZIP "zip")

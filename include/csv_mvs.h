@@ -26,16 +26,16 @@ enum {
 
 // (#define INFO_MAX_BUFFER_SIZE 64) in CameraParams.h
 struct cam_spec_t {
-	uint8_t					opened;
-	uint8_t					grabbing;
+	uint8_t					opened;			///< 已打开
+	uint8_t					grabbing;		///< 正在抓图
 	void					*pHandle;
-	char					serialNum[64];
-	char					modelName[64];
-	MVCC_FLOATVALUE			exposureTime;
-	MVCC_FLOATVALUE			gain;
-	MVCC_INTVALUE			stParam;		// PayloadSize
-	MV_FRAME_OUT_INFO_EX	imageInfo;
-	uint8_t					*imgData;
+	char					sn[64];			///< 序列号
+	char					model[64];		///< 型号
+	MVCC_FLOATVALUE			expoTime;		///< 曝光时间 us
+	MVCC_FLOATVALUE			gain;			///< 增益
+	MVCC_INTVALUE			sizePayload;	///< 图像大小
+	MV_FRAME_OUT_INFO_EX	imgInfo;		///< 图像参数
+	uint8_t					*imgData;		///< 图像数据
 };
 
 struct csv_mvs_t {
@@ -43,8 +43,6 @@ struct csv_mvs_t {
 
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
 	struct cam_spec_t		Cam[TOTAL_CAMS];
-	// todo bind dev
-	uint8_t					grabing;		///< 正在抓图
 
 	uint64_t				firstTimestamp;	///< ms
 	uint64_t				lastTimestamp;

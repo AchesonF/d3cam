@@ -14,29 +14,29 @@ static int csv_mvs_camera_deinit (struct cam_spec_t *pCAM)
 		return -1;
 	}
 
-	log_info("CAM %s detach handle.", pCAM->serialNum);
+	log_info("CAM %s detach handle.", pCAM->sn);
 
 	if (pCAM->grabbing) {
 		nRet = MV_CC_StopGrabbing(pCAM->pHandle);
 		if (MV_OK != nRet) {
-			log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->sn, nRet);
 		}
 	}
 
 	nRet = MV_CC_CloseDevice(pCAM->pHandle);
 	if (MV_OK != nRet) {
-		log_info("ERROR : CAM '%s' CloseDevice failed. [0x%08X]", pCAM->serialNum, nRet);
+		log_info("ERROR : CAM '%s' CloseDevice failed. [0x%08X]", pCAM->sn, nRet);
 	}
 
 	nRet = MV_CC_DestroyHandle(pCAM->pHandle);
 	if (MV_OK != nRet) {
-		log_info("ERROR : CAM '%s' DestroyHandle failed. [0x%08X]", pCAM->serialNum, nRet);
+		log_info("ERROR : CAM '%s' DestroyHandle failed. [0x%08X]", pCAM->sn, nRet);
 	}
 
 	pCAM->pHandle = NULL;
 	pCAM->opened = false;
 	pCAM->grabbing = false;
-	pCAM->stParam.nCurValue = 0;
+	pCAM->sizePayload.nCurValue = 0;
 
 	if (NULL != pCAM->imgData) {
 		free(pCAM->imgData);
@@ -61,7 +61,7 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 		}
 
 		pCAM = &pMVS->Cam[i];
-		log_info("Initialling CAM '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
+		log_info("Initialling CAM '%s' : '%s'", pCAM->model, pCAM->sn);
 
 		pCAM->grabbing = false;
 
@@ -97,7 +97,7 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 
 		// 设置抓取图片的像素格式
 		uint32_t enValue = PixelType_Gvsp_Mono8;		// 黑白
-		if (strstr(pCAM->modelName, "UC") != NULL) {	// 彩色
+		if (strstr(pCAM->model, "UC") != NULL) {	// 彩色
 			enValue = PixelType_Gvsp_RGB8_Packed;
 		}
 
@@ -127,10 +127,10 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 			log_info("ERROR : SetEnumValue 'TriggerSource' failed. [0x%08X]", nRet);
 		}
 
-		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "ExposureTime", &pCAM->exposureTime);
+		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "ExposureTime", &pCAM->expoTime);
 		if (MV_OK == nRet) {
-			log_info("OK ：GetFloatValue 'ExposureTime' : %f [%f, %f]", pCAM->exposureTime.fCurValue, 
-				pCAM->exposureTime.fMin, pCAM->exposureTime.fMax);
+			log_info("OK ：GetFloatValue 'ExposureTime' : %f [%f, %f]", pCAM->expoTime.fCurValue, 
+				pCAM->expoTime.fMin, pCAM->expoTime.fMax);
 		}
 
 		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "Gain", &pCAM->gain);
@@ -150,7 +150,7 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 		}
 
 		// 需先确认相机参数一致 W*H
-		nRet = MV_CC_GetIntValue(pCAM->pHandle, "PayloadSize", &pCAM->stParam);
+		nRet = MV_CC_GetIntValue(pCAM->pHandle, "PayloadSize", &pCAM->sizePayload);
 		if (MV_OK != nRet) {
 			log_info("ERROR : GetIntValue 'PayloadSize' failed. [0x%08X]", nRet);
 		}
@@ -160,20 +160,20 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 		log_info("OK : GetIntValue 'Width x Height' = [%d x %d]", 
 			struIntWidth.nCurValue, struIntHeight.nCurValue);
 
-		pCAM->imgData = (uint8_t *)malloc(pCAM->stParam.nCurValue);
+		pCAM->imgData = (uint8_t *)malloc(pCAM->sizePayload.nCurValue+1);
 		if (pCAM->imgData == NULL){
 			log_err("ERROR : malloc imgData");
 			csv_mvs_camera_deinit(pCAM);
 			continue;
 		}
-		memset(pCAM->imgData, 0x00, pCAM->stParam.nCurValue);
+		memset(pCAM->imgData, 0x00, pCAM->sizePayload.nCurValue+1);
 
     }
 
-	if (pMVS->Cam[CAM_LEFT].stParam.nCurValue != pMVS->Cam[CAM_RIGHT].stParam.nCurValue) {
+	if (pMVS->Cam[CAM_LEFT].sizePayload.nCurValue != pMVS->Cam[CAM_RIGHT].sizePayload.nCurValue) {
 		log_info("ERROR : CAMS cannot be coupled. PayloadSize : %d vs %d", 
-			pMVS->Cam[CAM_LEFT].stParam.nCurValue,
-			pMVS->Cam[CAM_RIGHT].stParam.nCurValue);
+			pMVS->Cam[CAM_LEFT].sizePayload.nCurValue,
+			pMVS->Cam[CAM_RIGHT].sizePayload.nCurValue);
 		return -1;
 	}
 
@@ -232,20 +232,20 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 		switch (pDevInfo->nTLayerType) {
 		case MV_GIGE_DEVICE: {
 			MV_GIGE_DEVICE_INFO *pGgInfo = &pDevInfo->SpecialInfo.stGigEInfo;
-			sprintf(pCAM->modelName, "%s", (char *)pGgInfo->chModelName);
-			sprintf(pCAM->serialNum, "%s", (char *)pGgInfo->chSerialNumber);
+			sprintf(pCAM->model, "%s", (char *)pGgInfo->chModelName);
+			sprintf(pCAM->sn, "%s", (char *)pGgInfo->chSerialNumber);
 
-			log_info("GIGE : '%s' - '%s'", pCAM->modelName, pCAM->serialNum);
+			log_info("GIGE : '%s' - '%s'", pCAM->model, pCAM->sn);
 			//log_info("OK : UserDefinedName[%d] %s", i, (char *)pGgInfo->chUserDefinedName);
 		}
 			break;
 		case MV_USB_DEVICE: {
 			MV_USB3_DEVICE_INFO *pU3Info = &pDevInfo->SpecialInfo.stUsb3VInfo;
 
-			sprintf(pCAM->modelName, "%s", (char *)pU3Info->chModelName);
-			sprintf(pCAM->serialNum, "%s", (char *)pU3Info->chSerialNumber);
+			sprintf(pCAM->model, "%s", (char *)pU3Info->chModelName);
+			sprintf(pCAM->sn, "%s", (char *)pU3Info->chSerialNumber);
 
-			log_info("USB3 : '%s' - '%s'", pCAM->modelName, pCAM->serialNum);
+			log_info("USB3 : '%s' - '%s'", pCAM->model, pCAM->sn);
 			//log_info("OK : UserDefinedName[%d] %s", i, (char *)pU3Info->chUserDefinedName);
 		}
 			break;
@@ -315,7 +315,7 @@ int csv_mvs_cams_open (struct csv_mvs_t *pMVS)
 				errNum++;
 			}
 
-			log_info("StartGrabbing CAM '%s' : '%s'", pCAM->modelName, pCAM->serialNum);
+			log_info("StartGrabbing CAM '%s' : '%s'", pCAM->model, pCAM->sn);
 
 			// 准备开始取数据流
 			nRet = MV_CC_StartGrabbing(pCAM->pHandle);
@@ -351,7 +351,7 @@ int csv_mvs_cams_close (struct csv_mvs_t *pMVS)
 		if (pCAM->grabbing) {
 			nRet = MV_CC_StopGrabbing(pCAM->pHandle);
 			if (MV_OK != nRet) {
-				log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->serialNum, nRet);
+				log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->sn, nRet);
 			}
 			pCAM->grabbing = false;
 		}
@@ -379,10 +379,10 @@ int csv_mvs_cams_exposure_get (struct csv_mvs_t *pMVS)
 			continue;
 		}
 
-		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "ExposureTime", &pCAM->exposureTime);
+		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "ExposureTime", &pCAM->expoTime);
 		if (MV_OK == nRet) {
-			log_info("OK：CAM '%s' get ExposureTime : %f [%f, %f]", pCAM->serialNum, 
-				pCAM->exposureTime.fCurValue, pCAM->exposureTime.fMin, pCAM->exposureTime.fMax);
+			log_info("OK：CAM '%s' get ExposureTime : %f [%f, %f]", pCAM->sn, 
+				pCAM->expoTime.fCurValue, pCAM->expoTime.fMin, pCAM->expoTime.fMax);
 		} else {
 			errNum++;
 		}
@@ -411,35 +411,35 @@ int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime)
 			continue;
 		}
 /*
-		if (pCAM->exposureTime.fMax < fExposureTime) {
-			fExposureTime = pCAM->exposureTime.fMax;
+		if (pCAM->expoTime.fMax < fExposureTime) {
+			fExposureTime = pCAM->expoTime.fMax;
 		}
 
-		if (pCAM->exposureTime.fMin > fExposureTime) {
-			fExposureTime = pCAM->exposureTime.fMin;
+		if (pCAM->expoTime.fMin > fExposureTime) {
+			fExposureTime = pCAM->expoTime.fMin;
 		}
 
 		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "ExposureTime", fExposureTime);
 		if (MV_OK == nRet) {
-			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->serialNum, fExposureTime);
+			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->sn, fExposureTime);
 		} else {
-			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->sn, nRet);
 			errNum++;
 		}
 */
-		if (pCAM->exposureTime.fMax < pDevC->exposure_time) {
-			pDevC->exposure_time = pCAM->exposureTime.fMax;
+		if (pCAM->expoTime.fMax < pDevC->exposure_time) {
+			pDevC->exposure_time = pCAM->expoTime.fMax;
 		}
 
-		if (pCAM->exposureTime.fMin > pDevC->exposure_time) {
-			pDevC->exposure_time = pCAM->exposureTime.fMin;
+		if (pCAM->expoTime.fMin > pDevC->exposure_time) {
+			pDevC->exposure_time = pCAM->expoTime.fMin;
 		}
 
 		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "ExposureTime", pDevC->exposure_time);
 		if (MV_OK == nRet) {
-			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->serialNum, pDevC->exposure_time);
+			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->sn, pDevC->exposure_time);
 		} else {
-			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->sn, nRet);
 			errNum++;
 		}
 	}
@@ -468,7 +468,7 @@ int csv_mvs_cams_gain_get (struct csv_mvs_t *pMVS)
 
 		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "Gain", &pCAM->gain);
 		if (MV_OK != nRet) {
-			log_info("ERROR : CAM '%s' get gain failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' get gain failed. [0x%08X]", pCAM->sn, nRet);
 			errNum++;
 		}
 	}
@@ -505,7 +505,7 @@ int csv_mvs_cams_gain_set (struct csv_mvs_t *pMVS, float fGain)
 
 		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "Gain", fGain);
 		if (MV_OK != nRet) {
-			log_info("ERROR : CAM '%s' set gain failed. [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' set gain failed. [0x%08X]", pCAM->sn, nRet);
 			errNum++;
 		}
 	}
@@ -532,14 +532,14 @@ int csv_mvs_cams_name_set (struct csv_mvs_t *pMVS, char *camSNum, char *strValue
 			continue;
 		}
 
-		if (strstr(pCAM->serialNum, camSNum)) {
+		if (strstr(pCAM->sn, camSNum)) {
 			nRet = MV_CC_SetStringValue(pCAM->pHandle, "DeviceUserID", (char*)strValue);
 			if (MV_OK == nRet) {
-				log_info("OK ：CAM '%s' set DeviceUserID.", pCAM->serialNum);
+				log_info("OK ：CAM '%s' set DeviceUserID.", pCAM->sn);
 
 				return 0;
             } else {
-				log_info("ERROR : CAM '%s' set DeviceUserID Failed. [0x%08X]", pCAM->serialNum, nRet);
+				log_info("ERROR : CAM '%s' set DeviceUserID Failed. [0x%08X]", pCAM->sn, nRet);
 
 				return -1;
 			}
@@ -558,14 +558,12 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 	int errNum = 0;
 	struct cam_spec_t *pCAM = NULL;
 
-	if (pMVS->grabing) {
-		return -2;
-	}
-
-	pMVS->grabing = true;
-
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
+
+		if (pCAM->grabbing) {
+			return -2;
+		}
 
 		if ((!pCAM->opened)||(NULL == pCAM->pHandle)||(NULL == pCAM->imgData)) {
 			errNum++;
@@ -573,25 +571,27 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 			continue;
 		}
 
-		memset(pCAM->imgData, 0x00, pCAM->stParam.nCurValue);
-		memset(&pCAM->imageInfo, 0x00, sizeof(MV_FRAME_OUT_INFO_EX));
+		pCAM->grabbing = true;
+
+		memset(pCAM->imgData, 0x00, pCAM->sizePayload.nCurValue);
+		memset(&pCAM->imgInfo, 0x00, sizeof(MV_FRAME_OUT_INFO_EX));
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-			pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
+			pCAM->sizePayload.nCurValue, &pCAM->imgInfo, 3000);
 		if (nRet == MV_OK) {
-			log_info("OK : CAM '%s' GetOneFrame[%d] %d x %d", pCAM->serialNum, 
-				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+			log_info("OK : CAM '%s' GetOneFrame[%d] %d x %d", pCAM->sn, 
+				pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 		} else {
-			log_info("ERROR : CAM '%s' GetOneFrameTimeout [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' GetOneFrameTimeout [0x%08X]", pCAM->sn, nRet);
 			errNum++;
 		}
+
+		pCAM->grabbing = false;
 	}
 
 	if (errNum > 0) {
-		pMVS->grabing = false;
 		return -1;
 	}
 
-	pMVS->grabing = false;
 	return nRet;
 }
 
@@ -786,49 +786,50 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
-	if (pMVS->grabing) {
-		return -2;
-	}
-
 	if ((NULL == pCALIB->path)
 		||(!csv_file_isExist(pCALIB->path))) {
 		log_info("ERROR : cali img path null");
 		return -1;
 	}
 
-	pMVS->grabing = true;
-
 	// 1 亮光
 	ret = csv_dlp_just_write(CMD_BRIGHT);
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
+		if (pCAM->grabbing) {
+			return -2;
+		}
+
 		if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 			continue;
 		}
 
-		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+		pCAM->grabbing = true;
+
+		memset(&pCAM->imgInfo, 0x00, sizeof(MV_FRAME_OUT_INFO_EX));
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-			pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
+			pCAM->sizePayload.nCurValue, &pCAM->imgInfo, 3000);
 		if (nRet == MV_OK) {
-			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
-				pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->sn, idx, i, 
+				pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
 			memset(img_name, 0, 256);
 			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
 				pDevC->img_type, img_name);
-			ret = save_image_to_file(&pCAM->imageInfo, pCAM->pHandle, 
-				pCAM->imgData, pCAM->stParam.nCurValue, pDevC->img_type, img_name, 0);
+			ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, 
+				pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->img_type, img_name, 0);
 		} else {
 			log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
-				pCAM->serialNum, idx, i, nRet);
+				pCAM->sn, idx, i, nRet);
 				if (MV_E_NODATA == nRet) {
-					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
-					pMVS->grabing = false;
+					log_info("ERROR : CAM '%s' NO DATA.", pCAM->sn);
+					pCAM->grabbing = false;
 					return -1;
 				}
 		}
 
+		pCAM->grabbing = false;
 	}
 
 	idx++;
@@ -839,32 +840,40 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 	while (idx < nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
 			pCAM = &pMVS->Cam[i];
+
+			if (pCAM->grabbing) {
+				return -2;
+			}
+
 			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 				continue;
 			}
 
-			memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+			pCAM->grabbing = true;
+
+			memset(&pCAM->imgInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 			nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-				pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
+				pCAM->sizePayload.nCurValue, &pCAM->imgInfo, 3000);
 			if (nRet == MV_OK) {
-				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
-					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->sn, idx, i, 
+					pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
 				memset(img_name, 0, 256);
 				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
 					pDevC->img_type, img_name);
-				ret = save_image_to_file(&pCAM->imageInfo, pCAM->pHandle, 
-					pCAM->imgData, pCAM->stParam.nCurValue, pDevC->img_type, img_name, 0);
+				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, 
+					pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->img_type, img_name, 0);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
-					pCAM->serialNum, idx, i, nRet);
+					pCAM->sn, idx, i, nRet);
 				if (MV_E_NODATA == nRet) {
-					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
-					pMVS->grabing = false;
+					log_info("ERROR : CAM '%s' NO DATA.", pCAM->sn);
+					pCAM->grabbing = false;
 					return -1;
 				}
 			}
 
+			pCAM->grabbing = false;
 		}
 
 		idx++;
@@ -876,8 +885,6 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 
 	pCALIB->groupDemarcate++;
 	csv_xml_write_CalibParameters();
-
-	pMVS->grabing = false;
 
 	return ret;
 }
@@ -894,31 +901,31 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
-	if (pMVS->grabing) {
-		return -2;
-	}
-
-	pMVS->grabing = true;
-
 	// 13 高速光
 	ret = csv_dlp_just_write(CMD_HIGH_SPEED);
 
 	pMVS->firstTimestamp = utility_get_microsecond();
-	log_debug("grabing start @ %ld us.", pMVS->firstTimestamp);
 
 	while (idx <= nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
 			pCAM = &pMVS->Cam[i];
+
+			if (pCAM->grabbing) {
+				return -2;
+			}
+
 			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
 				continue;
 			}
 
-			memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+			pCAM->grabbing = true;
+
+			memset(&pCAM->imgInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 			nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-				pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
+				pCAM->sizePayload.nCurValue, &pCAM->imgInfo, 3000);
 			if (nRet == MV_OK) {
-				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->serialNum, idx, i, 
-					pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d", pCAM->sn, idx, i, 
+					pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
 				if ((idx == nFrames)&&(i == 1)) {
 					end_pc = 1;
@@ -926,26 +933,27 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 				memset(img_name, 0, 256);
 				generate_image_filename(pPC->imgRoot, 1, idx, i, 
 					pDevC->img_type, img_name);
-				ret = save_image_to_file(&pCAM->imageInfo, pCAM->pHandle, pCAM->imgData, 
-					pCAM->stParam.nCurValue, pDevC->img_type, img_name, end_pc);
+				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, 
+					pCAM->sizePayload.nCurValue, pDevC->img_type, img_name, end_pc);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
-					pCAM->serialNum, idx, i, nRet);
+					pCAM->sn, idx, i, nRet);
 
 				if (MV_E_NODATA == nRet) {
-					log_info("ERROR : CAM '%s' NO DATA.", pCAM->serialNum);
-					pMVS->grabing = false;
+					log_info("ERROR : CAM '%s' NO DATA.", pCAM->sn);
+					pCAM->grabbing = false;
 					return -1;
 				}
 			}
 
+			pCAM->grabbing = false;
 		}
 
 		idx++;
 	}
 
 	pMVS->lastTimestamp = utility_get_microsecond();
-	log_debug("grab take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
+	log_debug("highspeed 13 take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
 	if (SUFFIX_PNG == pDevC->img_type) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
@@ -954,8 +962,6 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 			ret = point_cloud_calc();
 		}
 	}
-
-	pMVS->grabing = false;
 
 	return ret;
 }

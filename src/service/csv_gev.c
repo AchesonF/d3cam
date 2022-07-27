@@ -1416,7 +1416,7 @@ static void *csv_mvs_cam_grab_loop (void *pData)
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct cam_spec_t *pCAM = &pMVS->Cam[pStream->idx];
 
-	if (pMVS->grabing) {
+	if (pCAM->grabbing) {
 		return NULL;
 	}
 
@@ -1435,31 +1435,31 @@ static void *csv_mvs_cam_grab_loop (void *pData)
 		return NULL;
 	}
 
-	pMVS->grabing = true;
+	pCAM->grabbing = true;
 
 	while (1) {
 		if (pStream->grab_status != GRAB_STATUS_RUNNING) {
 			break;
 		}
 
-		memset(&pCAM->imageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+		memset(&pCAM->imgInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-			pCAM->stParam.nCurValue, &pCAM->imageInfo, 3000);
+			pCAM->sizePayload.nCurValue, &pCAM->imgInfo, 3000);
 		if (nRet != MV_OK) {
-			log_info("ERROR : CAM '%s' : GetOneFrameTimeout, [0x%08X]", pCAM->serialNum, nRet);
+			log_info("ERROR : CAM '%s' : GetOneFrameTimeout, [0x%08X]", pCAM->sn, nRet);
 			continue;
 		}
-		log_debug("OK : CAM '%s' : GetOneFrame[%d] %d x %d", pCAM->serialNum, 
-			pCAM->imageInfo.nFrameNum, pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+		log_debug("OK : CAM '%s' : GetOneFrame[%d] %d x %d", pCAM->sn, 
+			pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-		csv_gvsp_image_fetch(pStream, pCAM->imgData, pCAM->stParam.nCurValue, 
-			pCAM->imageInfo.nWidth, pCAM->imageInfo.nHeight);
+		csv_gvsp_image_fetch(pStream, pCAM->imgData, pCAM->sizePayload.nCurValue, 
+			pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
 	}
 
 	nRet = MV_CC_StopGrabbing(pCAM->pHandle);
 	if (MV_OK != nRet) {
-		log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->serialNum, nRet);
+		log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->sn, nRet);
 	}
 
 	nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_ON);
@@ -1467,7 +1467,7 @@ static void *csv_mvs_cam_grab_loop (void *pData)
 		log_info("ERROR : SetEnumValue 'TriggerMode' failed. [0x%08X]", nRet);
 	}
 
-	pMVS->grabing = false;
+	pCAM->grabbing = false;
 
 	pStream->thr_grab = 0;
 
