@@ -361,7 +361,7 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 			}
 
 			if (curPtr == NULL) {
-				log_info("ERROR : no tag \"%s\"", key_pair[i].key);
+				log_info("WARN : no tag \"%s\"", key_pair[i].key);
 				xmlNodePtr node = NULL;
 				node = xmlNewChild(pNodePtr, NULL, BAD_CAST key_pair[i].key, NULL);
 				xmlNodeSetContent(node, BAD_CAST str);
@@ -378,6 +378,36 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 			log_info("ERROR : Invalid nodeType[%d]", key_pair[i].nodeType);
 			return -1;
 		}
+	}
+
+	return 0;
+}
+
+static int csv_xml_GeneralInfomation (
+	struct csv_xml_t *pXML, uint8_t mode)
+{
+	int ret = 0;
+	uint32_t nums = 0;
+	struct key_value_pair_t key_pair[4];
+
+	if (XML_SET == mode) {
+		xml_strlcpy(key_pair[nums].key, "Version", MAX_KEY_SIZE);
+		key_pair[nums].value = &gPdct.app_info;
+		key_pair[nums].value_type = XML_VALUE_STRING;
+		key_pair[nums].nodeType = XML_ELEMENT_NODE;
+		nums++;
+
+		ret = xml_set_node_data(pXML->pDoc, pXML->pNode,
+			"GeneralInfomation", key_pair, nums, 0);
+	}
+
+	if (ret != 0) {
+		log_info("ERROR : GeneralInfomation");
+		return -1;
+	}
+
+	if (mode == XML_SET) {
+		pXML->SaveFile = true;
 	}
 
 	return 0;
@@ -677,7 +707,14 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 		return -1;
 	}
 
-	/* node_index is 0, pNodePtr is pRootPtr */
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVGeneralInfomation", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_GeneralInfomation(pXML, XML_GET);
+		if (ret < 0) {
+			log_info("ERROR : GeneralInfomation GET");
+		}
+	}
+
 	pXML->pNode = xml_get_node(pXML->pRoot, "CSVDeviceConfiguration", 0);
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_DeviceConfiguration(pXML, XML_GET);
@@ -713,6 +750,33 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 	xml_unload_file(pXML->pDoc);
 
 	log_info("OK : read xml.");
+
+	return ret;
+}
+
+int csv_xml_write_GeneralInfomation (void)
+{
+	int ret = 0;
+	struct csv_xml_t *pXML = &gCSV->xml;
+
+	ret = xml_load_file(pXML);
+	if (ret < 0) {
+		log_info("ERROR : xml file load.");
+		return -1;
+	}
+
+	/* node_index is 0, pNodePtr is pRootPtr */
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVGeneralInfomation", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_GeneralInfomation(pXML, XML_SET);
+		if (ret < 0) {
+			log_info("ERROR : GeneralInfomation SET");
+			goto xml_exit;
+		}
+	}
+
+  xml_exit:
+	xml_unload_file(pXML->pDoc);
 
 	return ret;
 }
@@ -867,6 +931,8 @@ int csv_xml_init (void)
 	pXML->pNode6 = NULL;
 
 	ret = csv_xml_read_ALL(pXML);
+
+	csv_xml_write_GeneralInfomation();
 
 	csv_xml_directories_prepare();
 

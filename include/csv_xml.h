@@ -50,6 +50,7 @@ struct csv_xml_t {
 	xmlNodePtr			pNode6;					///< 6级节点指针
 };
 
+extern int csv_xml_write_GeneralInfomation (void);
 
 extern int csv_xml_write_DeviceParameters (void);
 

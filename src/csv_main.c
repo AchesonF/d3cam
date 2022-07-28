@@ -177,7 +177,7 @@ static int csv_lock_pid (void)
 		log_err("ERROR : write fd(%d)", fd);
 	}
 
-	log_info("My pid id %d.", getpid());
+	log_info("My pid is %d.", getpid());
 
 	return 0;
 }
