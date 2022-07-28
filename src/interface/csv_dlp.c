@@ -6,12 +6,9 @@ extern "C" {
 
 static uint8_t csv_dlp_pick_code (uint8_t idx)
 {
-	uint8_t cmd = 0;
+	uint8_t cmd = CMD_NORMAL;
 
 	switch (idx) {
-	case DLP_CMD_NORMAL:
-		cmd = CMD_NORMAL;
-		break;
 	case DLP_CMD_DEMARCATE:
 		cmd = CMD_DEMARCATE;
 		break;
@@ -21,6 +18,10 @@ static uint8_t csv_dlp_pick_code (uint8_t idx)
 	case DLP_CMD_HIGHSPEED:
 		cmd = CMD_HIGH_SPEED;
 		break;
+	case DLP_CMD_NORMAL:
+	default:
+		cmd = CMD_NORMAL;
+		break;
 	}
 
 	return cmd;
@@ -28,20 +29,19 @@ static uint8_t csv_dlp_pick_code (uint8_t idx)
 
 static int csv_dlp_encode (struct csv_dlp_t *pDLP, uint8_t idx)
 {
-	if (idx > TOTAL_DLP_CMDS) {
+	if (idx >= TOTAL_DLP_CMDS) {
 		return -1;
 	}
 
 	uint8_t cmd = 0;
-	struct dlp_cfg_t *pDlp = &gCSV->cfg.devicecfg.dlpcfg[idx];
 	cmd = csv_dlp_pick_code(idx);
 
 	pDLP->tbuf[0] = DLP_HEAD_A;
 	pDLP->tbuf[1] = DLP_HEAD_B;
 	pDLP->tbuf[2] = cmd;
-	pDLP->tbuf[3] = (uint8_t)pDlp->rate;
-	u16_to_u8v(swap16((uint16_t)pDlp->brightness), &pDLP->tbuf[4]);
-	u32_to_u8v(swap32((uint32_t)pDlp->expoTime), &pDLP->tbuf[6]);
+	pDLP->tbuf[3] = (uint8_t)pDLP->rate;
+	u16_to_u8v(swap16((uint16_t)pDLP->brightness), &pDLP->tbuf[4]);
+	u32_to_u8v(swap32((uint32_t)pDLP->expoTime), &pDLP->tbuf[6]);
 	pDLP->tbuf[10] = 0xAA;	// no crc check
 	pDLP->tbuf[11] = 0xAA;
 
@@ -55,9 +55,20 @@ int csv_dlp_just_write (uint8_t idx)
 	int ret = 0;
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
 
+	if (idx >= TOTAL_DLP_CMDS) {
+		return -1;
+	}
+
 	if (pDLP->fd <= 0) {
 		return -1;
 	}
+
+	// update parameter before encode
+	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[idx];
+	csv_mvs_cams_exposure_set(&gCSV->mvs, pDlpcfg->expoTime);
+	pDLP->expoTime = pDlpcfg->expoTime;
+	pDLP->rate = pDlpcfg->rate;
+	pDLP->brightness = pDlpcfg->brightness;
 
 	ret = csv_dlp_encode(pDLP, idx);
 	if (ret < 0) {
@@ -271,7 +282,7 @@ int csv_dlp_init (void)
 	int ret = 0;
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
 	struct csv_tty_param_t *pParam = &pDLP->param;
-
+	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL];
 
 	pDLP->dev = DEV_TTY_DLP;
 	pDLP->name = NAME_DEV_DLP;
@@ -286,9 +297,9 @@ int csv_dlp_init (void)
 	pParam->flowcontrol = 0;
 	pParam->delay = 1;
 
-	pDLP->rate = 0x50;
-	pDLP->brightness = 0x00FF;
-	pDLP->expoTime = 30000;
+	pDLP->rate = pDlpcfg->rate;
+	pDLP->brightness = pDlpcfg->brightness;
+	pDLP->expoTime = pDlpcfg->expoTime;
 
 	ret = csv_tty_init(pDLP->dev, pParam);
 	if (ret <= 0) {

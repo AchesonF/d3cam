@@ -56,7 +56,7 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
     char str_err[128] = {0};
     int len_err = 0;
     struct csv_mvs_t *pMVS = &gCSV->mvs;
-
+	
 	csv_dlp_just_write(DLP_CMD_BRIGHT);
 
 	ret = csv_mvs_cams_grab_both(pMVS);

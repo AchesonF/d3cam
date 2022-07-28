@@ -212,7 +212,7 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 		log_info("Only USE first %d CAM devices.", TOTAL_CAMS);
 	}
 
-	if ((2 == pMVS->cnt_mvs)&&(gCSV->cfg.devicecfg.camera_leftright_type)) {
+	if ((2 == pMVS->cnt_mvs)&&(gCSV->cfg.devicecfg.SwitchCams)) {
 		MV_CC_DEVICE_INFO *pTemp = pDevList->pDeviceInfo[0];
 		pDevList->pDeviceInfo[0] = pDevList->pDeviceInfo[1];
 		pDevList->pDeviceInfo[1] = pTemp;
@@ -386,6 +386,8 @@ int csv_mvs_cams_exposure_get (struct csv_mvs_t *pMVS)
 		} else {
 			errNum++;
 		}
+
+		gCSV->dlp.expoTime = pCAM->expoTime.fCurValue;
 	}
 
 	if (errNum > 0) {
@@ -401,7 +403,6 @@ int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime)
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
 	struct cam_spec_t *pCAM = NULL;
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -410,7 +411,7 @@ int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime)
 			errNum++;
 			continue;
 		}
-/*
+
 		if (pCAM->expoTime.fMax < fExposureTime) {
 			fExposureTime = pCAM->expoTime.fMax;
 		}
@@ -422,22 +423,6 @@ int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime)
 		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "ExposureTime", fExposureTime);
 		if (MV_OK == nRet) {
 			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->sn, fExposureTime);
-		} else {
-			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->sn, nRet);
-			errNum++;
-		}
-*/
-		if (pCAM->expoTime.fMax < pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime) {
-			pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime = pCAM->expoTime.fMax;
-		}
-
-		if (pCAM->expoTime.fMin > pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime) {
-			pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime = pCAM->expoTime.fMin;
-		}
-
-		nRet = MV_CC_SetFloatValue(pCAM->pHandle, "ExposureTime", pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime);
-		if (MV_OK == nRet) {
-			log_info("OK : CAM '%s' set ExposureTime : %f", pCAM->sn, pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime);
 		} else {
 			log_info("ERROR : CAM '%s' set ExposureTime failed. [0x%08X]", pCAM->sn, nRet);
 			errNum++;
@@ -816,9 +801,9 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 
 			memset(img_name, 0, 256);
 			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
-				pDevC->imageFormat, img_name);
+				pDevC->SaveImageFormat, img_name);
 			ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, 
-				pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->imageFormat, img_name, 0);
+				pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->SaveImageFormat, img_name, 0);
 		} else {
 			log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 				pCAM->sn, idx, i, nRet);
@@ -860,9 +845,9 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 
 				memset(img_name, 0, 256);
 				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
-					pDevC->imageFormat, img_name);
+					pDevC->SaveImageFormat, img_name);
 				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, 
-					pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->imageFormat, img_name, 0);
+					pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->SaveImageFormat, img_name, 0);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->sn, idx, i, nRet);
@@ -879,7 +864,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 		idx++;
 	}
 
-	if (SUFFIX_PNG == pDevC->imageFormat) {
+	if (SUFFIX_PNG == pDevC->SaveImageFormat) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
 	}
 
@@ -931,10 +916,10 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 					end_pc = 1;
 				}
 				memset(img_name, 0, 256);
-				generate_image_filename(pPC->imgRoot, 1, idx, i, 
-					pDevC->imageFormat, img_name);
+				generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, 
+					pDevC->SaveImageFormat, img_name);
 				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, 
-					pCAM->sizePayload.nCurValue, pDevC->imageFormat, img_name, end_pc);
+					pCAM->sizePayload.nCurValue, pDevC->SaveImageFormat, img_name, end_pc);
 			} else {
 				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, [0x%08X]", 
 					pCAM->sn, idx, i, nRet);
@@ -955,11 +940,13 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	pMVS->lastTimestamp = utility_get_microsecond();
 	log_debug("highspeed 13 take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
-	if (SUFFIX_PNG == pDevC->imageFormat) {
+	if (SUFFIX_PNG == pDevC->SaveImageFormat) {
 		pthread_cond_broadcast(&gCSV->png.cond_png);
 	} else {
 		if (pPC->enable) {
 			ret = point_cloud_calc();
+		} else {
+			pPC->groupPointCloud++;
 		}
 	}
 

@@ -21,57 +21,64 @@ using namespace std::chrono;
 using namespace CSV;
 using namespace cv;
 
-string to_zero_lead(const int value, const unsigned precision)
-{
-	ostringstream oss;
-	oss << setw(precision) << setfill('0') << value;
-	return oss.str();
-}
-
 static void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 {
+	int i = 0;
+	char filename[512] = {0};
+	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
+
 	// 导入C1相机图像
 	vector<Mat> src1list;
-	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + "/" + gCSV->cfg.pointcloudcfg.imgPrefixNameL 
-			+ to_zero_lead(i + 1, 3) + gCSV->cfg.devicecfg.strSuffix;
+	for (i = 0; i < 13; i++) {
+		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C1S00P000.bmp
+		snprintf(filename, 512, "CSV_%03dC1S00P%03d%s", pPC->groupPointCloud, 
+			i+1, gCSV->cfg.devicecfg.strSuffix);
 
-		cout << "Read Image : " << path << endl;
+		string path = pathRoot + "/" + filename;
+
+		log_debug("imread : %s", path);
 
 		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src1list.emplace_back(im);
 	}
 	imgGroupList.push_back(src1list);
-	cout << "Read Image Num : " << src1list.size() << endl;
+	log_debug("left image num : %d", src1list.size());
 
 	// 导入2相机图像
 	vector<Mat> src2list;
-	for (int i = 0; i < 13; i++) {
-		string path = pathRoot + "/" + gCSV->cfg.pointcloudcfg.imgPrefixNameR 
-		+ to_zero_lead(i + 1, 3) + gCSV->cfg.devicecfg.strSuffix;
+	for (i = 0; i < 13; i++) {
+		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C2S00P000.bmp
+		snprintf(filename, 512, "CSV_%03dC2S00P%03d%s", pPC->groupPointCloud, 
+			i+1, gCSV->cfg.devicecfg.strSuffix);
 
-		cout << "Read Image : " << path << endl;
+		string path = pathRoot + "/" + filename;
+
+		log_debug("imread : %s", path);
 
 		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src2list.emplace_back(im);
-
 	}
+
 	imgGroupList.push_back(src2list);
-	cout << "Read Image Num : " << src2list.size() << endl;
+	log_debug("right image num : %d", src2list.size());
+
 	return;
 }
 
 int point_cloud_calc(void)
 {
-	if ((NULL == gCSV->cfg.calibcfg.calibFile)
-		||(!csv_file_isExist(gCSV->cfg.calibcfg.calibFile))) {
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
+
+	if ((NULL == pPC->calibFile)
+		||(!csv_file_isExist(pPC->calibFile))) {
 		log_info("ERROR : calibFile null");
 		return -1;
 	}
 
-	if ((NULL == gCSV->cfg.pointcloudcfg.imgRoot)
-		||(!csv_file_isExist(gCSV->cfg.pointcloudcfg.imgRoot))) {
-		log_info("ERROR : imgRoot null");
+	if ((NULL == pPC->ImageSaveRoot)
+		||(!csv_file_isExist(pPC->ImageSaveRoot))) {
+		log_info("ERROR : ImageSaveRoot null");
 		return -1;
 	}
 
@@ -79,7 +86,7 @@ int point_cloud_calc(void)
 	cout << version << endl;
 
 	CSV::CsvCreatePoint3DParam param;
-	param.calibXml = string(gCSV->cfg.calibcfg.calibFile);
+	param.calibXml = string(pPC->calibFile);
 	param.type = CSV::CSV_DataFormatType::FixPoint64bits;
 
 	CsvSetCreatePoint3DParam(param); //set params
@@ -89,7 +96,7 @@ int point_cloud_calc(void)
 	cout << param0.calibXml << endl;
 	cout << param0.type << endl;
 
-	string imgRoot = string(gCSV->cfg.pointcloudcfg.imgRoot);
+	string imgRoot = string(pPC->ImageSaveRoot);
 	vector<vector<Mat>> imgGroupList;
 	loadSrcImageEx(imgRoot, imgGroupList);
 
@@ -111,17 +118,17 @@ int point_cloud_calc(void)
 		imageGroups.emplace_back(imgs);
 	}
 
-	gCSV->mvs.firstTimestamp = utility_get_microsecond();
-	log_debug("create 3d @ %ld us.", gCSV->mvs.firstTimestamp);
+	pMVS->firstTimestamp = utility_get_microsecond();
+	log_debug("create 3d @ %ld us.", pMVS->firstTimestamp);
 
 	csvCreatePoint3D(imageGroups, pointCloud);
 
-	gCSV->mvs.lastTimestamp = utility_get_microsecond();
-	log_debug("create3d take %ld us.", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp);
+	pMVS->lastTimestamp = utility_get_microsecond();
+	log_debug("create3d take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
-	gCSV->mvs.firstTimestamp = utility_get_microsecond();
+	pMVS->firstTimestamp = utility_get_microsecond();
 	Mat out = Mat(rows, cols, CV_32FC3, pointCloud.m_point3DData.data());
-	ofstream outfile(gCSV->cfg.pointcloudcfg.outFileXYZ);
+	ofstream outfile(pPC->outFileXYZ);
 	for (int i = 0; i < out.rows; i++) {
 		Vec3f *p0 = out.ptr<Vec3f>(i);
 		for (int j = 0; j < out.cols; j++) {
@@ -133,11 +140,13 @@ int point_cloud_calc(void)
 		}
 	}
 	outfile.close();
-	gCSV->mvs.lastTimestamp = utility_get_microsecond();
-	log_debug("save pointcloud take %ld us.", gCSV->mvs.lastTimestamp - gCSV->mvs.firstTimestamp);
+
+	pMVS->lastTimestamp = utility_get_microsecond();
+	log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
+
+	pPC->groupPointCloud++;
 
 	return 0;
-
 }
 
 

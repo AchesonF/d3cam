@@ -13,21 +13,19 @@ struct dlp_cfg_t {
 };
 
 struct device_cfg_t {
-	int					device_type;
-	uint8_t				camera_leftright_type;
-	uint8_t				camera_img_type;
-	float				exposure_time_for_rgb;
+	int					DeviceType;				///< 设备类型 0:2cams
+	uint8_t				SwitchCams;				///< 左右相机互换 1:互换
+	uint8_t				CamImageType;			///< 图像类型 0:灰度图 1:RGB图
+	uint8_t				SaveImageFormat;		///< 图像存储格式 SUFFIX_BMP
+	char				*strSuffix;
 
 	struct dlp_cfg_t	dlpcfg[TOTAL_DLP_CMDS];
-
-	uint8_t				imageFormat;		// SUFFIX_BMP
-	char				*strSuffix;
 };
 
 struct depthimg_cfg_t {
-	int					numDisparities;
-	int					blockSize;
-	int					uniqRatio;
+	int					NumDisparities;
+	int					BlockSize;
+	int					UniqRatio;
 };
 
 
@@ -93,17 +91,17 @@ struct gev_conf_t {
 };
 
 struct pointcloud_cfg_t {
-	char					imgRoot[128];	///< 相对路径
-	char					imgPrefixNameL[128];///< 左图名称前缀
-	char					imgPrefixNameR[128];///< 右图名称前缀
+	char					ImageSaveRoot[128];	///< 图片存放路径
+	char					calibFile[128];		///< 标定参数文件名
 	char					outFileXYZ[256];	///< 生成文件名
+	uint8_t					groupPointCloud;	///< 点云次数
 	uint8_t					enable;				///< 使能计算
+
 };
 
 // 标定
 struct calib_conf_t {
 	char					path[128];		///< 图片相对路径
-	char					calibFile[128];	///< 标定文件名
 	uint8_t					groupDemarcate;	///< 标定次数, need to save for next boot
 
 };

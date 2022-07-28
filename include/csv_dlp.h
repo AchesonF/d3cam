@@ -50,9 +50,9 @@ struct csv_dlp_t {
 
 	struct csv_tty_param_t	param;
 
-	uint8_t					rate;			///< 帧率
-	uint16_t				brightness;		///< 亮度
-	uint32_t				expoTime;		///< 曝光时间
+	float					rate;			///< 帧率
+	float					brightness;		///< 亮度
+	float					expoTime;		///< 曝光时间
 
 	const char				*name_dlp;		///< 消息
 	pthread_t				thr_dlp;		///< ID

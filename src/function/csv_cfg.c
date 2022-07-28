@@ -13,46 +13,50 @@ int csv_cfg_init (void)
 	struct gev_conf_t *pGC = &pCFG->gigecfg;
 	struct device_cfg_t *pDevC = &pCFG->devicecfg;
 	struct depthimg_cfg_t *pDepC = &pCFG->depthimgcfg;
+	struct dlp_cfg_t *pDlpcfg = NULL;
 
-	pDevC->device_type = 0;
-	pDevC->camera_leftright_type = false;
-	pDevC->camera_img_type = true;
-	pDevC->exposure_time_for_rgb = 10000.0f;
-	pDevC->imageFormat = SUFFIX_BMP;
+	pDevC->DeviceType = 0;
+	pDevC->SwitchCams = 0;
+	pDevC->CamImageType = 0;
+	pDevC->SaveImageFormat = SUFFIX_BMP;
 	pDevC->strSuffix = ".bmp";
-	strcpy(pDevC->dlpcfg[DLP_CMD_NORMAL].name, "normal");
-	pDevC->dlpcfg[DLP_CMD_NORMAL].rate = 0x50;
-	pDevC->dlpcfg[DLP_CMD_NORMAL].brightness = 700;
-	pDevC->dlpcfg[DLP_CMD_NORMAL].expoTime = 30000;
 
-	strcpy(pDevC->dlpcfg[DLP_CMD_DEMARCATE].name, "demarcate");
-	pDevC->dlpcfg[DLP_CMD_DEMARCATE].rate = 0x50;
-	pDevC->dlpcfg[DLP_CMD_DEMARCATE].brightness = 700;
-	pDevC->dlpcfg[DLP_CMD_DEMARCATE].expoTime = 40000;
+	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_NORMAL];
+	strcpy(pDlpcfg->name, "normal");
+	pDlpcfg->rate = 80.0f;
+	pDlpcfg->brightness = 700.0f;
+	pDlpcfg->expoTime = 30000.0f;
 
-	strcpy(pDevC->dlpcfg[DLP_CMD_BRIGHT].name, "bright");
-	pDevC->dlpcfg[DLP_CMD_BRIGHT].rate = 0x50;
-	pDevC->dlpcfg[DLP_CMD_BRIGHT].brightness = 700;
-	pDevC->dlpcfg[DLP_CMD_BRIGHT].expoTime = 40000;
+	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_DEMARCATE];
+	strcpy(pDlpcfg->name, "demarcate");
+	pDlpcfg->rate = 80.0f;
+	pDlpcfg->brightness = 700.0f;
+	pDlpcfg->expoTime = 40000.0f;
 
-	strcpy(pDevC->dlpcfg[DLP_CMD_HIGHSPEED].name, "highspeed");
-	pDevC->dlpcfg[DLP_CMD_HIGHSPEED].rate = 0x50;
-	pDevC->dlpcfg[DLP_CMD_HIGHSPEED].brightness = 700;
-	pDevC->dlpcfg[DLP_CMD_HIGHSPEED].expoTime = 40000;
+	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_BRIGHT];
+	strcpy(pDlpcfg->name, "bright");
+	pDlpcfg->rate = 80.0f;
+	pDlpcfg->brightness = 700.0f;
+	pDlpcfg->expoTime = 40000.0f;
 
-	pDepC->numDisparities = 816;
-	pDepC->blockSize = 21;
-	pDepC->uniqRatio = 9;
+	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_HIGHSPEED];
+	strcpy(pDlpcfg->name, "highspeed");
+	pDlpcfg->rate = 80.0f;
+	pDlpcfg->brightness = 700.0f;
+	pDlpcfg->expoTime = 40000.0f;
 
-	strcpy(pCFG->pointcloudcfg.imgRoot, "data/PointCloudImage");
-	strcpy(pCFG->pointcloudcfg.imgPrefixNameL, "CSV_001C1S00P");
-	strcpy(pCFG->pointcloudcfg.imgPrefixNameR, "CSV_001C2S00P");
+	pDepC->NumDisparities = 816;
+	pDepC->BlockSize = 21;
+	pDepC->UniqRatio = 9;
+
+	strcpy(pCFG->pointcloudcfg.ImageSaveRoot, "data/PointCloudImage");
+	strcpy(pCFG->pointcloudcfg.calibFile, "CSV_Cali_HST_L21D_C0280.xml");
 	strcpy(pCFG->pointcloudcfg.outFileXYZ, "pointcloud.xyz");
+	pCFG->pointcloudcfg.groupPointCloud = 1;
 	pCFG->pointcloudcfg.enable = 0;
 
-	pCFG->calibcfg.groupDemarcate = 1;
 	strcpy(pCFG->calibcfg.path, "data/calibImage");
-	strcpy(pCFG->calibcfg.calibFile, "CSV_Cali_HST_L21D_C0280.xml");
+	pCFG->calibcfg.groupDemarcate = 1;
 
 	pGC->VersionMajor = GEV_VERSION_MAJOR;
 	pGC->VersionMinor = GEV_VERSION_MINOR;

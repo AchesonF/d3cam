@@ -62,7 +62,7 @@ static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
 		memset(str_enums, 0, 1024);
-		switch (gCSV->cfg.devicecfg.device_type) {
+		switch (gCSV->cfg.devicecfg.DeviceType) {
 		case CAM1_LIGHT2:
 			len_msg = snprintf(str_enums, 1024, "%s", pCAMLEFT->sn);
 			break;
@@ -152,7 +152,7 @@ static int msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t
 	if (pMP->hdr.length == sizeof(float)) {
 		ret = csv_mvs_cams_exposure_set(&gCSV->mvs, *ExpoTime);
 		if (ret == 0) {
-			gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].expoTime = *ExpoTime;
+			gCSV->dlp.expoTime = *ExpoTime;
 
 			ret = csv_xml_write_DeviceParameters();
 			if (ret == 0) {
@@ -162,7 +162,6 @@ static int msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t
 	}
 */
 
-	csv_mvs_cams_exposure_set(&gCSV->mvs, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].expoTime);
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
 
 	return csv_msg_send(pACK);
@@ -176,10 +175,9 @@ int msg_cameras_rgb_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *p
 	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
 	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
-
 	len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->sn, gCSV->cfg.devicecfg.exposure_time_for_rgb,
-		pCAMRIGHT->sn, gCSV->cfg.devicecfg.exposure_time_for_rgb);
+		pCAMLEFT->sn, gCSV->dlp.expoTime,
+		pCAMRIGHT->sn, gCSV->dlp.expoTime);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
@@ -191,17 +189,10 @@ int msg_cameras_rgb_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *p
 
 static int msg_cameras_rgb_exposure_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
-	int ret = -1;
 	int result = -1;
-	float *ExpoTime = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->cfg.devicecfg.exposure_time_for_rgb = *ExpoTime;
-
-		ret = csv_xml_write_DeviceParameters();
-		if (ret == 0) {
-			result = 0;
-		}
+		result = 0;
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
@@ -319,8 +310,8 @@ static int msg_cameras_rate_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_rate, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->sn, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate,
-		pCAMRIGHT->sn, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate);
+		pCAMLEFT->sn, gCSV->dlp.rate,
+		pCAMRIGHT->sn, gCSV->dlp.rate);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_rate, len_msg, 0);
@@ -336,7 +327,7 @@ static int msg_cameras_rate_set (struct msg_package_t *pMP, struct msg_ack_t *pA
 	float *rate = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate = *rate;
+		gCSV->dlp.rate = *rate;
 
 		ret = csv_xml_write_DeviceParameters();
 		if (ret == 0) {
@@ -358,8 +349,8 @@ static int msg_cameras_brightness_get (struct msg_package_t *pMP, struct msg_ack
 	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_bright, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->sn, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness,
-		pCAMRIGHT->sn, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness);
+		pCAMLEFT->sn, gCSV->dlp.brightness,
+		pCAMRIGHT->sn, gCSV->dlp.brightness);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_bright, len_msg, 0);
@@ -375,7 +366,7 @@ static int msg_cameras_brightness_set (struct msg_package_t *pMP, struct msg_ack
 	float *bright = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness = *bright;
+		gCSV->dlp.brightness = *bright;
 
 		ret = csv_xml_write_DeviceParameters();
 		if (ret == 0) {
@@ -439,7 +430,7 @@ static int msg_sys_info_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	char str_info[1024] = {0};
 
 	len_msg = snprintf(str_info, 1024, "gcc:%s, buildtime:%s %s, devicetype=%d",
-		COMPILER_VERSION, BUILD_DATE, BUILD_TIME, gCSV->cfg.devicecfg.device_type);
+		COMPILER_VERSION, BUILD_DATE, BUILD_TIME, gCSV->cfg.devicecfg.DeviceType);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_info, len_msg, 0);
