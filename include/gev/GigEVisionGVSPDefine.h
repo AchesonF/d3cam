@@ -151,21 +151,12 @@ typedef struct _GVSP_IMAGE_DATA_TRAILER_ {
 // } GVSP_PACKET_HEADER;
 
 typedef struct _GVSP_PACKET_HEADER_ {
-    uint16_t			status;                     // 16bits，状态码
-    uint16_t			flag;                       // 16bits
-
-    /*
-     * EI flag = 0 → block_id，表示 block_id 使用16bits，packet_id 使用24bits；无扩展字段
-     * EI flag = 1 → flag，表示 block_id 使用64bits， packet_id 使用32bits。包含扩展字段
-     */
-    uint8_t				ei;                         // 1bit
-    uint8_t				packet_format;              // 4bits, 参考 GVSP的包类型定义
-
-    // 以下字段仅当 EI flag = 1 时有效
+    uint16_t			status;						// 16bits，状态码
+    uint16_t			blockid_flag;				// 16bits
+	uint32_t			packet_format;				// [0]EI [1-3]reserved[4-7]format[8-30]reserved
     uint32_t			block_id_high;              // 32bits
     uint32_t			block_id_low;               // 32bits
     uint32_t			packet_id;                  // 32bits
-
 } GVSP_PACKET_HEADER;
 
 #define GVSP_EI0_PACKET_SIZE				(8)		// GVSP基本包头，当EI位置0时的长度

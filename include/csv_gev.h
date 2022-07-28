@@ -48,7 +48,8 @@ struct reglist_t {
 
 struct image_info_t {
 	uint64_t				timestamp;	// ms
-	uint32_t				format;		// pixel
+	uint32_t				pixelformat;		// pixel
+	uint32_t				length;
 	uint32_t				width;
 	uint32_t				height;
 	uint32_t				offset_x;
@@ -72,9 +73,10 @@ struct gvsp_stream_t {
 	char					*name;
 	uint8_t					idx;
 	uint8_t					grab_status;	///< 抓图状态 0:未知 1:抓取中 2:结束
-	uint32_t				blockid;
-	uint32_t				packetid;
+	uint64_t				block_id64;		///< reset to 1 when the stream channel is opened
+	uint32_t				packet_id32;	///< reset to 0 at the start of each data block
 	uint32_t				re_packetid;	///< 请求重发id
+
 	uint16_t				port;			///< 本地系统分配端口号
 	struct sockaddr_in		peer_addr;		///< 目标地址/端口
 

@@ -437,6 +437,11 @@ extern "C" {
 //O R/W 4 Configuration of the optional GVSP features.
 #define REG_GVSPConfiguration								(0x0960)
 
+//[0]reserved
+//[1]64bit_block_id_enable
+#define GVSPCcfg_BL							(1<<30)
+//[2-31]reserved
+
 // M R 4 Indicates the physical link configuration supported by thisdevice.
 #define REG_PhysicalLinkConfigurationCapability				(0x0964)
 

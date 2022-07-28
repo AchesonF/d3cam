@@ -70,6 +70,7 @@ extern "C" {
 #include "GigEVisionGVCPDefine.h"
 #include "GigEVisionGVCPRegisterDefine.h"
 #include "GigEVisionGVSPDefine.h"
+#include "GigEVisionPixelFormatDefine.h"
 
 #include "list.h"
 #include "queue.h"
