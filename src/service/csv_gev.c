@@ -414,42 +414,42 @@ static void csv_gev_reg_enroll (void)
 		4, pGC->MessageSourcePort, NULL, toSTR(REG_MessageChannelSourcePort));
 
 	csv_gev_reg_add(REG_StreamChannelPort0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelPort0, NULL, toSTR(REG_StreamChannelPort0));
+		4, pGC->Channel[CAM_LEFT].Port, NULL, toSTR(REG_StreamChannelPort0));
 	csv_gev_reg_add(REG_StreamChannelPacketSize0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelPacketSize0, NULL, toSTR(REG_StreamChannelPacketSize0));
+		4, pGC->Channel[CAM_LEFT].PacketSize, NULL, toSTR(REG_StreamChannelPacketSize0));
 	csv_gev_reg_add(REG_StreamChannelPacketDelay0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelPacketDelay0, NULL, toSTR(REG_StreamChannelPacketDelay0));
+		4, pGC->Channel[CAM_LEFT].PacketDelay, NULL, toSTR(REG_StreamChannelPacketDelay0));
 	csv_gev_reg_add(REG_StreamChannelDestinationAddress0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelAddress0, NULL, toSTR(REG_StreamChannelDestinationAddress0));
+		4, pGC->Channel[CAM_LEFT].Address, NULL, toSTR(REG_StreamChannelDestinationAddress0));
 	csv_gev_reg_add(REG_StreamChannelSourcePort0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_StreamChannelSourcePort0));
+		4, pGC->Channel[CAM_LEFT].SourcePort, NULL, toSTR(REG_StreamChannelSourcePort0));
 	csv_gev_reg_add(REG_StreamChannelCapability0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_StreamChannelCapability0));
+		4, pGC->Channel[CAM_LEFT].Capability, NULL, toSTR(REG_StreamChannelCapability0));
 	csv_gev_reg_add(REG_StreamChannelConfiguration0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelConfiguration0, NULL, toSTR(REG_StreamChannelConfiguration0));
+		4, pGC->Channel[CAM_LEFT].Configuration, NULL, toSTR(REG_StreamChannelConfiguration0));
 	csv_gev_reg_add(REG_StreamChannelZone0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_StreamChannelZone0));
+		4, pGC->Channel[CAM_LEFT].Zone, NULL, toSTR(REG_StreamChannelZone0));
 	csv_gev_reg_add(REG_StreamChannelZoneDirection0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_StreamChannelZoneDirection0));
+		4, pGC->Channel[CAM_LEFT].ZoneDirection, NULL, toSTR(REG_StreamChannelZoneDirection0));
 
 	csv_gev_reg_add(REG_StreamChannelPort1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelPort1, NULL, toSTR(REG_StreamChannelPort1));
+		4, pGC->Channel[CAM_RIGHT].Port, NULL, toSTR(REG_StreamChannelPort1));
 	csv_gev_reg_add(REG_StreamChannelPacketSize1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelPacketSize1, NULL, toSTR(REG_StreamChannelPacketSize1));
+		4, pGC->Channel[CAM_RIGHT].PacketSize, NULL, toSTR(REG_StreamChannelPacketSize1));
 	csv_gev_reg_add(REG_StreamChannelPacketDelay1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelPacketDelay1, NULL, toSTR(REG_StreamChannelPacketDelay1));
+		4, pGC->Channel[CAM_RIGHT].PacketDelay, NULL, toSTR(REG_StreamChannelPacketDelay1));
 	csv_gev_reg_add(REG_StreamChannelDestinationAddress1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelAddress1, NULL, toSTR(REG_StreamChannelDestinationAddress1));
+		4, pGC->Channel[CAM_RIGHT].Address, NULL, toSTR(REG_StreamChannelDestinationAddress1));
 	csv_gev_reg_add(REG_StreamChannelSourcePort1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_StreamChannelSourcePort1));
+		4, pGC->Channel[CAM_RIGHT].SourcePort, NULL, toSTR(REG_StreamChannelSourcePort1));
 	csv_gev_reg_add(REG_StreamChannelCapability1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_StreamChannelCapability1));
+		4, pGC->Channel[CAM_RIGHT].Capability, NULL, toSTR(REG_StreamChannelCapability1));
 	csv_gev_reg_add(REG_StreamChannelConfiguration1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->ChannelConfiguration1, NULL, toSTR(REG_StreamChannelConfiguration1));
+		4, pGC->Channel[CAM_RIGHT].Configuration, NULL, toSTR(REG_StreamChannelConfiguration1));
 	csv_gev_reg_add(REG_StreamChannelZone1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_StreamChannelZone1));
+		4, pGC->Channel[CAM_RIGHT].Zone, NULL, toSTR(REG_StreamChannelZone1));
 	csv_gev_reg_add(REG_StreamChannelZoneDirection1, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_StreamChannelZoneDirection1));
+		4, pGC->Channel[CAM_RIGHT].ZoneDirection, NULL, toSTR(REG_StreamChannelZoneDirection1));
 
 	csv_gev_reg_add(REG_OtherStreamChannelsRegisters, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, toSTR(REG_OtherStreamChannelsRegisters));
@@ -817,9 +817,9 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelPort0:
-		pGC->ChannelPort0 = (uint16_t)regData;
+		pGC->Channel[CAM_LEFT].Port = (uint16_t)regData;
 		pGEV->stream[CAM_LEFT].peer_addr.sin_port = htons((uint16_t)regData);
-		if (0 == pGC->ChannelPort0) {
+		if (0 == pGC->Channel[CAM_LEFT].Port) {
 			pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_STOP;
 		} else {
 			csv_gvsp_cam_grab_thread(CAM_LEFT);
@@ -828,19 +828,19 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	case REG_StreamChannelPacketSize0:
 		if ((0 < regData)&&(regData < GVSP_PACKET_MAX_SIZE)) {
-			pGC->ChannelPacketSize0 = regData;
+			pGC->Channel[CAM_LEFT].PacketSize = regData;
 		} else {
 			ret = -1;
 		}
 		break;
 
 	case REG_StreamChannelPacketDelay0:
-		pGC->ChannelPacketDelay0 = regData;
+		pGC->Channel[CAM_LEFT].PacketDelay = regData;
 		break;
 
 	case REG_StreamChannelDestinationAddress0:
 		if (0 != regData) {
-			pGC->ChannelAddress0 = regData;
+			pGC->Channel[CAM_LEFT].Address = regData;
 			pGEV->stream[CAM_LEFT].peer_addr.sin_addr.s_addr = regData;
 		} else {
 			ret = -1;
@@ -848,13 +848,13 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelConfiguration0:
-		pGC->ChannelConfiguration0 = regData;
+		pGC->Channel[CAM_LEFT].Configuration = regData;
 		break;
 
 	case REG_StreamChannelPort1:
-		pGC->ChannelPort1 = (uint16_t)regData;
+		pGC->Channel[CAM_RIGHT].Port = (uint16_t)regData;
 		pGEV->stream[CAM_RIGHT].peer_addr.sin_port = htons((uint16_t)regData);
-		if (0 == pGC->ChannelPort1) {
+		if (0 == pGC->Channel[CAM_RIGHT].Port) {
 			pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_STOP;
 		} else {
 			csv_gvsp_cam_grab_thread(CAM_RIGHT);
@@ -863,19 +863,19 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	case REG_StreamChannelPacketSize1:
 		if ((0 < regData)&&(regData < GVSP_PACKET_MAX_SIZE)) {
-			pGC->ChannelPacketSize1 = regData;
+			pGC->Channel[CAM_RIGHT].PacketSize = regData;
 		} else {
 			ret = -1;
 		}
 		break;
 
 	case REG_StreamChannelPacketDelay1:
-		pGC->ChannelPacketDelay1 = regData;
+		pGC->Channel[CAM_RIGHT].PacketDelay = regData;
 		break;
 
 	case REG_StreamChannelDestinationAddress1:
 		if (0 != regData) {
-			pGC->ChannelAddress1 = regData;
+			pGC->Channel[CAM_RIGHT].Address = regData;
 			pGEV->stream[CAM_RIGHT].peer_addr.sin_addr.s_addr = regData;
 		} else {
 			ret = -1;
@@ -883,7 +883,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelConfiguration1:
-		pGC->ChannelConfiguration1 = regData;
+		pGC->Channel[CAM_RIGHT].Configuration = regData;
 		break;
 
 	case REG_OtherStreamChannelsRegisters:
@@ -1195,6 +1195,8 @@ static int csv_gvcp_msg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 	int ret = -1;
 
 	memset(pGEV->txbuf, 0, GVCP_MAX_MSG_LEN);
+
+	// TODO check where data from "from_addr.s_addr"
 
 	switch (pHdr->nCommand) {
 	case GEV_DISCOVERY_CMD:
@@ -1562,12 +1564,13 @@ int csv_gvsp_sendto (int fd, struct sockaddr_in *peer, uint8_t *txbuf, uint32_t 
 	return sendto(fd, txbuf, txlen, 0, (struct sockaddr *)&peer, size_len);
 }
 
-static int csv_gvsp_packet_leader (struct gvsp_stream_t *pStream, struct image_info_t *pIMG)
+static int csv_gvsp_packet_leader (struct gvsp_stream_t *pStream, 
+	struct image_info_t *pIMG)
 {
     GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
     pHdr->status			= htons(GEV_STATUS_SUCCESS);
 	pHdr->blockid_flag		= htons(0);	// resend flag ~bit15
-    pHdr->packet_format		= htonl((1<<30)|(GVSP_PACKET_FMT_LEADER<<24)); // EI=1 & Leader
+    pHdr->packet_format		= htonl((1<<31)|(GVSP_PACKET_FMT_LEADER<<24)); // EI=1 & Leader
 	pHdr->block_id_high		= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
 	pHdr->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
 	pHdr->packet_id			= htonl(pStream->packet_id32);
@@ -1590,30 +1593,73 @@ static int csv_gvsp_packet_leader (struct gvsp_stream_t *pStream, struct image_i
 	return csv_gvsp_sendto(pStream->fd, &pStream->peer_addr, pStream->bufSend, pStream->lenSend);
 }
 
-int csv_gvsp_packet_payload (void)
+static int csv_gvsp_packet_payload (struct gvsp_stream_t *pStream, 
+	uint8_t *pData, uint32_t length)
 {
+    GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
+    pHdr->status			= htons(GEV_STATUS_SUCCESS);
+	pHdr->blockid_flag		= htons(0);	// resend flag ~bit15
+    pHdr->packet_format		= htonl((1<<31)|(GVSP_PACKET_FMT_LEADER<<24)); // EI=1 & Leader
+	pHdr->block_id_high		= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
+	pHdr->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
+	pHdr->packet_id			= htonl(pStream->packet_id32);
 
-	return 0;
+	memcpy(pStream->bufSend+sizeof(GVSP_PACKET_HEADER), pData, length);
+
+    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + length;
+
+	return csv_gvsp_sendto(pStream->fd, &pStream->peer_addr, pStream->bufSend, pStream->lenSend);
 }
 
-int csv_gvsp_packet_trailer (void)
+int csv_gvsp_packet_trailer (struct gvsp_stream_t *pStream, 
+	struct image_info_t *pIMG)
 {
+    GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
+    pHdr->status			= htons(GEV_STATUS_SUCCESS);
+	pHdr->blockid_flag		= htons(0);	// resend flag ~bit15
+    pHdr->packet_format		= htonl((1<<31)|(GVSP_PACKET_FMT_LEADER<<24)); // EI=1 & Leader
+	pHdr->block_id_high		= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
+	pHdr->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
+	pHdr->packet_id			= htonl(pStream->packet_id32);
 
-	return 0;
+    GVSPIMAGEDATATRAILER *pDataTrailer = (GVSPIMAGEDATATRAILER*)(pStream->bufSend + sizeof(GVSP_PACKET_HEADER));
+    pDataTrailer->reserved     = htons(0);
+    pDataTrailer->payload_type = htons(GVSP_PT_UNCOMPRESSED_IMAGE);
+    pDataTrailer->size_y       = htonl(pIMG->height);
+
+    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + sizeof(GVSPIMAGEDATATRAILER);
+
+	return csv_gvsp_sendto(pStream->fd, &pStream->peer_addr, pStream->bufSend, pStream->lenSend);
 }
 
-static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream, struct image_info_t *pIMG)
+static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream, 
+	struct image_info_t *pIMG)
 {
-	int ret = 0;
 	if ((NULL == pStream)||(NULL == pIMG)) {
 		return -1;
 	}
 
+	int ret = 0;
+	struct channel_cfg_t *pCH = &gCSV->cfg.gigecfg.Channel[pStream->idx];
+	uint32_t packsize = pCH->PacketSize - 28 - sizeof(GVSP_PACKET_HEADER);
+	uint8_t *pData = pIMG->payload;
+
 	pStream->packet_id32 = 0;
-	
 	ret = csv_gvsp_packet_leader(pStream, pIMG);
 
+	for (pData = pIMG->payload; pData < pIMG->payload+pIMG->length; ) {
+		pStream->packet_id32++;
+		ret = csv_gvsp_packet_payload(pStream, pData, 
+			(pData+packsize < pIMG->payload+pIMG->length) ? packsize : (pIMG->length%packsize));
+		pData += packsize;
 
+		if (pCH->PacketDelay) {
+			usleep(pCH->PacketDelay);
+		}
+	}
+
+	pStream->packet_id32++;
+	ret = csv_gvsp_packet_trailer(pStream, pIMG);
 
 	return ret;
 }
@@ -1714,6 +1760,7 @@ static void *csv_gvsp_client_loop (void *data)
 	}
 
 	csv_gev_reg_value_update(REG_StreamChannelSourcePort0+0x40*pStream->idx, pStream->port);
+	gCSV->cfg.gigecfg.Channel[pStream->idx].SourcePort = pStream->port;
 
 	struct timeval now;
 	struct timespec timeo;

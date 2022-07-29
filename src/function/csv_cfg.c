@@ -72,6 +72,10 @@ static int csv_cfg_calib (struct calib_conf_t *pCALIB)
 
 static int csv_cfg_gev (struct gev_conf_t *pGC)
 {
+	int i = 0;
+	uint32_t file_size = 0;
+	struct channel_cfg_t *pCH = NULL;
+
 	pGC->VersionMajor = GEV_VERSION_MAJOR;
 	pGC->VersionMinor = GEV_VERSION_MINOR;
 	pGC->DeviceMode = (DM_ENDIANESS|DM_CLASS_TRANSMITTER|DM_CLC_SingleLC|DM_CHARACTER_UTF8);
@@ -84,7 +88,6 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	strcpy(pGC->ManufacturerInfo, "CS vision 3d infomation");
 	strcpy(pGC->SerialNumber, "CS300128001"); // todo update
 
-	uint32_t file_size = 0;
 	pGC->strXmlfile = GEV_XML_FILENAME;
 	pGC->xmlData = NULL;
 	csv_file_get_size(pGC->strXmlfile, &file_size);
@@ -96,6 +99,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 			csv_file_read_data(pGC->strXmlfile, pGC->xmlData, file_size);
 		}
 	}
+	strcpy(pGC->SecondURL, pGC->FirstURL);
 
 	pGC->GVSPCapability = GVSPCap_SP|GVSPCap_LB;
 	pGC->MessageCapability = MSGCap_MCSP;
@@ -114,23 +118,25 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pGC->PrimaryAddress = 0x00000000;
 	pGC->PrimaryPort = 0x0000;
 
-	pGC->ChannelAddress0 = 0x00000000;
-	pGC->ChannelPort0 = 0x0000;
-	pGC->ChannelPacketSize0 = 8164;
-	pGC->ChannelPacketDelay0 = 0;
-	pGC->ChannelConfiguration0 = 0;
-
-	pGC->ChannelAddress1 = 0x00000000;
-	pGC->ChannelPort1 = 0x0000;
-	pGC->ChannelPacketSize1 = 8164;
-	pGC->ChannelPacketDelay1 = 0;
-	pGC->ChannelConfiguration1 = 0;
-
 	pGC->MessageAddress = 0x00000000;
 	pGC->MessagePort = 0x0000;
 	pGC->MessageTimeout = 2000;
 	pGC->MessageRetryCount = 0;
 	pGC->MessageSourcePort = 0x0000;
+
+	for (i = 0; i < TOTAL_CAMS; i++) {
+		pCH = &pGC->Channel[i];
+
+		pCH->Address = 0x00000000;
+		pCH->Port = 0x0000;
+		pCH->PacketSize = DEFAULT_GVSP_PACKETSIZE;
+		pCH->PacketDelay = 0;
+		pCH->Configuration = 0;
+		pCH->SourcePort = 0;
+		pCH->Capability = 0;
+		pCH->Zone = 0;
+		pCH->ZoneDirection = 0;
+	}
 
 	return 0;
 }

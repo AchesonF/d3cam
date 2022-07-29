@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#define DEFAULT_GVSP_PACKETSIZE			(8164)
+
 struct dlp_cfg_t {
 	char				name[64];
 	float				rate;
@@ -28,6 +30,17 @@ struct depthimg_cfg_t {
 	int					UniqRatio;
 };
 
+struct channel_cfg_t {
+	uint32_t				Address;
+	uint16_t				Port;
+	uint32_t				PacketSize;
+	uint32_t				PacketDelay;
+	uint32_t				Configuration;
+	uint32_t				SourcePort;
+	uint32_t				Capability;
+	uint32_t				Zone;
+	uint32_t				ZoneDirection;
+};
 
 /* GigE Version regiseter's parameters */
 struct gev_conf_t {
@@ -70,24 +83,13 @@ struct gev_conf_t {
 	uint32_t				PrimaryAddress;
 	uint16_t				PrimaryPort;
 
-	uint32_t				ChannelAddress0;
-	uint16_t				ChannelPort0;
-	uint32_t				ChannelPacketSize0;
-	uint32_t				ChannelPacketDelay0;
-	uint32_t				ChannelConfiguration0;
-
-	uint32_t				ChannelAddress1;
-	uint16_t				ChannelPort1;
-	uint32_t				ChannelPacketSize1;
-	uint32_t				ChannelPacketDelay1;
-	uint32_t				ChannelConfiguration1;
-
 	uint32_t				MessageAddress;
 	uint16_t				MessagePort;
 	uint32_t				MessageTimeout;
 	uint32_t				MessageRetryCount;
 	uint32_t				MessageSourcePort;
 
+	struct channel_cfg_t	Channel[TOTAL_CAMS];
 };
 
 struct pointcloud_cfg_t {
