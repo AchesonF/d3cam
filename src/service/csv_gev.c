@@ -1516,7 +1516,7 @@ exit_thr:
 	pStream->thr_grab = 0;
 	pStream->grab_status = GRAB_STATUS_STOP;
 
-	log_info("OK : exit pthread '%s'", pStream->name_grab);
+	log_info("OK : exit pthread '%s'", pStream->name_egvgrab);
 
 	pthread_exit(NULL);
 
@@ -1544,11 +1544,11 @@ int csv_gvsp_cam_grab_thread (uint8_t idx)
 
 	ret = pthread_create(&pStream->thr_grab, &attr, csv_gvsp_cam_grab_loop, (void *)pStream);
 	if (ret < 0) {
-		log_err("ERROR : create pthread '%s'", pStream->name_grab);
+		log_err("ERROR : create pthread '%s'", pStream->name_egvgrab);
 		pStream->grab_status = GRAB_STATUS_NONE;
 		return -1;
 	} else {
-		log_info("OK : create pthread '%s' @ (%p)", pStream->name_grab, pStream->thr_grab);
+		log_info("OK : create pthread '%s' @ (%p)", pStream->name_egvgrab, pStream->thr_grab);
 	}
 
 	return ret;
@@ -1577,7 +1577,7 @@ static int csv_gvsp_packet_leader (struct gvsp_stream_t *pStream, struct image_i
     pDataLeader->payload_type   = htons(GVSP_PT_UNCOMPRESSED_IMAGE);
     pDataLeader->timestamp_high = htonl(0);  // TODO
     pDataLeader->timestamp_low  = htonl(0);
-    pDataLeader->pixel_format   = htonl(GVSP_PIX_MONO8);
+    pDataLeader->pixel_format   = htonl(PixelType_Gvsp_Mono8);
     pDataLeader->size_x         = htonl(pIMG->width);
     pDataLeader->size_y         = htonl(pIMG->height);
     pDataLeader->offset_x       = htonl(0);
@@ -1842,10 +1842,10 @@ int csv_gev_init (void)
 
 	pGEV->stream[CAM_LEFT].name = "stream_"toSTR(CAM_LEFT);
 	pGEV->stream[CAM_LEFT].name_stream = "thr_"toSTR(CAM_LEFT);
-	pGEV->stream[CAM_LEFT].name_grab = "grab_"toSTR(CAM_LEFT);
+	pGEV->stream[CAM_LEFT].name_egvgrab = "grab_"toSTR(CAM_LEFT);
 	pGEV->stream[CAM_RIGHT].name = "stream_"toSTR(CAM_RIGHT);
 	pGEV->stream[CAM_RIGHT].name_stream = "thr_"toSTR(CAM_RIGHT);
-	pGEV->stream[CAM_RIGHT].name_grab = "grab_"toSTR(CAM_RIGHT);
+	pGEV->stream[CAM_RIGHT].name_egvgrab = "grab_"toSTR(CAM_RIGHT);
 	for (i = 0; i < TOTAL_CAMS; i++) {
 		pStream = &pGEV->stream[i];
 		pStream->idx = i;

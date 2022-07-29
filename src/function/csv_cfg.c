@@ -116,13 +116,13 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 
 	pGC->ChannelAddress0 = 0x00000000;
 	pGC->ChannelPort0 = 0x0000;
-	pGC->ChannelPacketSize0 = 2000;
+	pGC->ChannelPacketSize0 = 8164;
 	pGC->ChannelPacketDelay0 = 0;
 	pGC->ChannelConfiguration0 = 0;
 
 	pGC->ChannelAddress1 = 0x00000000;
 	pGC->ChannelPort1 = 0x0000;
-	pGC->ChannelPacketSize1 = 2000;
+	pGC->ChannelPacketSize1 = 8164;
 	pGC->ChannelPacketDelay1 = 0;
 	pGC->ChannelConfiguration1 = 0;
 

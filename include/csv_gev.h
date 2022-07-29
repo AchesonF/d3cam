@@ -90,7 +90,7 @@ struct gvsp_stream_t {
 	pthread_mutex_t			mutex_stream;	///< 锁
 	pthread_cond_t			cond_stream;	///< 条件
 
-	const char				*name_grab;		///< 抓图
+	const char				*name_egvgrab;		///< 抓图
 	pthread_t				thr_grab;
 };
 
