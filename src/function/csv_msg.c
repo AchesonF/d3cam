@@ -521,12 +521,11 @@ static void csv_msg_cmd_enroll (void)
 	//msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), msg_cameras_highspeed);
 	msg_command_add(CAMERA_GET_GRAB_LEDOFF, toSTR(CAMERA_GET_GRAB_LEDOFF), msg_cameras_grab_gray);
 	msg_command_add(CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), msg_cameras_grab_gray);
-	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_urandom);
+	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_urandom);
+	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_rgb);
 	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_demarcate);
 	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), msg_cameras_grab_rgb);
-
-	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_urandom);
 
 
 
@@ -607,7 +606,7 @@ int csv_msg_check (uint8_t *buf, uint32_t len)
 	struct msg_head_t *pHDR = NULL;
 	pHDR = (struct msg_head_t *)buf;
 
-	log_debug("MSG: 0x%08X, len %d, code %d", pHDR->cmdtype, pHDR->length, pHDR->result);
+	log_debug("MSG[0x%08X] + %d", pHDR->cmdtype, pHDR->length);
 
 	if (pHDR->length > 0) {
 		len_need = pHDR->length - (len - sizeof(struct msg_head_t));
@@ -632,8 +631,6 @@ static int csv_msg_execute (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	struct msg_command_list *task = NULL;
 	struct msg_command_t *pCMD = NULL;
 
-//	log_debug("msg 0x%08X", pMP->hdr.cmdtype);
-
 	list_for_each(pos, &gCSV->msg.head_cmd.list) {
 		task = list_entry(pos, struct msg_command_list, list);
 		if (task == NULL) {
@@ -643,13 +640,13 @@ static int csv_msg_execute (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		pCMD = &task->command;
 
 		if (pMP->hdr.cmdtype == pCMD->cmdtype) {
-			log_debug("match '%s'", pCMD->cmdname);
+			log_debug("deal '%s'", pCMD->cmdname);
 
 			return pCMD->func(pMP, pACK);
 		}
 	}
 
-	log_debug("WARN : unknown msg 0x%08X", pMP->hdr.cmdtype);
+	log_debug("WARN : unknown msg[0x%08X]", pMP->hdr.cmdtype);
 
 	return -1;
 }

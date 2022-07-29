@@ -127,7 +127,7 @@ extern int csv_gev_reg_value_update (uint32_t addr, uint32_t value);
 extern int csv_gvcp_trigger (struct csv_gev_t *pGEV);
 
 
-extern int csv_mvs_cam_grab_thread (uint8_t idx);
+extern int csv_gvsp_cam_grab_thread (uint8_t idx);
 
 extern int csv_gev_init (void);
 

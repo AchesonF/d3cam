@@ -822,7 +822,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		if (0 == pGC->ChannelPort0) {
 			pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_STOP;
 		} else {
-			csv_mvs_cam_grab_thread(CAM_LEFT);
+			csv_gvsp_cam_grab_thread(CAM_LEFT);
 		}
 		break;
 
@@ -857,7 +857,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		if (0 == pGC->ChannelPort1) {
 			pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_STOP;
 		} else {
-			csv_mvs_cam_grab_thread(CAM_RIGHT);
+			csv_gvsp_cam_grab_thread(CAM_RIGHT);
 		}
 		break;
 
@@ -1403,7 +1403,7 @@ static int csv_gvcp_message_open (struct gev_message_t *pMsg)
 	return 0;
 }
 
-static int csv_mvs_grab_fetch (struct gvsp_stream_t *pStream, 
+static int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream, 
 	uint8_t *imgData, uint32_t imgLength, MV_FRAME_OUT_INFO_EX *imgInfo)
 {
 	struct stream_list_t *cur = NULL;
@@ -1443,7 +1443,7 @@ static int csv_mvs_grab_fetch (struct gvsp_stream_t *pStream,
 	return 0;
 }
 
-static void *csv_mvs_cam_grab_loop (void *pData)
+static void *csv_gvsp_cam_grab_loop (void *pData)
 {
 	if (NULL == pData) {
 		goto exit_thr;
@@ -1497,7 +1497,7 @@ static void *csv_mvs_cam_grab_loop (void *pData)
 		log_debug("OK : CAM '%s' : GetOneFrame[%d] %d x %d", pCAM->sn, 
 			pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-		csv_mvs_grab_fetch(pStream, pCAM->imgData, pCAM->sizePayload.nCurValue, &pCAM->imgInfo);
+		csv_gvsp_cam_grab_fetch(pStream, pCAM->imgData, pCAM->sizePayload.nCurValue, &pCAM->imgInfo);
 	}
 
 	nRet = MV_CC_StopGrabbing(pCAM->pHandle);
@@ -1523,7 +1523,7 @@ exit_thr:
 	return NULL;
 }
 
-int csv_mvs_cam_grab_thread (uint8_t idx)
+int csv_gvsp_cam_grab_thread (uint8_t idx)
 {
 	int ret = -1;
 
@@ -1542,7 +1542,7 @@ int csv_mvs_cam_grab_thread (uint8_t idx)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-	ret = pthread_create(&pStream->thr_grab, &attr, csv_mvs_cam_grab_loop, (void *)pStream);
+	ret = pthread_create(&pStream->thr_grab, &attr, csv_gvsp_cam_grab_loop, (void *)pStream);
 	if (ret < 0) {
 		log_err("ERROR : create pthread '%s'", pStream->name_grab);
 		pStream->grab_status = GRAB_STATUS_NONE;
