@@ -323,7 +323,7 @@ int csv_mvs_cams_open (struct csv_mvs_t *pMVS)
 				log_info("ERROR : StartGrabbing failed. [0x%08X]", nRet);
 				errNum++;
 	        }
-			pCAM->grabbing = true;
+			//pCAM->grabbing = true;
 		}
     }
 

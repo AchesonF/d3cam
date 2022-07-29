@@ -78,7 +78,7 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			rightsize = right.cols * right.rows * right.channels();
 			len_msg = sizeof(struct img_hdr_t)*2 + leftsize + rightsize;
 
-			pACK->len_send = sizeof(struct msg_head_t) + len_msg;
+			pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 			pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 			if (NULL == pACK->buf_send) {
 				log_err("ERROR : malloc send");
@@ -164,7 +164,7 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 				return -1;
 			}
 
-			pACK->len_send = sizeof(struct msg_head_t) + len_msg;
+			pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 			pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 			if (NULL == pACK->buf_send) {
 				log_err("ERROR : malloc send");
@@ -239,6 +239,10 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
+int msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	return 0;
+}
 
 /* 填充随机数据 */
 int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
@@ -247,11 +251,11 @@ int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int len_msg = 0;
 	Mat left, right;
     int leftsize = 0, rightsize = 0;	// 左右图像的大小
-	int len_data = 1240*1624;
+	int len_data = 1240*1616;
 	MV_FRAME_OUT_INFO_EX pstImageInfo;
 	pstImageInfo.enPixelType = PixelType_Gvsp_Mono8;
 	pstImageInfo.nHeight = 1240;
-	pstImageInfo.nWidth = 1624;
+	pstImageInfo.nWidth = 1616;
 
 	uint8_t *pData = (uint8_t *)malloc(len_data);
 	if (NULL == pData) {
@@ -280,7 +284,7 @@ int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	rightsize = right.cols * right.rows * right.channels();
 	len_msg = sizeof(struct img_hdr_t)*2 + leftsize + rightsize;
 
-	pACK->len_send = sizeof(struct msg_head_t) + len_msg;
+	pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 	pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 	if (NULL == pACK->buf_send) {
 		log_err("ERROR : malloc send");
