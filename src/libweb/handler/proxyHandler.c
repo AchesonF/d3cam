@@ -1336,7 +1336,7 @@ static void proxyInfo(void *ignored, MprSignal *sp)
     HttpHost        *host;
     HttpRoute       *route;
     HttpStream      *stream;
-    HttpRx          *rx;
+//    HttpRx          *rx;
     int             nextHost, nextRoute, nextApp, nextReq;
 
     http = HTTP;
@@ -1352,7 +1352,7 @@ static void proxyInfo(void *ignored, MprSignal *sp)
                     app->networks->length, app->requests->length, app->seqno);
                 for (ITERATE_ITEMS(app->requests, req, nextReq)) {
                     stream = req->stream;
-                    rx = stream->rx;
+//                    rx = stream->rx;
                     print("        Req %p network %p mask 0x%x, req eof %d, state %d, finalized output %d, input %d, error %d, netMask 0x%x",
                         req, req->proxyNet, req->proxyNet->eventMask, req->proxyNet->eof, stream->state,
                         stream->tx->finalizedOutput, stream->tx->finalizedInput, stream->error, stream->net->eventMask);

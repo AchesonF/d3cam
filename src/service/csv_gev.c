@@ -1656,6 +1656,10 @@ static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream,
 		if (pCH->PacketDelay) {
 			usleep(pCH->PacketDelay);
 		}
+
+		if (pStream->grab_status != GRAB_STATUS_RUNNING) {
+			return -1;
+		}
 	}
 
 	pStream->packet_id32++;
@@ -1777,7 +1781,10 @@ static void *csv_gvsp_client_loop (void *data)
 
 			pIMG = &task->img;
 
-			csv_gvsp_image_dispatch(pStream, pIMG);
+			if (pStream->grab_status == GRAB_STATUS_RUNNING) {
+				csv_gvsp_image_dispatch(pStream, pIMG);
+				pStream->block_id64++;
+			}
 
 			if (NULL != pIMG->payload) {
 				free(pIMG->payload);
