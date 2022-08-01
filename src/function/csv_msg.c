@@ -782,6 +782,8 @@ static int csv_msg_thread_cancel (struct csv_msg_t *pMSG)
 
 	ret = pthread_join(pMSG->thr_msg, &retval);
 
+	pMSG->thr_msg = 0;
+
 	return ret;
 }
 

@@ -69,6 +69,8 @@ static int csv_web_thread_cancel (struct csv_web_t *pWEB)
 
 	ret = pthread_join(pWEB->thr_web, &retval);
 
+	pWEB->thr_web = 0;
+
 	return ret;
 }
 

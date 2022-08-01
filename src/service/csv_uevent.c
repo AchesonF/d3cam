@@ -4,104 +4,6 @@
 extern "C" {
 #endif
 
-/*
-remove@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.0
-ACTION=remove
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.0
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/0
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip00in00
-SEQNUM=6369
-
-remove@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.1
-ACTION=remove
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.1
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/1
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip01in01
-SEQNUM=6370
-
-remove@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.2
-ACTION=remove
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.2
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/2
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip02in02
-SEQNUM=6371
-
-remove@/devices/3610000.xhci/usb2/2-3/2-3.1
-ACTION=remove
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1
-SUBSYSTEM=usb
-MAJOR=189
-MINOR=135
-DEVNAME=bus/usb/002/008
-DEVTYPE=usb_device
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-BUSNUM=002
-DEVNUM=008
-SEQNUM=6372
-
-
-
-add@/devices/3610000.xhci/usb2/2-3/2-3.1
-ACTION=add
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1
-SUBSYSTEM=usb
-MAJOR=189
-MINOR=136
-DEVNAME=bus/usb/002/009
-DEVTYPE=usb_device
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-BUSNUM=002
-DEVNUM=009
-SEQNUM=6373
-
-add@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.0
-ACTION=add
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.0
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/0
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip00in00
-SEQNUM=6374
-
-add@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.1
-ACTION=add
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.1
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/1
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip01in01
-SEQNUM=6375
-
-add@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.2
-ACTION=add
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.2
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/2
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip02in02
-SEQNUM=6376
-
-*/
 
 static void parse_event (const char *kmsg)
 {
@@ -165,8 +67,16 @@ int csv_uevent_trigger (struct csv_uevent_t *pUE)
 {
 	int rcvlen = 0;
 	char kmsg[LEN_UEVENT_MSG+2] = {0};
+	int timeo = 0;
 
 	while ((rcvlen = recv(pUE->fd, kmsg, LEN_UEVENT_MSG, 0)) > 0) {
+		if (++timeo >= 200) {
+			log_info("WARN : too many event flush. Something go wrong.");
+			csv_uevent_deinit();
+			csv_uevent_init();
+			break;
+		}
+
 		if (rcvlen == LEN_UEVENT_MSG) { // overflow. omit
 			continue;
 		}
@@ -240,7 +150,7 @@ int csv_uevent_deinit (void)
 	struct csv_uevent_t *pUE = &gCSV->uevent;
 
 	if (pUE->fd > 0) {
-		log_info("OK : close uevent.");
+		log_info("OK : close %s.", pUE->name);
 		close(pUE->fd);
 		pUE->fd = -1;
 	}

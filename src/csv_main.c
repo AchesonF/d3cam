@@ -41,11 +41,11 @@ static void csv_deinit (void)
 
 	csv_uevent_deinit();
 
-	csv_mvs_deinit();
-
 	csv_web_deinit();
 
 	csv_tick_deinit();
+
+	csv_mvs_deinit();
 
 	if (gCSV != NULL) {
 		free(gCSV);
@@ -96,6 +96,12 @@ static void csv_trace (int signum)
 	fclose(fp);
 
 	csv_deinit();
+
+	if (gCSV != NULL) {
+		free(gCSV);
+	}
+
+	close(gPdct.fd_lock);
 
 	log_info("WARN : crash process pid[%d] via signum[%d]=%s", 
 		getpid(), signum, strSIG);
@@ -177,7 +183,7 @@ static int csv_lock_pid (void)
 		log_err("ERROR : write fd(%d)", fd);
 	}
 
-	log_info("My pid is %d.", getpid());
+	log_info("My pid is %d from %d", getpid(), getppid());
 
 	return 0;
 }

@@ -1865,12 +1865,14 @@ static int csv_gvsp_client_thread_cancel (struct gvsp_stream_t *pStream)
 
 	ret = pthread_cancel(pStream->thr_stream);
 	if (ret != 0) {
-		log_err("ERROR : pthread_cancel %s", pStream->name_stream);
+		log_err("ERROR : pthread_cancel '%s'", pStream->name_stream);
 	} else {
-		log_info("OK : cancel pthread %s", pStream->name_stream);
+		log_info("OK : cancel pthread '%s'", pStream->name_stream);
 	}
 
 	ret = pthread_join(pStream->thr_stream, &retval);
+
+	pStream->thr_stream = 0;
 
 	return ret;
 }

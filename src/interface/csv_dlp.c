@@ -274,6 +274,8 @@ static int csv_dlp_thread_cancel (struct csv_dlp_t *pDLP)
 
 	ret = pthread_join(pDLP->thr_dlp, &retval);
 
+	pDLP->thr_dlp = 0;
+
 	return ret;
 }
 

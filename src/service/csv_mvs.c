@@ -199,9 +199,9 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 	}
 
 	if (pDevList->nDeviceNum > 0) {
-		log_info("OK : found %d CAM devices.", pDevList->nDeviceNum);
+		log_info("Found %d CAM device(s).", pDevList->nDeviceNum);
 	} else {
-		log_info("WARN : NO CAM devices.");
+		log_info("WARN : NO CAM device found.");
 		return 0;
 	}
 
@@ -209,7 +209,7 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 
 	if (pDevList->nDeviceNum > TOTAL_CAMS) {
 		pMVS->cnt_mvs = TOTAL_CAMS;
-		log_info("Only USE first %d CAM devices.", TOTAL_CAMS);
+		log_info("Only USE first %d CAM device(s).", TOTAL_CAMS);
 	}
 
 	if ((2 == pMVS->cnt_mvs)&&(gCSV->cfg.devicecfg.SwitchCams)) {
@@ -219,8 +219,6 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 	}
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
-		log_info("CAM[%d] : ", i);
-
 		pDevInfo = pDevList->pDeviceInfo[i];
 		if (NULL == pDevInfo) {
 			log_info("ERROR : CAM pDeviceInfo");
@@ -235,8 +233,8 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 			sprintf(pCAM->model, "%s", (char *)pGgInfo->chModelName);
 			sprintf(pCAM->sn, "%s", (char *)pGgInfo->chSerialNumber);
 
-			log_info("GIGE : '%s' - '%s'", pCAM->model, pCAM->sn);
-			//log_info("OK : UserDefinedName[%d] %s", i, (char *)pGgInfo->chUserDefinedName);
+			log_info("CAM[%d] : GIGE : '%s' - '%s' (%s)", i, pCAM->model, pCAM->sn, 
+				(char *)pGgInfo->chUserDefinedName);
 		}
 			break;
 		case MV_USB_DEVICE: {
@@ -245,8 +243,8 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 			sprintf(pCAM->model, "%s", (char *)pU3Info->chModelName);
 			sprintf(pCAM->sn, "%s", (char *)pU3Info->chSerialNumber);
 
-			log_info("USB3 : '%s' - '%s'", pCAM->model, pCAM->sn);
-			//log_info("OK : UserDefinedName[%d] %s", i, (char *)pU3Info->chUserDefinedName);
+			log_info("CAM[%d] : USB3 : '%s' - '%s' (%s)", i, pCAM->model, pCAM->sn, 
+				(char *)pU3Info->chUserDefinedName);
 		}
 			break;
 		default:
@@ -1044,6 +1042,8 @@ static int csv_mvs_grab_thread_cancel (struct csv_mvs_t *pMVS)
 
 	ret = pthread_join(pMVS->thr_grab, &retval);
 
+	pMVS->thr_grab = 0;
+
 	return ret;
 }
 
@@ -1063,7 +1063,10 @@ static void *csv_mvs_loop (void *data)
 		do {
 			sleep(1);
 			ret = csv_mvs_cameras_search(pMVS);
-		} while ((ret < 2)&&(++timeo < 10));
+			if (ret < TOTAL_CAMS) {
+				log_info("Search times[%d] not enough cams.", timeo+1);
+			}
+		} while ((ret < TOTAL_CAMS)&&(++timeo < 10));
 
 		timeo = 0;
 
@@ -1144,6 +1147,8 @@ static int csv_mvs_thread_cancel (struct csv_mvs_t *pMVS)
 	}
 
 	ret = pthread_join(pMVS->thr_mvs, &retval);
+
+	pMVS->thr_mvs = 0;
 
 	return ret;
 }

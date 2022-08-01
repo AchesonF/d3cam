@@ -246,6 +246,8 @@ static int csv_png_thread_cancel (struct csv_png_t *pPNG)
 
 	ret = pthread_join(pPNG->thr_png, &retval);
 
+	pPNG->thr_png = 0;
+
 	return ret;
 }
 
