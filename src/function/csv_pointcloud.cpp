@@ -130,17 +130,17 @@ int point_cloud_calc(void)
 	pMVS->lastTimestamp = utility_get_microsecond();
 	log_debug("create3d take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
-#if 1
-	string outfilepng = "range.png";
+	pMVS->firstTimestamp = utility_get_microsecond();
+	string outfilepng = string(pPC->outDepthImage);
 	Mat out;
 	Mat vdisp;
 	ParseDepthImage2CVMat(depthImage, out);
 
 	normalize(out, vdisp, 0, 256, NORM_MINMAX, CV_8U);
 	imwrite(outfilepng, vdisp);
-#endif
+	pMVS->lastTimestamp = utility_get_microsecond();
+	log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
-	//pMVS->firstTimestamp = utility_get_microsecond();
 #if 0
 	Mat out = Mat(rows, cols, CV_32FC1, point3D.m_point3DData.data());
 	ofstream outfile(pPC->outFileXYZ);
@@ -156,8 +156,7 @@ int point_cloud_calc(void)
 	}
 	outfile.close();
 #endif
-	//pMVS->lastTimestamp = utility_get_microsecond();
-	//log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
+
 
 	pPC->groupPointCloud++;
 

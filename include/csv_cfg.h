@@ -96,6 +96,7 @@ struct pointcloud_cfg_t {
 	char					ImageSaveRoot[128];	///< 图片存放路径
 	char					calibFile[128];		///< 标定参数文件名
 	char					outFileXYZ[256];	///< 生成文件名
+	char					outDepthImage[256];	///< 生成深度图png
 	uint8_t					groupPointCloud;	///< 点云次数
 	uint8_t					enable;				///< 使能计算
 

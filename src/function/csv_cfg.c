@@ -56,6 +56,7 @@ static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 	strcpy(pPC->ImageSaveRoot, "data/PointCloudImage");
 	strcpy(pPC->calibFile, "CSV_Cali_HST_L21D_C0280.xml");
 	strcpy(pPC->outFileXYZ, "pointcloud.xyz");
+	strcpy(pPC->outDepthImage, "depthImage.png");
 	pPC->groupPointCloud = 1;
 	pPC->enable = 0;
 

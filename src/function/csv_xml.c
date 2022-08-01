@@ -622,6 +622,12 @@ static int csv_xml_PointCloudConfiguration (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
+	xml_strlcpy(key_pair[nums].key, "outDepthImage", MAX_KEY_SIZE);
+	key_pair[nums].value = &pPC->outDepthImage;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
 	xml_strlcpy(key_pair[nums].key, "groupPointCloud", MAX_KEY_SIZE);
 	key_pair[nums].value = &pPC->groupPointCloud;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
