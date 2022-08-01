@@ -36,7 +36,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 
 		string path = pathRoot + "/" + filename;
 
-		log_debug("imread : %s", path);
+		cout << "Read Image : " << path << endl;
 
 		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src1list.emplace_back(im);
@@ -53,7 +53,7 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 
 		string path = pathRoot + "/" + filename;
 
-		log_debug("imread : %s", path);
+		cout << "Read Image : " << path << endl;
 
 		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src2list.emplace_back(im);
@@ -64,6 +64,14 @@ static void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 
 	return;
 }
+
+
+bool ParseDepthImage2CVMat(CsvImageSimple &depthImage, Mat& out) {
+	out = Mat(depthImage.m_height, depthImage.m_width, CV_16U, depthImage.m_data.data());
+	out.row(0) = Scalar(0);
+	return true;
+}
+
 
 int point_cloud_calc(void)
 {
@@ -82,16 +90,16 @@ int point_cloud_calc(void)
 		return -1;
 	}
 
-	string version =  CSV::csvGetCreatePoint3DALgVersion();
+	string version =  csvGetCreatePoint3DALgVersion();
 	cout << version << endl;
 
-	CSV::CsvCreatePoint3DParam param;
+	CsvCreatePoint3DParam param;
 	param.calibXml = string(pPC->calibFile);
-	param.type = CSV::CSV_DataFormatType::FixPoint64bits;
+	param.type = CSV_DataFormatType::FixPoint16bits;
 
 	CsvSetCreatePoint3DParam(param); //set params
 
-	CSV::CsvCreatePoint3DParam param0;
+	CsvCreatePoint3DParam param0;
 	CsvGetCreatePoint3DParam(param0);
 	cout << param0.calibXml << endl;
 	cout << param0.type << endl;
@@ -100,19 +108,15 @@ int point_cloud_calc(void)
 	vector<vector<Mat>> imgGroupList;
 	loadSrcImageEx(imgRoot, imgGroupList);
 
-	vector<vector<CSV::CsvImageSimple>> imageGroups;
-	CSV::CsvPoint3DCloud pointCloud;
+	vector<vector<CsvImageSimple>> imageGroups;
+	CsvImageSimple depthImage;
+	vector<float> point3D;
 
 	int rows = imgGroupList[0][0].rows, cols = imgGroupList[0][0].cols;
 	for (unsigned int g = 0; g < imgGroupList.size(); g++) {
-		vector<CSV::CsvImageSimple> imgs;
+		vector<CsvImageSimple> imgs;
 		for (unsigned int i = 0; i < imgGroupList[g].size(); i++) {
-			CSV::CsvImageSimple img;
-			img.m_height = rows;
-			img.m_width = cols;
-			img.m_widthStep = img.m_width;
-			img.m_channel = 1;
-			img.m_data = imgGroupList[g][i].data;
+			CsvImageSimple img(rows, cols, 1, imgGroupList[g][i].data);
 			imgs.emplace_back(img);
 		}
 		imageGroups.emplace_back(imgs);
@@ -121,28 +125,39 @@ int point_cloud_calc(void)
 	pMVS->firstTimestamp = utility_get_microsecond();
 	log_debug("create 3d @ %ld us.", pMVS->firstTimestamp);
 
-	csvCreatePoint3D(imageGroups, pointCloud);
+	csvCreatePoint3D(imageGroups, depthImage, &point3D);
 
 	pMVS->lastTimestamp = utility_get_microsecond();
 	log_debug("create3d take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
-	pMVS->firstTimestamp = utility_get_microsecond();
-	Mat out = Mat(rows, cols, CV_32FC3, pointCloud.m_point3DData.data());
+#if 1
+	string outfilepng = "range.png";
+	Mat out;
+	Mat vdisp;
+	ParseDepthImage2CVMat(depthImage, out);
+
+	normalize(out, vdisp, 0, 256, NORM_MINMAX, CV_8U);
+	imwrite(outfilepng, vdisp);
+#endif
+
+	//pMVS->firstTimestamp = utility_get_microsecond();
+#if 0
+	Mat out = Mat(rows, cols, CV_32FC1, point3D.m_point3DData.data());
 	ofstream outfile(pPC->outFileXYZ);
 	for (int i = 0; i < out.rows; i++) {
 		Vec3f *p0 = out.ptr<Vec3f>(i);
 		for (int j = 0; j < out.cols; j++) {
 			Vec3f p = p0[j];
-			if (isnan(p[0]) || isnan(p[1]) || isnan(p[2])){
+			if (isnan(p[0]) || isnan(p[1]) || isnan(p[2])) {
 				continue;
 			}
 			outfile << p[0] << " " << p[1] << " " << p[2] << " " << "\n";
 		}
 	}
 	outfile.close();
-
-	pMVS->lastTimestamp = utility_get_microsecond();
-	log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
+#endif
+	//pMVS->lastTimestamp = utility_get_microsecond();
+	//log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
 	pPC->groupPointCloud++;
 

@@ -20,23 +20,34 @@ namespace CSV {
 		}
 	};
 
+	enum DepthType {
+		ImageDepthType8bits = 8,
+		ImageDepthType16bits = 16
+	};
 
 	class CsvImageSimple {
 	public:
-		CsvImageSimple() {
-			m_data = NULL;
-			m_height = m_width = m_widthStep = 0;
-			m_channel = 0;
+		CsvImageSimple() {}
+		CsvImageSimple(unsigned int rows, unsigned int cols, unsigned int channel, unsigned char* data) {
+			m_height = rows;
+			m_width = cols;
+			m_channel = channel;
+			m_widthStep = m_width * channel * sizeof(unsigned char);
+			m_data = vector<unsigned char>(data, data + m_height * m_widthStep); //deep copy into MYSELF space !!
 		}
 
-		inline unsigned char *ptr(int x, int y) { return m_data + y * m_widthStep + x * m_channel; }
-		inline unsigned char &at(int x, int y) { return m_data[y * m_widthStep + x * m_channel]; }
+		~CsvImageSimple() {	}
+
+		inline unsigned char *ptr(int x, int y) { return m_data.data() + y * m_widthStep + x * m_channel; }
+		inline unsigned char &at(int x, int y) { return m_data.data()[y * m_widthStep + x * m_channel]; }
+
 	public:
-		unsigned char *m_data;
+		vector<unsigned char> m_data;
 		unsigned int  m_height;
 		unsigned int  m_width;
 		unsigned int  m_channel;
 		unsigned int  m_widthStep; // number of bytes in a line
+		DepthType m_depth;
 	};
 
 	string csvGetCreatePoint3DALgVersion();
@@ -44,9 +55,11 @@ namespace CSV {
 	bool CsvGetCreatePoint3DParam(CsvCreatePoint3DParam &param);
 	bool csvCreatePoint3D(
 		const vector<vector<CsvImageSimple>>& inImages,
-		CsvPoint3DCloud &pointCloud
+		CsvImageSimple &depthImage,
+		vector<float> *point3D = NULL
 		);
 
+	bool ParseDepthImage2PointCloud(CsvImageSimple &depthImage, vector<float> *point3D);
 };
 #endif
 

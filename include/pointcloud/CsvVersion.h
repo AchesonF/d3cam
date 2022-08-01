@@ -5,7 +5,7 @@
 #include <time.h>
 using namespace std;
 
-#define LIB_VERSION "1.0.2"
+#define LIB_VERSION "1.0.3"
 
 class CsvVersion
 {
