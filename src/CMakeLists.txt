@@ -54,7 +54,7 @@ target_link_libraries(${EXE_TARGET}
 	opencv_world
 #	${OpenCV_LIBS}
 	${LIB_WEB_SERVER}
-	pointcloud3d
+	csv3d
 	${LIB_SPNG}
 	${LIB_ZIP}
 )
