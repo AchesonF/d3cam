@@ -463,6 +463,16 @@ int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
+int msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	struct csv_mvs_t *pMVS = &gCSV->mvs;
+
+	csv_mvs_cams_img_depth(pMVS);
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
+
+	return csv_msg_send(pACK);
+}
 
 static struct msg_command_list *msg_command_malloc (void)
 {

@@ -102,7 +102,7 @@ include_directories(
 	"include/mvs"
 	"include/gev"
 	"include/so"
-	"include/pointcloud"
+	"include/3d"
 	${INC_WEB_SERVER}
 	${CMAKE_BINARY_DIR}
 	${libXML_INCLUDE_DIRS}

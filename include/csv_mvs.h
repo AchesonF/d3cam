@@ -80,6 +80,7 @@ extern int csv_mvs_cams_name_set (struct csv_mvs_t *pMVS, char *camSNum, char *s
 
 extern int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS);
 
+extern int csv_mvs_cams_img_depth (struct csv_mvs_t *pMVS);
 
 extern int csv_mvs_init (void);
 
