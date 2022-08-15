@@ -74,6 +74,13 @@ typedef enum {
 														//并将序列号写入到 /root/loid文件里
 	SYS_ENCRYPT_RESTORE_PWD			= (0x00021002),	// 带正确的key后将系统密码改为简单密码，同时打开屏幕显示开关
 
+	SYS_HEARTBEAT_CFG_SET			= 0x00022001,	// 设置心跳使能/周期 1:enable ms
+	SYS_HEARTBEAT_CFG_GET			= 0x00022002,	// 查询心跳使能/周期
+	SYS_HEARTBEAT_KICK				= 0x00022003,	// 心跳包 无内容
+
+	SYS_LOG_SERVER_SET				= 0x00023001,	// 设置udp服务器(接收日志)(ip地址:端口号)
+	SYS_LOG_SERVER_GET				= 0x00023002,	// 查询udp服务器(接收日志)
+
 	// 设置终端的类型
 	SET_DEVTYPE_RL					= (0x00030000),	// 终端类型=随机光
 	SET_DEVTYPE_TR					= (0x00030001),	// 终端类型=条纹光

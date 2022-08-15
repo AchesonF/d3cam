@@ -106,6 +106,7 @@ static void csv_trace (int signum)
 	log_info("WARN : crash process pid[%d] via signum[%d]=%s", 
 		getpid(), signum, strSIG);
 
+	csv_udp_deinit();
 	sync();
 
 	exit(1);
@@ -133,6 +134,7 @@ void csv_stop (int signum)
 	log_info("OK : Stop process pid[%d] via signum[%d]=%s", 
 		getpid(), signum, strSIG);
 
+	csv_udp_deinit();
 	sync();
 
 	exit(ret);
@@ -218,6 +220,7 @@ static void startup_opts (int argc, char **argv)
 	struct csv_product_t *pPdct = &gPdct;
 
 	printf("\n");
+	csv_udp_init();
 
 	utility_conv_buildtime();
 	utility_conv_kbuildtime();
@@ -284,8 +287,6 @@ static void startup_opts (int argc, char **argv)
 
 int csv_init (void)
 {
-	csv_file_init();
-
 	csv_cfg_init();
 
 	csv_xml_init();

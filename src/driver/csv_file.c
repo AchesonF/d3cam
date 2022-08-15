@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+struct csv_file_t gFILE;
 
 /**
 * @brief		获取指定文件的大小
@@ -216,49 +217,81 @@ uint32_t csv_file_modify_time (char *path)
 static int csv_file_get (struct csv_file_t *pFILE)
 {
 	int ret = 0;
-/*	char str_cmd[256] = {0};
+	uint32_t len_file = 0;
+	char str_cmd[256] = {0};
 
-	// birthday
-	if (csv_file_isExist(pFILE->file_birthday)) {
-		ret = csv_file_get_size(pFILE->file_birthday, &pFILE->len_birthday);
-		if ((ret < 0)||(pFILE->len_birthday < SIZE_BIRTHDAY)) {
-			pFILE->len_birthday = SIZE_BIRTHDAY;
-			memcpy(pFILE->birthday, DEFAULT_BIRTHDAY, pFILE->len_birthday);
-		} else {
-			pFILE->len_birthday = SIZE_BIRTHDAY;	// 确保只读取前8个字节
-			uhf_file_read_data(pFILE->file_birthday, pFILE->birthday, pFILE->len_birthday);
-		}
-	} else {
+	// file 1
+	if (!csv_file_isExist(pFILE->udpserv)) {
 		memset(str_cmd, 0, 256);
-		snprintf(str_cmd, 256, "echo %s > %s", DEFAULT_BIRTHDAY, FILE_PATH_BIRTHDAY);
-		system_redef(str_cmd);
-		pFILE->len_birthday = SIZE_BIRTHDAY;
-		memcpy(pFILE->birthday, DEFAULT_BIRTHDAY, pFILE->len_birthday);
-		sync();
+		snprintf(str_cmd, 256, "echo \"127.0.0.1:36666\" > %s", pFILE->udpserv);
+		system(str_cmd);
 	}
 
-	// sn = uuid
-	if (csv_file_isExist(pFILE->file_uuid)) {
-		ret = csv_file_get_size(pFILE->file_uuid, &pFILE->len_uuid);
-		if ((ret < 0)||(pFILE->len_uuid < SIZE_UUID)) {
-			pFILE->len_uuid = SIZE_UUID;
-			memcpy(pFILE->uuid, DEFAULT_UUID, pFILE->len_uuid);
-			pFILE->uuid[SIZE_UUID] = 0x00;
-		} else {
-			pFILE->len_uuid = SIZE_UUID;	// 确保只读取前8个字节
-			uhf_file_read_data(pFILE->file_uuid, pFILE->uuid, pFILE->len_uuid);
-			pFILE->uuid[SIZE_UUID] = 0x00;
-		}
-	} else {
-		memset(str_cmd, 0, 256);
-		snprintf(str_cmd, 256, "echo %s > %s", DEFAULT_UUID, FILE_PATH_UUID);
-		system_redef(str_cmd);
-		pFILE->len_uuid = SIZE_UUID;
-		memcpy(pFILE->uuid, DEFAULT_UUID, pFILE->len_uuid);
-		pFILE->uuid[SIZE_UUID] = 0x00;
-	}
-*/
+	ret = csv_file_get_size(pFILE->udpserv, &len_file);
+	if ((0 == ret)&&(len_file > 0)&&(len_file <= 22)) {
+		uint8_t *buf_file = (uint8_t *)malloc(len_file);
+		if (NULL != buf_file) {
+			int nget = 0;
+			char str_ip[32] = {0};
+			char str_port[32] = {0};
+			int port = 0;
+			ret = csv_file_read_data(pFILE->udpserv, buf_file, len_file);
 
+			nget = sscanf((char *)buf_file, "%[^:]:%[^:]", str_ip, str_port);
+			if (2 == nget) {
+				ret = check_user_ip(str_ip);
+				if (0 == ret) {
+					strcpy(gUDP.ip, str_ip);
+				}
+				port = atoi(str_port);
+				if (port > 1024) {
+					gUDP.port = port;
+				}
+				gUDP.reinit = 1;
+				printf("log server : '%s:%d'.\n", gUDP.ip, gUDP.port);
+			}
+
+			free(buf_file);
+		}
+	}
+
+	// file 2
+	if (!csv_file_isExist(pFILE->heartbeat_cfg)) {
+		memset(str_cmd, 0, 256);
+		snprintf(str_cmd, 256, "echo \"0:3000\" > %s", pFILE->heartbeat_cfg);
+		system(str_cmd);
+	}
+
+	ret = csv_file_get_size(pFILE->heartbeat_cfg, &len_file);
+	if ((0 == ret)&&(len_file > 0)&&(len_file <= 12)) {
+		uint8_t *buf_file = (uint8_t *)malloc(len_file);
+		if (NULL != buf_file) {
+			int nget = 0;
+			char str_enable[12] = {0};
+			char str_period[12] = {0};
+			
+			ret = csv_file_read_data(pFILE->heartbeat_cfg, buf_file, len_file);
+
+			nget = sscanf((char *)buf_file, "%[^:]:%[^:]", str_enable, str_period);
+			if (2 == nget) {
+				if (atoi(str_enable)) {
+					pFILE->beat_enable = 1;
+				} else {
+					pFILE->beat_enable = 0;
+				}
+
+				if (atoi(str_period) > 100) { // at least 0.1s
+					pFILE->beat_period = atoi(str_period);
+				} else {
+					pFILE->beat_period = 3000;
+				}
+
+				printf("heartbeat cfg : '%d:%d'.\n", pFILE->beat_enable, pFILE->beat_period);
+			}
+
+			free(buf_file);
+		}
+	}
 
 	return ret;
 }
@@ -290,10 +323,17 @@ int file_write_data(char *buf, FILE *fp, uint32_t size)
 
 int csv_file_init (void)
 {
-	struct csv_file_t *pFILE = &gCSV->file;
+	struct csv_file_t *pFILE = &gFILE;
 
-	pFILE->file_birthday = FILE_PATH_BIRTHDAY;
-	pFILE->file_uuid = FILE_PATH_UUID;
+	pFILE->udpserv = FILE_UDP_SERVER;
+	pFILE->heartbeat_cfg = FILE_CFG_HEARTBEAT;
+
+	if (!csv_file_isExist(PATH_D3CAM_CFG)) {
+		char str_cmd[256] = {0};
+		memset(str_cmd, 0, 256);
+		snprintf(str_cmd, 256, "mkdir -p %s", PATH_D3CAM_CFG);
+		system(str_cmd);
+	}
 
 	return csv_file_get(pFILE);
 }

@@ -336,7 +336,7 @@ static void csv_gev_reg_enroll (void)
 		512, 0, pGC->SecondURL, toSTR(REG_SecondURL));
 
 	csv_gev_reg_add(REG_NumberofNetworkInterfaces, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 1, NULL, toSTR(REG_NumberofNetworkInterfaces));
+		4, pGC->NumberofNetworkInterfaces, NULL, toSTR(REG_NumberofNetworkInterfaces));
 
 	csv_gev_reg_add(REG_PersistentIPAddress, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pETH->IPAddr, NULL, toSTR(REG_PersistentIPAddress));
@@ -345,18 +345,18 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_PersistentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pETH->GatewayAddr, NULL, toSTR(REG_PersistentDefaultGateway0));
 	csv_gev_reg_add(REG_LinkSpeed0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_LinkSpeed0));
+		4, pGC->LinkSpeed0, NULL, toSTR(REG_LinkSpeed0));
 
 	csv_gev_reg_add(REG_NumberofMessageChannels, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 1, NULL, toSTR(REG_NumberofMessageChannels));
+		4, pGC->NumberofMessageChannels, NULL, toSTR(REG_NumberofMessageChannels));
 	csv_gev_reg_add(REG_NumberofStreamChannels, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, TOTAL_CAMS, NULL, toSTR(REG_NumberofStreamChannels));
+		4, pGC->NumberofStreamChannels, NULL, toSTR(REG_NumberofStreamChannels));
 	csv_gev_reg_add(REG_NumberofActionSignals, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 1, NULL, toSTR(REG_NumberofActionSignals));
+		4, pGC->NumberofActionSignals, NULL, toSTR(REG_NumberofActionSignals));
 	csv_gev_reg_add(REG_ActionDeviceKey, GEV_REG_TYPE_REG, GEV_REG_WRITE, 
 		4, pGC->ActionDeviceKey, NULL, toSTR(REG_ActionDeviceKey));
 	csv_gev_reg_add(REG_NumberofActiveLinks, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 1, NULL, toSTR(REG_NumberofActiveLinks));
+		4, pGC->NumberofActiveLinks, NULL, toSTR(REG_NumberofActiveLinks));
 
 	csv_gev_reg_add(REG_GVSPCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGC->GVSPCapability, NULL, toSTR(REG_GVSPCapability));
@@ -367,33 +367,33 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_HeartbeatTimeout, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->HeartbeatTimeout, NULL, toSTR(REG_HeartbeatTimeout));
 	csv_gev_reg_add(REG_TimestampTickFrequencyHigh, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_TimestampTickFrequencyHigh));
+		4, pGC->TimestampTickFrequencyHigh, NULL, toSTR(REG_TimestampTickFrequencyHigh));
 	csv_gev_reg_add(REG_TimestampTickFrequencyLow, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x3B9ACA00, NULL, toSTR(REG_TimestampTickFrequencyLow));
+		4, pGC->TimestampTickFrequencyLow, NULL, toSTR(REG_TimestampTickFrequencyLow));
 	csv_gev_reg_add(REG_TimestampControl, GEV_REG_TYPE_REG, GEV_REG_WRITE, 
 		4, pGC->TimestampControl, NULL, toSTR(REG_TimestampControl));
 	csv_gev_reg_add(REG_TimestampValueHigh, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_TimestampValueHigh));
+		4, pGC->TimestampValueHigh, NULL, toSTR(REG_TimestampValueHigh));
 	csv_gev_reg_add(REG_TimestampValueLow, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_TimestampValueLow));
+		4, pGC->TimestampValueLow, NULL, toSTR(REG_TimestampValueLow));
 	csv_gev_reg_add(REG_DiscoveryACKDelay, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->DiscoveryACKDelay, NULL, toSTR(REG_DiscoveryACKDelay));
 	csv_gev_reg_add(REG_GVCPConfiguration, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->GVCPConfiguration, NULL, toSTR(REG_GVCPConfiguration));
 	csv_gev_reg_add(REG_PendingTimeout, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_PendingTimeout));
+		4, pGC->PendingTimeout, NULL, toSTR(REG_PendingTimeout));
 	csv_gev_reg_add(REG_ControlSwitchoverKey, GEV_REG_TYPE_REG, GEV_REG_WRITE, 
 		4, pGC->ControlSwitchoverKey, NULL, toSTR(REG_ControlSwitchoverKey));
 	csv_gev_reg_add(REG_GVSPConfiguration, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->GVSPConfiguration, NULL, toSTR(REG_GVSPConfiguration));
 	csv_gev_reg_add(REG_PhysicalLinkConfigurationCapability, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_PhysicalLinkConfigurationCapability));
+		4, pGC->PhysicalLinkConfigurationCapability, NULL, toSTR(REG_PhysicalLinkConfigurationCapability));
 	csv_gev_reg_add(REG_PhysicalLinkConfiguration, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->PhysicalLinkConfiguration, NULL, toSTR(REG_PhysicalLinkConfiguration));
 	csv_gev_reg_add(REG_IEEE1588Status, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_IEEE1588Status));
+		4, pGC->IEEE1588Status, NULL, toSTR(REG_IEEE1588Status));
 	csv_gev_reg_add(REG_ScheduledActionCommandQueueSize, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_ScheduledActionCommandQueueSize));
+		4, pGC->ScheduledActionCommandQueueSize, NULL, toSTR(REG_ScheduledActionCommandQueueSize));
 
 	csv_gev_reg_add(REG_ControlChannelPrivilege, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->ControlChannelPrivilege, NULL, toSTR(REG_ControlChannelPrivilege));
@@ -703,7 +703,7 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 		}
 
 		if (NULL != desc) {
-			log_debug("read reg : %s", desc);
+			log_debug("RD : %s", desc);
 		}
 
 		*pRegData++ = htonl(nTemp);
@@ -729,7 +729,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	switch (regAddr) {
 	case REG_NetworkInterfaceConfiguration0:
-		
+		pGC->IfConfiguration0 = regData;
 		break;
 
 	case REG_PersistentIPAddress:
@@ -976,7 +976,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 		}
 
 		if (NULL != desc) {
-			log_debug("write reg : %s", desc);
+			log_debug("WR : %s", desc);
 		}
 
 		ret = csv_gvcp_writereg_effective(reg_addr, reg_data);

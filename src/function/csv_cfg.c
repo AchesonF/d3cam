@@ -102,18 +102,33 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	}
 	strcpy(pGC->SecondURL, pGC->FirstURL);
 
+	pGC->NumberofNetworkInterfaces = 1;
+	pGC->LinkSpeed0 = 100;
+
+	pGC->NumberofMessageChannels = 1;
+	pGC->NumberofStreamChannels = TOTAL_CAMS;
+	pGC->NumberofActionSignals = 1;
+	pGC->ActionDeviceKey = 0;
+	pGC->NumberofActiveLinks = 1;
 	pGC->GVSPCapability = GVSPCap_SP|GVSPCap_LB;
 	pGC->MessageCapability = MSGCap_SP;
-	pGC->ActionDeviceKey = 0;
 	pGC->GVCPCapability = GVCPCap_UN|GVCPCap_SN|GVCPCap_HD|GVCPCap_CAP
 		|GVCPCap_DD|GVCPCap_PR|GVCPCap_W|GVCPCap_C;
 	pGC->HeartbeatTimeout = GVCP_HEARTBEAT_TIMEOUT;
+	pGC->TimestampTickFrequencyHigh = 0;
+	pGC->TimestampTickFrequencyLow = 0x3B9ACA00;
 	pGC->TimestampControl = 0;
+	pGC->TimestampValueHigh = 0;
+	pGC->TimestampValueLow= 0;
 	pGC->DiscoveryACKDelay = 0;
 	pGC->GVCPConfiguration = GVCPCfg_PTP|GVCPCfg_ES2|GVCPCfg_UA|GVCPCfg_ES|GVCPCfg_PE;
+	pGC->PendingTimeout = 0;
 	pGC->ControlSwitchoverKey = 0;
 	pGC->GVSPConfiguration = GVSPCcfg_BL;
-	pGC->PhysicalLinkConfiguration = 0;
+	pGC->PhysicalLinkConfigurationCapability = PLCC_SL;
+	pGC->PhysicalLinkConfiguration = PLC_SL;
+	pGC->IEEE1588Status = 0;
+	pGC->ScheduledActionCommandQueueSize = 0;
 	pGC->ControlChannelPrivilege = (CCP_CSE|CCP_CA|CCP_EA);
 
 	pGC->PrimaryAddress = 0x00000000;

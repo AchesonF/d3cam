@@ -11,6 +11,8 @@ extern "C" {
   #define HEX_SHOW_FORMAT	1
 #endif
 
+#define MAX_LINE					(4096)		///< 每行最大字符数
+
 extern const char Hex2Ascii[17];
 
 /*

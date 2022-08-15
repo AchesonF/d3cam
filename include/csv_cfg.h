@@ -50,9 +50,9 @@ struct gev_conf_t {
 	uint32_t				MacHi;		// mac[0-1]
 	uint32_t				MacLow;		// mac[2-5]
 
-	uint32_t				IfCapability0;
-	uint32_t				IfConfiguration0;
-	uint32_t				CurrentIPAddress0;
+	uint32_t				IfCapability0; // PR[0]PG[1]...L[29]D[30]P[31]
+	uint32_t				IfConfiguration0; // PR[0]PG[1]...L[29]D[30]P[31]
+	uint32_t				CurrentIPAddress0; // ipv4
 	uint32_t				CurrentSubnetMask0;
 	uint32_t				CurrentDefaultGateway0;
 
@@ -67,24 +67,39 @@ struct gev_conf_t {
 	char					*strXmlfile;
 	uint8_t					*xmlData;
 
-	uint32_t				GVSPCapability;
-	uint32_t				MessageCapability;
+	uint32_t				NumberofNetworkInterfaces;
+	uint32_t				LinkSpeed0;
+
+	uint32_t				NumberofMessageChannels;
+	uint32_t				NumberofStreamChannels;
+	uint32_t				NumberofActionSignals;
 	uint32_t				ActionDeviceKey;
+	uint32_t				NumberofActiveLinks; // [28-31]
+	uint32_t				GVSPCapability; // SP[0]LB[1]...
+	uint32_t				MessageCapability; // SP[0]...
 	uint32_t				GVCPCapability;
+	uint32_t				TimestampTickFrequencyHigh;
+	uint32_t				TimestampTickFrequencyLow;
 	uint32_t				HeartbeatTimeout;
 	uint32_t				TimestampControl;
+	uint32_t				TimestampValueHigh;
+	uint32_t				TimestampValueLow;
 	uint32_t				DiscoveryACKDelay;
 	uint32_t				GVCPConfiguration;
+	uint32_t				PendingTimeout;
 	uint32_t				ControlSwitchoverKey;
 	uint32_t				GVSPConfiguration;
+	uint32_t				PhysicalLinkConfigurationCapability;
 	uint32_t				PhysicalLinkConfiguration;
+	uint32_t				IEEE1588Status;
+	uint32_t				ScheduledActionCommandQueueSize;
 	uint32_t				ControlChannelPrivilege;
 
 	uint32_t				PrimaryAddress;
 	uint16_t				PrimaryPort;
 
 	uint32_t				MessageAddress;
-	uint16_t				MessagePort;
+	uint32_t				MessagePort;
 	uint32_t				MessageTimeout;
 	uint32_t				MessageRetryCount;
 	uint32_t				MessageSourcePort;

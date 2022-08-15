@@ -4,10 +4,15 @@
 extern "C" {
 #endif
 
-#define MAX_LINE					(4096)		///< 每行最大字符数
-
+/* 0x0-0xF 的字符查找表*/
 const char Hex2Ascii[17] = "0123456789ABCDEF";
 
+
+/**
+ * @brief		Get 1970.01.01 00:00:00.000000  to now micro seconde number.
+ * @param[in]	void
+ * @return		!0 : micro second.
+ */
 uint64_t utility_get_microsecond (void)
 {
     struct timeval tv;
@@ -111,6 +116,10 @@ static void log_printf (int priority, const char *fmt, va_list ap)
 		fflush(stdout);
 		fputs(buf, stderr);
 		fflush(stderr);
+	}
+
+	if (priority <= gUDP.level) {
+		csv_udp_sendto(buf);
 	}
 }
 
