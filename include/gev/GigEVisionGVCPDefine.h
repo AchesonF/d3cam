@@ -103,7 +103,7 @@ extern "C" {
 
 
 #define GVCP_HEARTBEAT_TIMEOUT			(3000)	// Factory Default ms
-#define GVCP_HEARTBEAT_INTERVAL			(500)	// ms
+#define GVCP_HEARTBEAT_INTERVAL			(500)	// at least ms
 
 /*The initial value of req_id is not specified, but it cannot be 0.*/
 #define GVCP_REQ_ID_INIT				(1)

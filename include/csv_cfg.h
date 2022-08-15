@@ -33,8 +33,8 @@ struct depthimg_cfg_t {
 struct channel_cfg_t {
 	uint32_t				Address;
 	uint16_t				Port;
-	uint32_t				PacketSize;
-	uint32_t				PacketDelay;
+	uint32_t				Cfg_PacketSize;
+	uint32_t				PacketDelay;		// ns
 	uint32_t				Configuration;
 	uint32_t				SourcePort;
 	uint32_t				Capability;

@@ -20,7 +20,6 @@ extern "C" {
 //The two most-significant bytes are allocated to the major
 //number of the version, the two least-significant bytes for the minor number.
 #define REG_Version											(0x0000)
-
 // [0-15]major 
 #define GEV_VERSION_MAJOR					(2u)
 // [16-31]minor
@@ -28,14 +27,13 @@ extern "C" {
 
 // M R 4 Information about device mode of operation.
 #define REG_DeviceMode										(0x0004)
-
 // [0]endianess 
-#define DM_ENDIANESS						(1u<<31)
+#define DM_E								(1u<<31)
 // [1-3]device_class 
-#define	DM_CLASS_TRANSMITTER				(0u<<28)
-#define	DM_CLASS_RECEIVER					(1u<<28)
-#define	DM_CLASS_TRANSCEIVER				(2u<<28)
-#define	DM_CLASS_PERIPHERAL					(3u<<28)
+#define	DM_DC_TRANSMITTER					(0u<<28)
+#define	DM_DC_RECEIVER						(1u<<28)
+#define	DM_DC_TRANSCEIVER					(2u<<28)
+#define	DM_DC_PERIPHERAL					(3u<<28)
 // [4-7]current link configuration 
 #define DM_CLC_SingleLC						(0u<<24)
 #define DM_CLC_MultipleLC					(1u<<24)
@@ -51,50 +49,49 @@ extern "C" {
 //and will return 0. Upper 2 bytes of the MAC address are
 //stored in the lower 2 significant bytes of this register.
 #define REG_DeviceMACAddressHigh0							(0x0008)
-
 // [0-15]reserved
 // [16-31]mac address upper two bytes of MAC address
 
 //(Network interface #0) M R 4 Lower 4 bytes of the MAC address
 #define REG_DeviceMACAddressLow0							(0x000C)
-
 // [0-31]mac address lower four bytes of MAC address
 
 //(Network interface #0)M R 4 Supported IP Configuration and PAUSE schemes.
 //Bits can be OR-ed. All other bits are reserved and set to0. DHCP and LLA bits must be on.
 #define REG_NetworkInterfaceCapability0						(0x0010)
-
 // [0]pause reception (PR)
-#define NICap0_PR							(1u<<31)
+#define NIC_PR								(1u<<31)
 // [1]pause generation (PG)
-#define NICap0_PG							(1u<<30)
+#define NIC_PG								(1u<<30)
 // [2-28]reserved
 // [29]link local address is supported. always 1.
-#define NICap0_LLA							(1u<<2)
+#define NIC_LLA								(1u<<2)
 // [30]dhcp is supported. always 1.
-#define NICap0_DHCP							(1u<<1)
+#define NIC_DHCP							(1u<<1)
 // [31]persistent ip is support. 0 otherwise. 1 supported.
-#define NICap0_PIP							(1u<<0)
+#define NIC_PIP								(1u<<0)
 
 //(Network interface #0)M R/W 4 Activated IP Configuration and PAUSE schemes.
 //Bits can be OR-ed. LLA is always activated and is readonly.PAUSE settings might be hard-coded.
 #define REG_NetworkInterfaceConfiguration0					(0x0014)
 
-
 //0x0018 Reserved - - -
 
 //(Networkinterface #0)M R 4 Current IP address of this device on its first interface.
 #define REG_CurrentIPAddress0								(0x0024)
+// [0-31]IPv4_address
 
 //0x0028 Reserved - - -
 
 //(Networkinterface #0)M R 4 Current subnet mask used by this device on its first interface.
 #define REG_CurrentSubnetMask0								(0x0034)
+// [0-31]IPv4_subnet_mask
 
 //0x0038 Reserved - - -
 
 //(Network interface #0)M R 4 Current default gateway used by this device on its first interface.
 #define REG_CurrentDefaultGateway0							(0x0044)
+// [0-31]IPv4_default_gateway
 
 //M R 32 Provides the name of the manufacturer of the device.This string is provided in the manufacturer_name field of
 //the DISCOVERY_ACK message.String using the format in character_set_index of Device Mode register.
@@ -134,24 +131,30 @@ extern "C" {
 
 //M R 4 Indicates the number of physical network interfaces on this device. A device must have at least one network interface.
 #define REG_NumberofNetworkInterfaces						(0x0600)
+// [0-28]reserved
+// [29-31]number_of_interfaces: only 1-4
 
 //0x0604 Reserved - - -
 
 //(Networkinterface #0)O R/W 4 Only available if Persistent IP is supported by the device.
 #define REG_PersistentIPAddress								(0x064C)
+// [0-31]persistent_IP_address
 
 //0x0650 Reserved - - -
 
 //(Network interface #0)O R/W 4 Only available if Persistent IP is supported by the device.
 #define REG_PersistentSubnetMask0							(0x065C)
+// [0-31]persistent_subnet_mask
 
 //0x0660 Reserved - - -
 
 //(Network interface #0)O R/W 4 Only available if Persistent IP is supported by the device.
 #define REG_PersistentDefaultGateway0						(0x066C)
+// [0-31]persistent_default_gateway
 
 //(Network interface#0)O R 4 32-bit value indicating current Ethernet link speed in Mbits per second on the first interface.
 #define REG_LinkSpeed0										(0x0670)
+// [0-31]link_speed. Ethernet link speed value in Mbps. 0 if Link is down.
 
 //0x0674 Reserved - - -
 
@@ -310,25 +313,34 @@ extern "C" {
 
 //M R 4 Indicates the number of message channels supported by this device. It can take two values: 0 or 1.
 #define REG_NumberofMessageChannels							(0x0900)
+// [0-31]number_of_message_channels
 
 //M R 4 Indicates the number of stream channels supported by this device. It can take any value from 0 to 512.
 #define REG_NumberofStreamChannels							(0x0904)
+// [0-31]number_of_stream_channels
 
 //O R 4 Indicates the number of separate action signals supported by this device. It can take any value ranging from 0 to 128.
 #define REG_NumberofActionSignals							(0x0908)
+// [0-31]number_of_action_signals
 
 //O W 4 Device key to check the validity of action commands.
 #define REG_ActionDeviceKey									(0x090C)
+// [0-31]action_device_key
+// This optional register provides the device key to check the validity of action commands. The action device
+// key is write-only to hide the key if CCP is not in exclusive access mode. The intention is for the Primary
+// Application to have absolute control. The Primary Application can send the key to a Secondary Application.
+// This mechanism prevents a rogue application to have access to the ACTION_CMD mechanism.
 
 //M R 4 Indicates the number of physical links that are currently active.
 #define REG_NumberofActiveLinks								(0x0910)
+// [0-27]reserved
+// [28-31]number_of_active_links  <= REG_NumberofNetworkInterfaces
 
 //0x0914 Reserved - - -
 
 //M R 4 Indicates the capabilities of the stream channels. It lists which of the
 //non-mandatory stream channel features are supported.
 #define REG_GVSPCapability									(0x092C)
-
 // [0]SCSPx (Stream Channel Source Port) registers supported.
 #define GVSPCap_SP							(1<<31)
 // [1]Indicates this GVSP transmitter or receiver can support 16-bit block_id.
@@ -341,16 +353,13 @@ extern "C" {
 //M R 4 Indicates the capabilities of the message channel. It lists
 // which of the non-mandatory message channel features are supported.
 #define REG_MessageChannelCapability						(0x0930)
-
 // [0]MCSP (Message Channel Source Port) register is available for message channel.
-#define MSGCap_MCSP							(1<<31)
+#define MSGCap_SP							(1<<31)
 // [1-31]reserved
 
 //M R 4 This is a capability register indicating which one of the
 //non-mandatory GVCP features are supported by this device.
 #define REG_GVCPCapability									(0x0934)
-
-// supported follow:
 // [0]User-defined Name register
 #define GVCPCap_UN							(1u<<31)
 // [1]Serial Number register
@@ -407,36 +416,69 @@ extern "C" {
 //High O R 4 64-bit value indicating the number of timestamp clock tick in 1 second. This register holds the most significant
 //bytes. Timestamp tick frequency is 0 if timestamp is not supported.
 #define REG_TimestampTickFrequencyHigh						(0x093C)
+// [0-31]timestamp_frequency, upper 32-bit
 
 //Low O R 4 64-bit value indicating the number of timestamp clock
 //tick in 1 second. This register holds the least significant bytes.
-//Timestamp tick frequency is 0 if timestamp is not supported.
+//Timestamp tick frequency is 0 if timestamp is not supported. (1s = 1 000 000 000ns : 0x3B9ACA00)
 #define REG_TimestampTickFrequencyLow						(0x0940)
+// [0-31]timestamp_frequency, lower 32-bit
 
 //O W 4 Used to latch the current timestamp value. No need to clear to 0.
 #define REG_TimestampControl								(0x0944)
+// [0-29]reserved
+// [30]latch
+#define TCtrl_L								(1u<<1)
+// [31]reset
+#define TCtrl_R								(1u<<0)
 
 // - High O R 4 Latched value of the timestamp (most significant bytes)
 #define REG_TimestampValueHigh								(0x0948)
+// [0-31]latched_timestamp_value, upper 32-bit
 
 // - Low O R 4 Latched value of the timestamp (least significant bytes)
 #define REG_TimestampValueLow								(0x094C)
+// [0-31]latched_timestamp_value, lower 32-bit
 
 //O R/(W) 4 Maximum randomized delay in ms to acknowledge a DISCOVERY_CMD.
 #define REG_DiscoveryACKDelay								(0x0950)
+// [0-15]reserved
+// [16-31]delay in ms
+
 
 // O R/W 4 Configuration of GVCP optional features
 #define REG_GVCPConfiguration								(0x0954)
+// [0-11]reserved
+// [12]IEEE1588_PTP_enable
+#define GVCPCfg_PTP							(1u<<19)
+// [13]extended_status_code_for_2_0
+#define GVCPCfg_ES2							(1u<<18)
+// [14-27]reserved
+// [28]unconditional_ACTION_enable
+#define GVCPCfg_UA							(1u<<3)
+// [28]extended_status_code_for_1_1
+#define GVCPCfg_ES							(1u<<2)
+// [28]PENDING_ACK_enable
+#define GVCPCfg_PE							(1u<<1)
+// [28]heartbeat_disable
+#define GVCPCfg_HD							(1u<<0)
 
 //M R 4 Pending Timeout to report the longest GVCP command execution time before issuing a PENDING_ACK. If
 //PENDING_ACK is not supported, then this is the worstcase execution time before command completion.
 #define REG_PendingTimeout									(0x0958)
+// [0-31]max_execution_time in ms
+
 //O W 4 Key to authenticate primary application switchover requests.
 #define REG_ControlSwitchoverKey							(0x095C)
+// [0-15]reserved
+// [16-31]control_switchover_key
+// This optional register provides the key to authenticate primary application switchover requests. The register
+// is write-only to hide the key from secondary applications. The primary intent is to have a mechanism to
+// control who can take control over a device. The primary application or a higher level system management
+// entity can send the key to an application that would request control over a device.
 
 //O R/W 4 Configuration of the optional GVSP features.
 #define REG_GVSPConfiguration								(0x0960)
-
 //[0]reserved
 //[1]64bit_block_id_enable
 #define GVSPCcfg_BL							(1<<30)
@@ -444,22 +486,40 @@ extern "C" {
 
 // M R 4 Indicates the physical link configuration supported by thisdevice.
 #define REG_PhysicalLinkConfigurationCapability				(0x0964)
+// [0-27]reserved
+// [28]dynamic_link_aggregation_group_configuration
+#define PLCC_dLAG							(1u<<3)
+// [29]static_link_aggregation_group_configuration
+#define PLCC_sLAG							(1u<<2)
+// [30]multiple_links_configuration
+#define PLCC_ML								(1u<<1)
+// [31]single_link_configuration
+#define PLCC_SL								(1u<<0)
 
 //M R/(W) 4 Indicates the currently active physical link configuration
 #define REG_PhysicalLinkConfiguration						(0x0968)
+// [0-29]reserved
+// [30-31]link_configuration
+#define PLC_SL								(0u<<0)
+#define PLC_ML								(1u<<0)
+#define PLC_sLAG							(2u<<0)
+#define PLC_dLAG							(3u<<0)
 
 //O R 4 Reports the state of the IEEE 1588 clock
 #define REG_IEEE1588Status									(0x096C)
+// [0-27]reserved
+// [28-31]clock_status: Values of this field must match the IEEE 1588 PTP port state enumeration.
+// INITIALIZING, FAULTY, DISABLED,LISTENING, PRE_MASTER, MASTER, PASSIVE, UNCALIBRATED, SLAVE.
 
 //O R 4 Indicates the number of Scheduled Action Commands that
 //can be queued (size of the queue).
 #define REG_ScheduledActionCommandQueueSize					(0x0970)
+// [0-31]queue_size
 
 //0x0974 Reserved - - -
 
 //(CCP)M R/W 4 Control Channel Privilege register.
 #define REG_ControlChannelPrivilege							(0x0A00)
-
 // [0-15]control switchover key
 // [16-28]reserved
 // [29]control switchover_enable
@@ -471,61 +531,154 @@ extern "C" {
 
 //O R 4 UDP source port of the control channel of the primary application.
 #define REG_PrimaryApplicationPort							(0x0A04)
+// [0-15]reserved
+// [16-31]primary_application_port
+// This value must be 0 when no primary application is bound to the device.(CCP=0)
 
 //0x0A08 Reserved - - -
 
 //O R 4 Source IP address of the control channel of the primary application.
 #define REG_PrimaryApplicationIPAddress						(0x0A14)
+// [0-31]primary_application_IP_address
 
 //0x0A18 Reserved - - -
 
 //(MCP) O R/W 4 Message Channel Port register.
 #define REG_MessageChannelPort								(0x0B00)
+// [0-11]reserved
+// [12-15]network_interface_index: Always 0 in this version. Only the primary interface (#0) supports GVCP.
+// [16-31]host_port
 
 //0x0B04 Reserved - - -
 
 //Address (MCDA)O R/W 4 Message Channel Destination Address register.
 #define REG_MessageChannelDestination						(0x0B10)
+// [0-31]channel_destination_IP
 
-//(MCTT)O R/W 4 Message Channel Transmission Timeout in ms.
+//(MCTT)O R/W 4 Message Channel Transmission Timeout in milliseconds.
 #define REG_MessageChannelTransmissionTimeout				(0x0B14)
+// [0-31]timeout in milliseconds.
 
 //(MCRC)O R/W 4 Message Channel Retry Count.
 #define REG_MessageChannelRetryCount						(0x0B18)
+// [0-31]retry_count
 
 //(MCSP)O R 4 Message Channel Source Port.
 #define REG_MessageChannelSourcePort						(0x0B1C)
+// [0-15]reserved
+// [16-31]source_port
 
 //0x0B20 Reserved - - -
 
 //(SCP0) M1 R/W 4 First Stream Channel Port register.
 #define REG_StreamChannelPort0								(0x0D00)
+// [0] direction 0:Transmitter 1:Receiver
+#define SCP_D								(1u<<31)
+// [1-11]reserved
+// [12-15]network_interface_index
+#define SCP_IF0								(0u<<16)
+#define SCP_IF1								(1u<<16)
+#define SCP_IF2								(2u<<16)
+#define SCP_IF3								(3u<<16)
+// [16-31]host_port
 
 //(SCPS0)M1 R/W 4 First Stream Channel Packet Size register.
 #define REG_StreamChannelPacketSize0						(0x0D04)
+// [0]fire_test_packet
+#define SCPS_F								(1u<<31)
+// [1]do_not_fragment
+#define SCPS_D								(1u<<30)
+// [2]pixel_endianess
+#define SCPS_P								(1u<<29)
+// [3-15]reserved
+// [16-31]packet_size
 
-//(SCPD0)M2 R/W 4 First Stream Channel Packet Delay register.
+//(SCPD0)M2 R/W 4 First Stream Channel Packet Delay register. ticks: ns
 #define REG_StreamChannelPacketDelay0						(0x0D08)
+// [0-31]delays  Inter-packet delay in timestamp ticks
 
 //0x0D0C Reserved - - -
 
 //(SCDA0)M1 R/W 4 First Stream Channel Destination Address register.
 #define REG_StreamChannelDestinationAddress0				(0x0D18)
+// [0-31]channel_destination_IP
 
 //(SCSP0)O R 4 First Stream Channel Source Port register.
 #define REG_StreamChannelSourcePort0						(0x0D1C)
+// [0-15]reserved
+// [16-31]source_port. 
+// Indicates the UDP source port GVSP traffic will be generated from while the streaming channel is open.
 
 //(SCC0)O R 4 First Stream Channel Capability register.
 #define REG_StreamChannelCapability0						(0x0D20)
+// [0]big_and_little_endian_supported
+#define SCC_BE								(1u<<31)
+// [1]IP_reassembly_supported 
+#define SCC_R								(1u<<30)
+// [2-26]reserved
+// [27]multi_zone_supported
+#define SCC_MZ								(1u<<4)
+// [28]packet_resend_destination_option
+#define SCC_PRD								(1u<<3)
+// [29]all_in_transmission_supported
+#define SCC_AIT								(1u<<2)
+// [30]unconditional_streaming_supported
+#define SCC_US								(1u<<1)
+// [31]extended_chunk_data_supported
+#define SCC_EC								(1u<<0)
 
 //(SCCFG0)O R/W 4 First Stream Channel Configuration register.
 #define REG_StreamChannelConfiguration0						(0x0D24)
+// [0-27]reserved
+// [28]packet_resend_destination
+#define SCCFG_PRD							(1u<<3)
+// [29]all_in_transmission_enabled
+#define SCCFG_AIT							(1u<<2)
+// [30]unconditional_streaming_enabled
+#define SCCFG_US							(1u<<1)
+// [31]extended_chunk_data_enable
+#define SCCFG_EC							(1u<<0)
 
 //(SCZ0) O R 4 First Stream Channel Zone register (multi-zone image payload type only).
 #define REG_StreamChannelZone0								(0x0D28)
+// [0-26]reserved
+// [27-31]additional_zones
 
 //(SCZD0)O R 4 First Stream Channel Zone Direction register (multi-zone image payload type only).
 #define REG_StreamChannelZoneDirection0						(0x0D2C)
+// [0-31]
+#define SCZD_Z0								(1u<<31)
+#define SCZD_Z1								(1u<<30)
+#define SCZD_Z2								(1u<<29)
+#define SCZD_Z3								(1u<<28)
+#define SCZD_Z4								(1u<<27)
+#define SCZD_Z5								(1u<<26)
+#define SCZD_Z6								(1u<<25)
+#define SCZD_Z7								(1u<<24)
+#define SCZD_Z8								(1u<<23)
+#define SCZD_Z9								(1u<<22)
+#define SCZD_Z10							(1u<<21)
+#define SCZD_Z11							(1u<<20)
+#define SCZD_Z12							(1u<<19)
+#define SCZD_Z13							(1u<<18)
+#define SCZD_Z14							(1u<<17)
+#define SCZD_Z15							(1u<<16)
+#define SCZD_Z16							(1u<<15)
+#define SCZD_Z17							(1u<<14)
+#define SCZD_Z18							(1u<<13)
+#define SCZD_Z19							(1u<<12)
+#define SCZD_Z20							(1u<<11)
+#define SCZD_Z21							(1u<<10)
+#define SCZD_Z22							(1u<<9)
+#define SCZD_Z23							(1u<<8)
+#define SCZD_Z24							(1u<<7)
+#define SCZD_Z25							(1u<<6)
+#define SCZD_Z26							(1u<<5)
+#define SCZD_Z27							(1u<<4)
+#define SCZD_Z28							(1u<<3)
+#define SCZD_Z29							(1u<<2)
+#define SCZD_Z30							(1u<<1)
+#define SCZD_Z31							(1u<<0)
 
 //0x0D30 Reserved - - -
 
@@ -602,9 +755,11 @@ extern "C" {
 
 //O R/W 4 First action signal group key
 #define REG_ActionGroupKey0									(0x9800)
+// [0-31]action_group_key
 
 //O R/W 4 First action signal group mask
 #define REG_ActionGroupMask0								(0x9804)
+// [0-31]action_group_mask
 
 //0x9808 Reserved - - -
 

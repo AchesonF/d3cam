@@ -79,9 +79,9 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 
 	pGC->VersionMajor = GEV_VERSION_MAJOR;
 	pGC->VersionMinor = GEV_VERSION_MINOR;
-	pGC->DeviceMode = (DM_ENDIANESS|DM_CLASS_TRANSMITTER|DM_CLC_SingleLC|DM_CHARACTER_UTF8);
-	pGC->IfCapability0 = (NICap0_LLA|NICap0_DHCP|NICap0_PIP);
-	pGC->IfConfiguration0 = (NICap0_LLA|NICap0_DHCP);
+	pGC->DeviceMode = (DM_E|DM_DC_TRANSMITTER|DM_CLC_SingleLC|DM_CHARACTER_UTF8);
+	pGC->IfCapability0 = (NIC_LLA|NIC_DHCP|NIC_PIP);
+	pGC->IfConfiguration0 = (NIC_LLA|NIC_DHCP);
 
 	strcpy(pGC->ManufacturerName, "CSVision");
 	strcpy(pGC->ModelName, GEV_DEVICE_MODEL_NAME);
@@ -103,14 +103,14 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	strcpy(pGC->SecondURL, pGC->FirstURL);
 
 	pGC->GVSPCapability = GVSPCap_SP|GVSPCap_LB;
-	pGC->MessageCapability = MSGCap_MCSP;
+	pGC->MessageCapability = MSGCap_SP;
 	pGC->ActionDeviceKey = 0;
 	pGC->GVCPCapability = GVCPCap_UN|GVCPCap_SN|GVCPCap_HD|GVCPCap_CAP
 		|GVCPCap_DD|GVCPCap_PR|GVCPCap_W|GVCPCap_C;
-	pGC->HeartbeatTimeout = 0;
+	pGC->HeartbeatTimeout = GVCP_HEARTBEAT_TIMEOUT;
 	pGC->TimestampControl = 0;
 	pGC->DiscoveryACKDelay = 0;
-	pGC->GVCPConfiguration = 0;
+	pGC->GVCPConfiguration = GVCPCfg_PTP|GVCPCfg_ES2|GVCPCfg_UA|GVCPCfg_ES|GVCPCfg_PE;
 	pGC->ControlSwitchoverKey = 0;
 	pGC->GVSPConfiguration = GVSPCcfg_BL;
 	pGC->PhysicalLinkConfiguration = 0;
@@ -130,7 +130,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 
 		pCH->Address = 0x00000000;
 		pCH->Port = 0x0000;
-		pCH->PacketSize = DEFAULT_GVSP_PACKETSIZE;
+		pCH->Cfg_PacketSize = SCPS_D|DEFAULT_GVSP_PACKETSIZE;
 		pCH->PacketDelay = 0;
 		pCH->Configuration = 0;
 		pCH->SourcePort = 0;

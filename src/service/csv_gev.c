@@ -369,7 +369,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_TimestampTickFrequencyHigh, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, 0x00000000, NULL, toSTR(REG_TimestampTickFrequencyHigh));
 	csv_gev_reg_add(REG_TimestampTickFrequencyLow, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, 0x00000000, NULL, toSTR(REG_TimestampTickFrequencyLow));
+		4, 0x3B9ACA00, NULL, toSTR(REG_TimestampTickFrequencyLow));
 	csv_gev_reg_add(REG_TimestampControl, GEV_REG_TYPE_REG, GEV_REG_WRITE, 
 		4, pGC->TimestampControl, NULL, toSTR(REG_TimestampControl));
 	csv_gev_reg_add(REG_TimestampValueHigh, GEV_REG_TYPE_REG, GEV_REG_READ, 
@@ -416,7 +416,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_StreamChannelPort0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->Channel[CAM_LEFT].Port, NULL, toSTR(REG_StreamChannelPort0));
 	csv_gev_reg_add(REG_StreamChannelPacketSize0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->Channel[CAM_LEFT].PacketSize, NULL, toSTR(REG_StreamChannelPacketSize0));
+		4, pGC->Channel[CAM_LEFT].Cfg_PacketSize, NULL, toSTR(REG_StreamChannelPacketSize0));
 	csv_gev_reg_add(REG_StreamChannelPacketDelay0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->Channel[CAM_LEFT].PacketDelay, NULL, toSTR(REG_StreamChannelPacketDelay0));
 	csv_gev_reg_add(REG_StreamChannelDestinationAddress0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
@@ -435,7 +435,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_StreamChannelPort1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->Channel[CAM_RIGHT].Port, NULL, toSTR(REG_StreamChannelPort1));
 	csv_gev_reg_add(REG_StreamChannelPacketSize1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->Channel[CAM_RIGHT].PacketSize, NULL, toSTR(REG_StreamChannelPacketSize1));
+		4, pGC->Channel[CAM_RIGHT].Cfg_PacketSize, NULL, toSTR(REG_StreamChannelPacketSize1));
 	csv_gev_reg_add(REG_StreamChannelPacketDelay1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->Channel[CAM_RIGHT].PacketDelay, NULL, toSTR(REG_StreamChannelPacketDelay1));
 	csv_gev_reg_add(REG_StreamChannelDestinationAddress1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
@@ -713,9 +713,9 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	if (i != nRegs) {
 		pAckHdr->nStatus		= htons(GEV_STATUS_INVALID_ADDRESS);
 	}
-	pAckHdr->nLength			= i*4;
+	pAckHdr->nLength			= htons(i*4);
 
-	pGEV->txlen = sizeof(ACK_MSG_HEADER) + pAckHdr->nLength;
+	pGEV->txlen = sizeof(ACK_MSG_HEADER) + i*4;
 
 	return csv_gvcp_sendto(pGEV);
 }
@@ -746,7 +746,11 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_HeartbeatTimeout:
-		pGC->HeartbeatTimeout = regData;
+		if (regData < GVCP_HEARTBEAT_INTERVAL) {
+			pGC->HeartbeatTimeout = GVCP_HEARTBEAT_INTERVAL;
+		} else {
+			pGC->HeartbeatTimeout = regData;
+		}
 		break;
 
 	case REG_TimestampControl:
@@ -827,8 +831,12 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelPacketSize0:
-		if ((0 < regData)&&(regData < GVSP_PACKET_MAX_SIZE)) {
-			pGC->Channel[CAM_LEFT].PacketSize = regData;
+		if ((0 < (regData&0xFFFF))&&((regData&0xFFFF) < GVSP_PACKET_MAX_SIZE)) {
+			pGC->Channel[CAM_LEFT].Cfg_PacketSize = regData;
+			if (regData & SCPS_F) {
+				// todo test
+			}
+
 		} else {
 			ret = -1;
 		}
@@ -862,8 +870,12 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelPacketSize1:
-		if ((0 < regData)&&(regData < GVSP_PACKET_MAX_SIZE)) {
-			pGC->Channel[CAM_RIGHT].PacketSize = regData;
+		if ((0 < (regData&0xFFFF))&&((regData&0xFFFF) < GVSP_PACKET_MAX_SIZE)) {
+			pGC->Channel[CAM_RIGHT].Cfg_PacketSize = regData;
+			if (regData & SCPS_F) {
+				// todo test
+			}
+
 		} else {
 			ret = -1;
 		}
@@ -943,7 +955,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 	uint32_t reg_addr = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
-	int nIndex = MAX_WRITEREG_INDEX;
+	int nIndex = nRegs;
 	uint32_t reg_data = 0;
 	char *desc = NULL;
 
@@ -987,7 +999,7 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 	WRITEREG_ACK_MSG *pAckMsg = (WRITEREG_ACK_MSG *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
 	pAckMsg->nReserved			= htons(0x0000);
-	pAckMsg->nIndex				= htons(nIndex);
+	pAckMsg->nIndex				= htons(nIndex);
 
 	if (ret == 0) {
 		// TODO 1 save to xml file
@@ -1641,7 +1653,7 @@ static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream,
 
 	int ret = 0;
 	struct channel_cfg_t *pCH = &gCSV->cfg.gigecfg.Channel[pStream->idx];
-	uint32_t packsize = pCH->PacketSize - 28 - sizeof(GVSP_PACKET_HEADER);
+	uint32_t packsize = (pCH->Cfg_PacketSize&0xFFFF) - 28 - sizeof(GVSP_PACKET_HEADER);
 	uint8_t *pData = pIMG->payload;
 
 	pStream->packet_id32 = 0;
@@ -1653,8 +1665,8 @@ static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream,
 			(pData+packsize < pIMG->payload+pIMG->length) ? packsize : (pIMG->length%packsize));
 		pData += packsize;
 
-		if (pCH->PacketDelay) {
-			usleep(pCH->PacketDelay);
+		if (pCH->PacketDelay/1000) {
+			usleep(pCH->PacketDelay/1000);
 		}
 
 		if (pStream->grab_status != GRAB_STATUS_RUNNING) {
