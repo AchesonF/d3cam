@@ -19,14 +19,14 @@ int csv_file_get_size (const char *path, uint32_t *filesize)
 	FILE *fp = NULL;
 
 	if (NULL == path) {
-		log_info("ERROR : %s",  __func__);
+		log_info("ERROR : %s null path.",  __func__);
 
 		return -1;
 	}
 
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		log_err("ERROR : open '%s'", path);
+		log_err("ERROR : open '%s'.", path);
 
 		return -2;
 	}
@@ -55,14 +55,14 @@ int csv_file_read_data (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size == 0) {
-		log_info("ERROR : %s", __func__);
+		log_info("ERROR : %s size 0.", __func__);
 
 		return -1;
 	}
 
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		log_err("ERROR : fopen '%s'", path);
+		log_err("ERROR : fopen '%s'.", path);
 
 		return -2;
 	}
@@ -71,7 +71,7 @@ int csv_file_read_data (const char *path, uint8_t *buf, uint32_t size)
 
 	ret = fread(buf, size, 1, fp);
 	if (ret < 0) {
-		log_err("ERROR : fread ret[%ld] vs size[%ld]", ret, size);
+		log_err("ERROR : fread ret[%ld] vs size[%ld].", ret, size);
 
 		fclose(fp);
 		return -3;
@@ -90,13 +90,13 @@ int csv_file_read_string (const char *filename, char *buf, size_t size)
 
 	fp = fopen(filename, "r");
 	if (fp == NULL) {
-		log_err("ERROR : fopen '%s'", filename);
+		log_err("ERROR : fopen '%s'.", filename);
 		return -1;
 	}
 
 	rv = fread(buf, 1, size - 1, fp);
 	if (rv <= 0) {
-		log_err("ERROR : fread '%s'", filename);
+		log_err("ERROR : fread '%s'.", filename);
 		
 		fclose(fp);
 		return -1;
@@ -105,7 +105,7 @@ int csv_file_read_string (const char *filename, char *buf, size_t size)
 	buf[rv] = '\0';
 
 	if (fclose(fp) != 0) {
-		log_err("ERROR : fclose '%s'", filename);
+		log_err("ERROR : fclose '%s'.", filename);
 		return -1;
 	}
 
@@ -126,21 +126,21 @@ int csv_file_write_data (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size==0) {
-		log_info("ERROR : %s", __func__);
+		log_info("ERROR : %s size 0.", __func__);
 		
 		return -1;
 	}
 
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		log_err("ERROR : open '%s'", path);
+		log_err("ERROR : open '%s'.", path);
 
 		return -2;
 	}
 
 	ret = fwrite(buf, size, 1, fp);
 	if (ret < 0) {
-		log_err("ERROR : fwrite");
+		log_err("ERROR : fwrite.");
 		fclose(fp);
 		return -3;
 	}
@@ -156,21 +156,21 @@ int csv_file_write_data_append (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size==0) {
-		log_info("ERROR : %s", __func__);
+		log_info("ERROR : %s size 0.", __func__);
 		
 		return -1;
 	}
 
 	fp = fopen(path, "a");
 	if (fp == NULL) {
-		log_err("ERROR : open '%s'", path);
+		log_err("ERROR : open '%s'.", path);
 
 		return -2;
 	}
 
 	ret = fwrite(buf, size, 1, fp);
 	if (ret < 0) {
-		log_err("ERROR : fwrite");
+		log_err("ERROR : fwrite.");
 		fclose(fp);
 		return -3;
 	}
@@ -218,12 +218,13 @@ static int csv_file_get (struct csv_file_t *pFILE)
 {
 	int ret = 0;
 	uint32_t len_file = 0;
-	char str_cmd[256] = {0};
+	char str_cmd[512] = {0};
 
 	// file 1
 	if (!csv_file_isExist(pFILE->udpserv)) {
-		memset(str_cmd, 0, 256);
-		snprintf(str_cmd, 256, "echo \"127.0.0.1:36666\" > %s", pFILE->udpserv);
+		memset(str_cmd, 0, 512);
+		snprintf(str_cmd, 512, "echo \"%s:%d\" > %s", 
+			DEFAULT_LOG_SERV, DEFAULT_LOG_PORT, pFILE->udpserv);
 		system(str_cmd);
 	}
 
@@ -248,7 +249,7 @@ static int csv_file_get (struct csv_file_t *pFILE)
 					gUDP.port = port;
 				}
 				gUDP.reinit = 1;
-				printf("log server : '%s:%d'.\n", gUDP.ip, gUDP.port);
+				//printf("log server : '%s:%d'.\n", gUDP.ip, gUDP.port);
 			}
 
 			free(buf_file);
@@ -257,8 +258,8 @@ static int csv_file_get (struct csv_file_t *pFILE)
 
 	// file 2
 	if (!csv_file_isExist(pFILE->heartbeat_cfg)) {
-		memset(str_cmd, 0, 256);
-		snprintf(str_cmd, 256, "echo \"0:3000\" > %s", pFILE->heartbeat_cfg);
+		memset(str_cmd, 0, 512);
+		snprintf(str_cmd, 512, "echo \"0:3000\" > %s", pFILE->heartbeat_cfg);
 		system(str_cmd);
 	}
 
@@ -286,7 +287,7 @@ static int csv_file_get (struct csv_file_t *pFILE)
 					pFILE->beat_period = 3000;
 				}
 
-				printf("heartbeat cfg : '%d:%d'.\n", pFILE->beat_enable, pFILE->beat_period);
+				//printf("heartbeat cfg : '%d:%d'.\n", pFILE->beat_enable, pFILE->beat_period);
 			}
 
 			free(buf_file);
@@ -323,15 +324,21 @@ int file_write_data(char *buf, FILE *fp, uint32_t size)
 
 int csv_file_init (void)
 {
+	char *env_home = getenv("HOME");
+	char dir_cfg[256]={0};
 	struct csv_file_t *pFILE = &gFILE;
 
-	pFILE->udpserv = FILE_UDP_SERVER;
-	pFILE->heartbeat_cfg = FILE_CFG_HEARTBEAT;
+	memset(pFILE, 0, sizeof(struct csv_file_t));
+	memset(dir_cfg, 0, 256);
 
-	if (!csv_file_isExist(PATH_D3CAM_CFG)) {
+	snprintf(dir_cfg, 256, "%s/%s", env_home, PATH_D3CAM_CFG);
+	snprintf(pFILE->udpserv, 256, "%s/%s", env_home, FILE_UDP_SERVER);
+	snprintf(pFILE->heartbeat_cfg, 256, "%s/%s", env_home, FILE_CFG_HEARTBEAT);
+
+	if (!csv_file_isExist(dir_cfg)) {
 		char str_cmd[256] = {0};
 		memset(str_cmd, 0, 256);
-		snprintf(str_cmd, 256, "mkdir -p %s", PATH_D3CAM_CFG);
+		snprintf(str_cmd, 256, "mkdir -p %s", dir_cfg);
 		system(str_cmd);
 	}
 

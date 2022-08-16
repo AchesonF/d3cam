@@ -12,7 +12,7 @@ int csv_so_open (struct csv_so_t *pSO)
 
 	pSO->handle = dlopen(pSO->path, RTLD_LAZY);
 	if (!pSO->handle) {
-		log_err("ERROR : dlopen '%s'", pSO->path);
+		log_err("ERROR : dlopen '%s'.", pSO->path);
 		return -1;
 	}
 
@@ -20,7 +20,7 @@ int csv_so_open (struct csv_so_t *pSO)
 
 	pSO->func1 = dlsym(pSO->handle, "some_func");
 	if (!pSO->func1) {
-		log_err("ERROR : dlsym '%s'", "some_func");
+		log_err("ERROR : dlsym '%s'.", "some_func");
 		return -1;
 	}
 

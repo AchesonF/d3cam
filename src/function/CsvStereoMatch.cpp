@@ -5,9 +5,7 @@
 
 CsvStereoMatchBM::CsvStereoMatchBM()
 {
-	if (loadCameraParam("camera_param.yml")) {
-		log_info("OK : load camera param.");
-	} else {
+	if (!loadCameraParam("camera_param.yml")) {
 		log_info("ERROR : load camera param.");
 		return;
 	}

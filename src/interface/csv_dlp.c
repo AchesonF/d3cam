@@ -169,23 +169,23 @@ int csv_dlp_write_and_read (uint8_t idx)
 	if (pDLP->rlen == LEN_DLP_CTRL+2) { // need to add checksum
 		switch (pDLP->rbuf[0]) {
 		case 0x01:
-			log_info("OK : dlp cmd ctrl");
+			log_info("OK : dlp cmd ctrl.");
 			ret = 0;
 			break;
 		case 0x02:
-			log_info("ERROR : dlp cannot trigger out");
+			log_info("ERROR : dlp cannot trigger out.");
 			break;
 		case 0x03:
-			log_info("ERROR : dlp crc");
+			log_info("ERROR : dlp crc.");
 			break;
 		case 0x04:
-			log_info("ERROR : dlp light");
+			log_info("ERROR : dlp light.");
 			break;
 		case 0x05:
-			log_info("ERROR : dlp device info");
+			log_info("ERROR : dlp device info.");
 			break;
 		case 0x06:
-			log_info("ERROR : dlp param");
+			log_info("ERROR : dlp param.");
 			break;
 		}
 	}
@@ -217,7 +217,7 @@ static void *csv_dlp_loop (void *data)
 		}
 	}
 
-	log_info("WARN : exit pthread %s", pDLP->name_dlp);
+	log_info("WARN : exit pthread %s.", pDLP->name_dlp);
 
 	pDLP->thr_dlp = 0;
 
@@ -236,21 +236,21 @@ static int csv_dlp_thread (struct csv_dlp_t *pDLP)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     if (pthread_mutex_init(&pDLP->mutex_dlp, NULL) != 0) {
-		log_err("ERROR : mutex %s", pDLP->name_dlp);
+		log_err("ERROR : mutex %s.", pDLP->name_dlp);
         return -1;
     }
 
     if (pthread_cond_init(&pDLP->cond_dlp, NULL) != 0) {
-		log_err("ERROR : cond %s", pDLP->name_dlp);
+		log_err("ERROR : cond %s.", pDLP->name_dlp);
         return -1;
     }
 
 	ret = pthread_create(&pDLP->thr_dlp, &attr, csv_dlp_loop, (void *)pDLP);
 	if (ret < 0) {
-		log_err("ERROR : create pthread %s", pDLP->name_dlp);
+		log_err("ERROR : create pthread %s.", pDLP->name_dlp);
 		return -1;
 	} else {
-		log_info("OK : create pthread %s @ (%p)", pDLP->name_dlp, pDLP->thr_dlp);
+		log_info("OK : create pthread %s @ (%p).", pDLP->name_dlp, pDLP->thr_dlp);
 	}
 
 	return ret;
@@ -267,9 +267,9 @@ static int csv_dlp_thread_cancel (struct csv_dlp_t *pDLP)
 
 	ret = pthread_cancel(pDLP->thr_dlp);
 	if (ret != 0) {
-		log_err("ERROR : pthread_cancel %s", pDLP->name_dlp);
+		log_err("ERROR : pthread_cancel %s.", pDLP->name_dlp);
 	} else {
-		log_info("OK : cancel pthread %s", pDLP->name_dlp);
+		log_info("OK : cancel pthread %s.", pDLP->name_dlp);
 	}
 
 	ret = pthread_join(pDLP->thr_dlp, &retval);

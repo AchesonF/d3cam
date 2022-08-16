@@ -7,6 +7,9 @@ extern "C" {
 
 #define NAME_UDP_LOG		"'udp_log'"
 
+#define DEFAULT_LOG_SERV	("127.0.0.1")
+#define DEFAULT_LOG_PORT	(36666)
+
 struct csv_udp_t {
 	int				fd;
 	char			*name;

@@ -17,20 +17,20 @@ static int csv_tick_timer_open (struct csv_tick_t *pTICK)
 
 	fd = timerfd_create(CLOCK_REALTIME, 0);
 	if (fd < 0) {
-		log_err("ERROR : create %s", pTICK->name);
+		log_err("ERROR : create %s.", pTICK->name);
 
 		return -1;
 	}
 
 	if (timerfd_settime(fd, 0, &its, NULL) < 0) {
-		log_err("ERROR : settime %s", pTICK->name);
+		log_err("ERROR : settime %s.", pTICK->name);
 		if (close(fd)<0) {
-			log_err("ERROR : close %s", pTICK->name);
+			log_err("ERROR : close %s.", pTICK->name);
 
 			return -3;
 		}
 
-		log_info("OK : close %s", pTICK->name);
+		log_info("OK : close %s.", pTICK->name);
 
 		return -2;
 	}
@@ -45,7 +45,7 @@ static int csv_tick_timer_close (struct csv_tick_t *pTICK)
 {
 	if (pTICK->fd > 0) {
 		if (close(pTICK->fd) < 0) {
-			log_err("ERROR : close %s", pTICK->name);
+			log_err("ERROR : close %s.", pTICK->name);
 			return -1;
 		}
 
@@ -62,7 +62,7 @@ int csv_tick_timer_trigger (struct csv_tick_t *pTICK)
 
 	uint64_t num_exp = 0;
 	if (read(pTICK->fd, &num_exp, sizeof(uint64_t)) != sizeof(uint64_t)) {
-		log_err("ERROR : read %s", pTICK->name);
+		log_err("ERROR : read %s.", pTICK->name);
 		return -1;
 	}
 

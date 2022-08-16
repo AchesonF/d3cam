@@ -60,7 +60,7 @@ int csv_eth_ipaddr_get (char *ipstr)
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		ret = -1;
 		return ret;
 	}
@@ -70,9 +70,9 @@ int csv_eth_ipaddr_get (char *ipstr)
 	
 	ret = ioctl(fd, SIOCGIFADDR, &ifr);
 	if (ret < 0) {
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCGIFADDR'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		ret = -2;
 		return ret;
@@ -81,7 +81,7 @@ int csv_eth_ipaddr_get (char *ipstr)
 	strcpy(ipstr, inet_ntoa(((struct sockaddr_in *)&(ifr.ifr_addr))->sin_addr));
 
 	if (close(fd)<0) {
-		log_err("ERROR : close");
+		log_err("ERROR : close.");
 	}
 
 	return ret;
@@ -104,7 +104,7 @@ int csv_eth_ipaddr_set (uint32_t ip_addr)
 	struct sockaddr_in sa_in;
 
 	if (0 == ip_addr) {
-		log_info("ip_addr = 0");
+		log_warn("ip_addr = 0.");
 		return -3;
 	}
 
@@ -117,7 +117,7 @@ int csv_eth_ipaddr_set (uint32_t ip_addr)
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		ret = -1;
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return ret;
 	}
 
@@ -132,15 +132,15 @@ int csv_eth_ipaddr_set (uint32_t ip_addr)
 	ret = ioctl(fd, SIOCSIFADDR, &ifr);
 	if (ret < 0) {
 		ret = -2;
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCSIFADDR'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		return ret;
 	}
 
 	if (close(fd)<0) {
-		log_err("ERROR : close");
+		log_err("ERROR : close.");
 	}
 
 	return ret;
@@ -162,14 +162,14 @@ int csv_eth_ipstraddr_set (char *ipstr)
 
 	if (NULL == ipstr) {
 		ret = -3;
-		log_info("ERROR : ipstr is NULL.");
+		log_warn("ERROR : ipstr is NULL.");
 		return ret;
 	}
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		ret = -1;
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return ret;
 	}
 
@@ -184,15 +184,15 @@ int csv_eth_ipstraddr_set (char *ipstr)
 	ret = ioctl(fd, SIOCSIFADDR, &ifr);
 	if (ret < 0) {
 		ret = -2;
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCSIFADDR'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		return ret;
 	}
 
 	if (close(fd)<0) {
-		log_err("ERROR : close");
+		log_err("ERROR : close.");
 	}
 	
 	return ret;
@@ -213,7 +213,7 @@ int csv_eth_mask_get (char *mask)
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		ret = -1;
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return ret;
 	}
 
@@ -223,9 +223,9 @@ int csv_eth_mask_get (char *mask)
 	ret = ioctl(fd, SIOCGIFNETMASK, &ifr);
 	if (ret < 0) {
 		ret = -2;
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCGIFNETMASK'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		return ret;
 	}
@@ -233,7 +233,7 @@ int csv_eth_mask_get (char *mask)
 	strcpy(mask, inet_ntoa(((struct sockaddr_in *)&(ifr.ifr_netmask))->sin_addr));
 
 	if (close(fd)<0) {
-		log_err("ERROR : close");
+		log_err("ERROR : close.");
 	}
 
 	return ret;
@@ -256,7 +256,7 @@ int csv_eth_mask_set (uint32_t net_mask)
 	struct sockaddr_in sa_in;
 
 	if (0 == net_mask) {
-		log_info("net_mask = 0");
+		log_warn("net_mask = 0.");
 		return -3;
 	}
 
@@ -269,7 +269,7 @@ int csv_eth_mask_set (uint32_t net_mask)
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		ret = -1;
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return ret;
 	}
 
@@ -287,15 +287,15 @@ int csv_eth_mask_set (uint32_t net_mask)
 	ret = ioctl(fd, SIOCSIFNETMASK, &ifr);
 	if (ret < 0) {
 		ret = -2;
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCSIFNETMASK'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		return ret;
 	}
 
 	if (close(fd)<0) {
-		log_err("ERROR : close");
+		log_err("ERROR : close.");
 	}
 
 	return ret;
@@ -317,14 +317,14 @@ int csv_eth_maskstr_set (char *maskstr)
 
 	if (NULL == maskstr) {
 		ret = -3;
-		log_info("maskstr is NULL");
+		log_warn("maskstr is NULL.");
 		return ret;
 	}
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		ret = -1;
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return ret;
 	}
 
@@ -339,15 +339,15 @@ int csv_eth_maskstr_set (char *maskstr)
 	ret = ioctl(fd, SIOCSIFNETMASK, &ifr);
 	if (fd < 0) {
 		ret = -2;
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCSIFNETMASK'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		return ret;
 	}
 
 	if (close(fd)<0) {
-		log_err("ERROR : close");
+		log_err("ERROR : close.");
 	}
 
 	return ret;
@@ -361,7 +361,7 @@ int csv_eth_broadcast_get (char *bc)
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		ret = -1;
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return ret;
 	}
 
@@ -371,9 +371,9 @@ int csv_eth_broadcast_get (char *bc)
 	ret = ioctl(fd, SIOCGIFBRDADDR, &ifr);
 	if (ret < 0) {
 		ret = -2;
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCGIFBRDADDR'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		return ret;
 	}
@@ -381,7 +381,7 @@ int csv_eth_broadcast_get (char *bc)
 	strcpy(bc, inet_ntoa(((struct sockaddr_in *)&(ifr.ifr_netmask))->sin_addr));
 
 	if (close(fd)<0) {
-		log_err("ERROR : close");
+		log_err("ERROR : close.");
 	}
 
 	return ret;
@@ -442,13 +442,13 @@ int csv_eth_gateway_set (uint32_t gate_way)
 	struct rtentry rt;
 
 	if (0 == gate_way) {
-		log_info(" gate_way = 0");
+		log_warn("gate_way = 0.");
 		return 0;
 	}
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return -1;
 	}
 
@@ -465,9 +465,9 @@ int csv_eth_gateway_set (uint32_t gate_way)
 	ret = ioctl(fd, SIOCDELRT, &rt);
 	if ((0 != ret) && (ESRCH != errno)) {
 		ret = -2;
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCDELRT'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		return ret;
 	}
@@ -489,15 +489,15 @@ int csv_eth_gateway_set (uint32_t gate_way)
 	ret = ioctl(fd, SIOCADDRT, &rt);
 	if ((ret < 0) && (ESRCH != errno)) {
 		ret = -3;
-		log_err("ERROR : ioctl");
+		log_err("ERROR : ioctl 'SIOCADDRT'.");
 		if (close(fd)<0) {
-			log_err("ERROR : close");
+			log_err("ERROR : close.");
 		}
 		return ret;
 	}
 
 	if (close(fd)<0) {
-		log_err("ERROR : close");
+		log_err("ERROR : close.");
 	}
 
 	// set as default gateway
@@ -529,7 +529,7 @@ int csv_eth_mac_get (const char *ifname, uint8_t *mac)
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return -1;
 	}
 
@@ -558,12 +558,13 @@ int csv_eth_mac_updown (char *ifname, uint8_t flag)
 	struct ifreq ifr;
 
 	if (!ifname) {
+		log_warn("ifname is NULL.");
 		return -1;
 	}
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return -1;
 	}
 
@@ -579,7 +580,7 @@ int csv_eth_mac_updown (char *ifname, uint8_t flag)
 	}
 
 	if ((ret = ioctl(fd, SIOCSIFFLAGS, &ifr)) != 0) {
-		log_err("ERROR : ioctl SIOCSIFFLAGS");
+		log_err("ERROR : ioctl 'SIOCSIFFLAGS'.");
 	}
 
 	close(fd);
@@ -605,7 +606,7 @@ int csv_eth_mac_set (char *ifname, uint8_t *mac)
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return -1;
 	}
 
@@ -614,7 +615,7 @@ int csv_eth_mac_set (char *ifname, uint8_t *mac)
 	memcpy((uint8_t *)ifr.ifr_hwaddr.sa_data, mac, 6);
 
 	if ((ret = ioctl(fd, SIOCSIFHWADDR, &ifr)) != 0) {
-		log_err("ERROR : ioctl SIOCSIFHWADDR");
+		log_err("ERROR : ioctl 'SIOCSIFHWADDR'.");
 	}
 
 	close(fd);

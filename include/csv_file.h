@@ -13,9 +13,10 @@ extern "C" {
 #define FILE_PATH_BACKTRACE			"backtrace.log"
 #define FILE_CAMERA_CALIBRATE		"camera_param.yml"
 
-#define PATH_D3CAM_CFG				("~/.config/d3cam")
-#define FILE_UDP_SERVER				("~/.config/d3cam/udpserv")	// "127.0.0.1:36666"
-#define FILE_CFG_HEARTBEAT			("~/.config/d3cam/hbcfg")	// "1:3000"
+// prefix : getenv("HOME")
+#define PATH_D3CAM_CFG				(".config/d3cam")
+#define FILE_UDP_SERVER				(".config/d3cam/udpserv")	// "127.0.0.1:36666"
+#define FILE_CFG_HEARTBEAT			(".config/d3cam/hbcfg")	// "1:3000"
 
 /** @}*/
 
@@ -24,8 +25,8 @@ extern "C" {
 * @{
 */
 struct csv_file_t {
-	char				*udpserv;
-	char				*heartbeat_cfg;
+	char				udpserv[256];
+	char				heartbeat_cfg[256];
 
 	uint8_t				beat_enable;
 	uint32_t			beat_period;

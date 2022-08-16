@@ -31,7 +31,7 @@ static void xml_unload_file (xmlDocPtr pDoc)
 static int xml_load_file (struct csv_xml_t *pXML)
 {
 	if (pXML->file == NULL) {
-		log_info("ERROR : xml file NULL.");
+		log_warn("ERROR : xml file NULL.");
 		pXML->file = FILE_PATH_XML;
 	}
 
@@ -39,11 +39,11 @@ static int xml_load_file (struct csv_xml_t *pXML)
 	memset(cmd, 0, 256);
 
 	if (!csv_file_isExist(pXML->file)) {
-		log_info("WARN : xml \"%s\" not exist.", pXML->file);
+		log_warn("WARN : xml \"%s\" not exist.", pXML->file);
 		if (!csv_file_isExist(FILE_PATH_XML_BK)) {
-			log_info("WARN : backup xml \"%s\" not exist.", FILE_PATH_XML_BK);
+			log_warn("WARN : backup xml \"%s\" not exist.", FILE_PATH_XML_BK);
 		} else {
-			log_info("WARN : use backup xml \"%s\".", FILE_PATH_XML_BK);
+			log_warn("WARN : use backup xml \"%s\".", FILE_PATH_XML_BK);
 			sprintf(cmd, "cp -f %s %s", FILE_PATH_XML_BK, FILE_PATH_XML);
 			system_redef(cmd);
 			sync();
@@ -56,7 +56,7 @@ static int xml_load_file (struct csv_xml_t *pXML)
 
 	pXML->pDoc = xmlReadFile(pXML->file, "UTF-8", XML_PARSE_NOBLANKS);
 	if (pXML->pDoc == NULL) {
-		log_info("WARN : xmlReadFile \"%s\", make a new one.", pXML->file);
+		log_warn("WARN : xmlReadFile \"%s\", make a new one.", pXML->file);
 
 		sprintf(cmd, "echo \\<?xml version=\\\"1.0\\\" " \
 			"encoding=\\\"UTF-8\\\"?\\>\\<CSVxmlRoot\\>\\</CSVxmlRoot\\> > %s", 
@@ -72,13 +72,13 @@ static int xml_load_file (struct csv_xml_t *pXML)
 
 	pXML->pRoot = xmlDocGetRootElement(pXML->pDoc);
 	if (pXML->pRoot == NULL) {
-		log_info("ERROR : xmlDocGetRootElement NULL");
+		log_warn("ERROR : xmlDocGetRootElement NULL.");
 
 		goto mk_root;
 	}
 
 	if (xmlStrcmp(pXML->pRoot->name, BAD_CAST "CSVxmlRoot")) {
-		log_info("ERROR : RootNode not found. \"CSVxmlRoot\" vs \"%s\"", pXML->pRoot->name);
+		log_warn("ERROR : RootNode not found. \"CSVxmlRoot\" vs \"%s\".", pXML->pRoot->name);
 		goto mk_root;
 	} else {
 		return 0;
@@ -147,7 +147,7 @@ static xmlNodePtr xml_get_node (xmlNodePtr pNodePtr, const char *nodeName, uint3
 	}
 
 	// mk_node if not exist
-	log_info("WARN : no tag \"%s\".", nodeName);
+	log_warn("WARN : no tag \"%s\".", nodeName);
 	gCSV->xml.SaveFile = true;
 	return xmlNewChild(pNodePtr, NULL, BAD_CAST nodeName, NULL);
 	//return NULL;
@@ -161,12 +161,12 @@ int xml_get_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 	xmlNodePtr curPtr = NULL;
 
 	if ((pDoc == NULL)||(pNodePtr == NULL)||(parentName == NULL)||(key_pair == NULL)) {
-		log_info("ERROR : NULL");
+		log_warn("ERROR : NULL.");
 		return 1;
 	}
 
 	if (!nums || (nums > MAX_KEY_VALUE_PAIRS)) {
-		log_info("ERROR : nums %d", nums);
+		log_warn("ERROR : nums %d.", nums);
 		return 1;
 	}
 
@@ -177,7 +177,7 @@ int xml_get_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 
 	for (i = 0; i < nums; i++) {
 		if (key_pair[i].value == NULL) {
-			log_info("ERROR : NULL");
+			log_warn("ERROR : NULL.");
 			return 1;
 		}
 
@@ -189,7 +189,7 @@ int xml_get_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 			}
 
 			if (curPtr == NULL) {
-				log_info("WARN : no tag \"%s\".", key_pair[i].key);
+				log_warn("WARN : no tag \"%s\".", key_pair[i].key);
 
 				xmlNodePtr node = NULL;
 				node = xmlNewChild(pNodePtr, NULL, BAD_CAST key_pair[i].key, NULL);
@@ -224,7 +224,7 @@ int xml_get_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 					sprintf(str1, "%f", *((float *)key_pair[i].value));
 				break;
 				default:
-					log_info("ERROR : Invalid value_type[%d]", key_pair[i].value_type);
+					log_warn("ERROR : Invalid value_type[%d]", key_pair[i].value_type);
 				return -1;
 				}
 
@@ -241,12 +241,12 @@ int xml_get_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 		} else if (key_pair[i].nodeType == XML_ATTRIBUTE_NODE) {
 			str = (char *)xmlGetProp(pNodePtr, BAD_CAST key_pair[i].key);
 		} else {
-			log_info("ERROR : Invalid nodeType[%d]", key_pair[i].nodeType);
+			log_warn("ERROR : Invalid nodeType[%d].", key_pair[i].nodeType);
 			return -1;
 		}
 
 		if (str == NULL) {
-			log_info("WARN : Empty node \"%s\".", key_pair[i].key);
+			log_warn("WARN : Empty node \"%s\".", key_pair[i].key);
 			continue;
 		}
 
@@ -280,7 +280,7 @@ int xml_get_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 			  *((float *)key_pair[i].value) = atof(str);
 			  break;
 		  default:
-			  log_info("ERROR : Invalid value_type[%d]", key_pair[i].value_type);
+			  log_warn("ERROR : Invalid value_type[%d].", key_pair[i].value_type);
 			  return -1;
 		}
 
@@ -298,12 +298,12 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 	xmlNodePtr curPtr = NULL;
 
 	if ((pDoc == NULL)||(pNodePtr == NULL)||(parentName == NULL)||(key_pair == NULL)) {
-		log_info("ERROR : NULL");
+		log_warn("ERROR : NULL.");
 		return 1;
 	}
 
 	if (!nums || (nums > MAX_KEY_VALUE_PAIRS)) {
-		log_info("ERROR : nums %d", nums);
+		log_warn("ERROR : nums %d.", nums);
 		return 1;
 	}
 
@@ -314,7 +314,7 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 
 	for (i = 0; i < nums; i++) {
 		if (key_pair[i].value == NULL) {
-			log_info("ERROR : NULL");
+			log_warn("ERROR : NULL.");
 			return 1;
 		}
 
@@ -349,7 +349,7 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 			sprintf(str, "%f", *((float *)key_pair[i].value));
 		break;
 		default:
-			log_info("ERROR : Invalid value_type[%d]", key_pair[i].value_type);
+			log_warn("ERROR : Invalid value_type[%d].", key_pair[i].value_type);
 		return -1;
 		}
 
@@ -361,7 +361,7 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 			}
 
 			if (curPtr == NULL) {
-				log_info("WARN : no tag \"%s\"", key_pair[i].key);
+				log_warn("WARN : no tag \"%s\".", key_pair[i].key);
 				xmlNodePtr node = NULL;
 				node = xmlNewChild(pNodePtr, NULL, BAD_CAST key_pair[i].key, NULL);
 				xmlNodeSetContent(node, BAD_CAST str);
@@ -375,7 +375,7 @@ int xml_set_node_data (xmlDocPtr pDoc, xmlNodePtr pNodePtr, const char *parentNa
 		} else if (key_pair[i].nodeType == XML_ATTRIBUTE_NODE) {
 			xmlSetProp(pNodePtr, BAD_CAST key_pair[i].key, BAD_CAST str);
 		} else {
-			log_info("ERROR : Invalid nodeType[%d]", key_pair[i].nodeType);
+			log_warn("ERROR : Invalid nodeType[%d].", key_pair[i].nodeType);
 			return -1;
 		}
 	}
@@ -402,7 +402,7 @@ static int csv_xml_GeneralInfomation (
 	}
 
 	if (ret != 0) {
-		log_info("ERROR : GeneralInfomation");
+		log_warn("ERROR : GeneralInfomation.");
 		return -1;
 	}
 
@@ -458,7 +458,7 @@ static int csv_xml_DlpAttribute (
 	}
 
 	if (ret != 0) {
-		log_info("ERROR : DlpAttribute");
+		log_warn("ERROR : DlpAttribute.");
 		return -1;
 	}
 
@@ -532,7 +532,7 @@ static int csv_xml_DeviceConfiguration (
 	}
 
 	if (ret != 0) {
-		log_info("ERROR : DeviceConfiguration");
+		log_warn("ERROR : DeviceConfiguration.");
 		return -1;
 	}
 
@@ -585,7 +585,7 @@ static int csv_xml_DepthImageConfiguration (
 	}
 
 	if (ret != 0) {
-		log_info("ERROR : DepthImageConfiguration");
+		log_warn("ERROR : DepthImageConfiguration.");
 		return -1;
 	}
 
@@ -649,7 +649,7 @@ static int csv_xml_PointCloudConfiguration (
 	}
 
 	if (ret != 0) {
-		log_info("ERROR : PointCloudConfiguration");
+		log_warn("ERROR : PointCloudConfiguration.");
 		return -1;
 	}
 
@@ -689,7 +689,7 @@ static int csv_xml_CalibConfiguration (
 	}
 
 	if (ret != 0) {
-		log_info("ERROR : CalibConfiguration");
+		log_warn("ERROR : CalibConfiguration.");
 		return -1;
 	}
 
@@ -709,7 +709,7 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 
 	ret = xml_load_file(pXML);
 	if (ret < 0) {
-		log_info("ERROR : xml file load.");
+		log_warn("ERROR : xml file load.");
 		return -1;
 	}
 
@@ -717,7 +717,7 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_GeneralInfomation(pXML, XML_GET);
 		if (ret < 0) {
-			log_info("ERROR : GeneralInfomation GET");
+			log_warn("ERROR : GeneralInfomation GET.");
 		}
 	}
 
@@ -725,7 +725,7 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_DeviceConfiguration(pXML, XML_GET);
 		if (ret < 0) {
-			log_info("ERROR : DeviceConfiguration GET");
+			log_warn("ERROR : DeviceConfiguration GET.");
 		}
 	}
 
@@ -733,7 +733,7 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_DepthImageConfiguration(pXML, XML_GET);
 		if (ret < 0) {
-			log_info("ERROR : DepthImageConfiguration GET");
+			log_warn("ERROR : DepthImageConfiguration GET.");
 		}
 	}
 
@@ -741,7 +741,7 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_PointCloudConfiguration(pXML, XML_GET);
 		if (ret < 0) {
-			log_info("ERROR : PointCloudConfiguration GET");
+			log_warn("ERROR : PointCloudConfiguration GET.");
 		}
 	}
 
@@ -749,7 +749,7 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_CalibConfiguration(pXML, XML_GET);
 		if (ret < 0) {
-			log_info("ERROR : CalibConfiguration GET");
+			log_warn("ERROR : CalibConfiguration GET.");
 		}
 	}
 
@@ -767,7 +767,7 @@ int csv_xml_write_GeneralInfomation (void)
 
 	ret = xml_load_file(pXML);
 	if (ret < 0) {
-		log_info("ERROR : xml file load.");
+		log_warn("ERROR : xml file load.");
 		return -1;
 	}
 
@@ -776,7 +776,7 @@ int csv_xml_write_GeneralInfomation (void)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_GeneralInfomation(pXML, XML_SET);
 		if (ret < 0) {
-			log_info("ERROR : GeneralInfomation SET");
+			log_warn("ERROR : GeneralInfomation SET.");
 			goto xml_exit;
 		}
 	}
@@ -794,7 +794,7 @@ int csv_xml_write_DeviceParameters (void)
 
 	ret = xml_load_file(pXML);
 	if (ret < 0) {
-		log_info("ERROR : xml file load.");
+		log_warn("ERROR : xml file load.");
 		return -1;
 	}
 
@@ -803,7 +803,7 @@ int csv_xml_write_DeviceParameters (void)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_DeviceConfiguration(pXML, XML_SET);
 		if (ret < 0) {
-			log_info("ERROR : DeviceConfiguration SET");
+			log_warn("ERROR : DeviceConfiguration SET.");
 			goto xml_exit;
 		}
 	}
@@ -821,7 +821,7 @@ int csv_xml_write_DepthImgParameters (void)
 
 	ret = xml_load_file(pXML);
 	if (ret < 0) {
-		log_info("ERROR : xml file load.");
+		log_warn("ERROR : xml file load.");
 		return -1;
 	}
 
@@ -830,7 +830,7 @@ int csv_xml_write_DepthImgParameters (void)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_DepthImageConfiguration(pXML, XML_SET);
 		if (ret < 0) {
-			log_info("ERROR : DepthImageConfiguration SET");
+			log_warn("ERROR : DepthImageConfiguration SET.");
 			goto xml_exit;
 		}
 	}
@@ -848,7 +848,7 @@ int csv_xml_write_PointCloudParameters (void)
 
 	ret = xml_load_file(pXML);
 	if (ret < 0) {
-		log_info("ERROR : xml file load.");
+		log_warn("ERROR : xml file load.");
 		return -1;
 	}
 
@@ -857,7 +857,7 @@ int csv_xml_write_PointCloudParameters (void)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_PointCloudConfiguration(pXML, XML_SET);
 		if (ret < 0) {
-			log_info("ERROR : PointCloudConfiguration SET");
+			log_warn("ERROR : PointCloudConfiguration SET.");
 			goto xml_exit;
 		}
 	}
@@ -875,7 +875,7 @@ int csv_xml_write_CalibParameters (void)
 
 	ret = xml_load_file(pXML);
 	if (ret < 0) {
-		log_info("ERROR : xml file load.");
+		log_warn("ERROR : xml file load.");
 		return -1;
 	}
 
@@ -884,7 +884,7 @@ int csv_xml_write_CalibParameters (void)
 	if (pXML->pNode != NULL) {
 		ret = csv_xml_CalibConfiguration(pXML, XML_SET);
 		if (ret < 0) {
-			log_info("ERROR : CalibConfiguration SET");
+			log_warn("ERROR : CalibConfiguration SET.");
 			goto xml_exit;
 		}
 	}

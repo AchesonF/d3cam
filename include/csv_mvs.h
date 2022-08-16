@@ -59,6 +59,7 @@ struct csv_mvs_t {
 	pthread_cond_t			cond_grab;		///< 条件
 };
 
+extern char *strMsg (int errcode);
 
 extern int csv_mvs_cams_enum (struct csv_mvs_t *pMVS);
 

@@ -150,8 +150,8 @@ int csv_udp_init (void)
 	pUDP->initialled = 0;
 	pUDP->reinit = 0;
 
-	strcpy(pUDP->ip, "127.0.0.1");
-	pUDP->port = 36666;
+	strcpy(pUDP->ip, DEFAULT_LOG_SERV);
+	pUDP->port = DEFAULT_LOG_PORT;
 	memset(pUDP->hostid, 0, 32);
 	snprintf(pUDP->hostid, 32, "%ld", gethostid());
 

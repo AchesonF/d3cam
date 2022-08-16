@@ -7,7 +7,7 @@ extern "C" {
 
 #define HEARTBEAT_BEACON			"CSHB"
 
-#define HEARTBEAT_TIMEO				(5)			// 10s
+#define HEARTBEAT_TIMEO				(5)			// times x period s
 
 #define MAX_LEN_STARTCMD			(256)
 
@@ -18,6 +18,8 @@ struct csv_hb_t {
 	char			*beacon;		// 信标数据
 
 };
+
+extern int csv_hb_close (int fd);
 
 extern int csv_hb_write (void);
 

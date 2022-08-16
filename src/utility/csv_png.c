@@ -97,7 +97,7 @@ int csv_png_push (char *filename, uint8_t *buf,
 		pPP->payload = (uint8_t *)malloc(length);
 
 		if (NULL == pPP->payload) {
-			log_err("ERROR : malloc payload");
+			log_err("ERROR : malloc payload.");
 			return -1;
 		}
 
@@ -166,7 +166,7 @@ static void *csv_png_loop (void *data)
 		}
 	}
 
-	log_info("WARN : exit pthread %s", pPNG->name_png);
+	log_info("WARN : exit pthread %s.", pPNG->name_png);
 
 	pPNG->thr_png = 0;
 
@@ -185,21 +185,21 @@ static int csv_png_thread (struct csv_png_t *pPNG)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     if (pthread_mutex_init(&pPNG->mutex_png, NULL) != 0) {
-		log_err("ERROR : mutex %s", pPNG->name_png);
+		log_err("ERROR : mutex %s.", pPNG->name_png);
         return -1;
     }
 
     if (pthread_cond_init(&pPNG->cond_png, NULL) != 0) {
-		log_err("ERROR : cond %s", pPNG->name_png);
+		log_err("ERROR : cond %s.", pPNG->name_png);
         return -1;
     }
 
 	ret = pthread_create(&pPNG->thr_png, &attr, csv_png_loop, (void *)pPNG);
 	if (ret < 0) {
-		log_err("ERROR : create pthread %s", pPNG->name_png);
+		log_err("ERROR : create pthread %s.", pPNG->name_png);
 		return -1;
 	} else {
-		log_info("OK : create pthread %s @ (%p)", pPNG->name_png, pPNG->thr_png);
+		log_info("OK : create pthread %s @ (%p).", pPNG->name_png, pPNG->thr_png);
 	}
 
 	//pthread_attr_destory(&attr);
@@ -239,9 +239,9 @@ static int csv_png_thread_cancel (struct csv_png_t *pPNG)
 
 	ret = pthread_cancel(pPNG->thr_png);
 	if (ret != 0) {
-		log_err("ERROR : pthread_cancel %s", pPNG->name_png);
+		log_err("ERROR : pthread_cancel %s.", pPNG->name_png);
 	} else {
-		log_info("OK : cancel pthread %s", pPNG->name_png);
+		log_info("OK : cancel pthread %s.", pPNG->name_png);
 	}
 
 	ret = pthread_join(pPNG->thr_png, &retval);

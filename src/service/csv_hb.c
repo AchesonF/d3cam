@@ -4,6 +4,13 @@
 extern "C" {
 #endif
 
+int csv_hb_close (int fd)
+{
+	log_info("OK : close pipe fd(%d).", fd);
+
+	return close(fd);
+}
+
 static int csv_hb_read (struct csv_hb_t *pHB)
 {
 	int nRet = 0;
@@ -53,11 +60,36 @@ static int csv_hb_startcmd_get (struct csv_hb_t *pHB, int argc, char **argv)
 		strcat(pHB->cmdline, str_opt);
 	}
 
+	log_info("OK : get cmdline : '%s'.", pHB->cmdline);
+
 	strcat(pHB->cmdline, "&");
 
-	log_info("OK : get cmdline : '%s'", pHB->cmdline);
-
 	return 0;
+}
+
+void csv_hb_stop (int signum)
+{
+	int ret = 0;
+	char *strSIG = NULL;
+
+	switch (signum) {
+	case SIGINT:
+		strSIG = toSTR(SIGINT);
+		break;
+	case SIGSTOP:
+		strSIG = toSTR(SIGSTOP);
+		break;
+	default:
+		strSIG = "htop maybe help.";
+		break;
+	}
+
+	csv_hb_close(gPdct.hb.pipefd[0]);
+
+	log_info("OK : Stop process pid[%d] via signum[%d]=%s", 
+		getpid(), signum, strSIG);
+
+	exit(ret);
 }
 
 static int csv_hb_server_init (struct csv_hb_t *pHB)
@@ -70,12 +102,15 @@ static int csv_hb_server_init (struct csv_hb_t *pHB)
 
     ret = fcntl(fd, F_SETFL, O_NONBLOCK);
     if (ret < 0) {
-        log_err("ERROR : fcntl");
+        log_err("ERROR : fcntl.");
         close(fd);
         exit(EXIT_FAILURE);
     }
 
 	log_info("OK : pid(%d) fork from ppid(%d).", getpid(), ppid);
+
+	signal(SIGINT, csv_hb_stop);
+	signal(SIGSTOP, csv_hb_stop);
 
 	while (1) {
 		tv.tv_sec = 2;
@@ -97,7 +132,14 @@ static int csv_hb_server_init (struct csv_hb_t *pHB)
 				fd = -1;
 
 				log_info("ERROR : lost parent process.");
+				// send signal kill
 				kill(ppid, SIGKILL);
+
+				// ensure to kill
+				char str_cmd[64] = {0};
+				memset(str_cmd, 0, 64);
+				snprintf(str_cmd, 64, "kill -9 %d", ppid);
+				ret = system(str_cmd);
 
 				if (isprint(pHB->cmdline[0])) {
 					ret = system(pHB->cmdline);
@@ -118,7 +160,15 @@ static int csv_hb_server_init (struct csv_hb_t *pHB)
 				fd = -1;
 
 				log_info("ERROR : parent process pipe broken.");
+				// send signal kill
 				kill(ppid, SIGKILL);
+
+				// ensure to kill
+				char str_cmd[64] = {0};
+				memset(str_cmd, 0, 64);
+				snprintf(str_cmd, 64, "kill -9 %d", ppid);
+				ret = system(str_cmd);
+
 				if (isprint(pHB->cmdline[0])) {
 					ret = system(pHB->cmdline);
 					log_info("OK : re-launch '%s' %d.", pHB->cmdline, ret);
@@ -145,11 +195,11 @@ int csv_hb_init (int argc, char **argv)
 
 	ret = pipe(pHB->pipefd);
 	if (ret < 0) {
-		log_err("ERROR : pipe");
+		log_err("ERROR : pipe.");
 		return -1;
 	}
 
-	log_info("pipe ifd(%d) ofd(%d)", pHB->pipefd[0], pHB->pipefd[1]);
+	log_info("OK : pipe ifd(%d) ofd(%d).", pHB->pipefd[0], pHB->pipefd[1]);
 
 	cpid = fork();
 
@@ -157,11 +207,11 @@ int csv_hb_init (int argc, char **argv)
 	case 0:		// child
 		close(pHB->pipefd[1]);	// not use in child process
 		csv_hb_server_init(pHB);
-		log_info("ERROR : heartbeat die. ~~~~");
+		log_alert("ALERT : deamon die. ~~~~");
 		exit(EXIT_FAILURE);
 		break;
 	case -1:	// error
-		log_err("ERROR : fork");
+		log_err("ERROR : fork.");
 		return -1;
 		break;
 	default:	// parent

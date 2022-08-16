@@ -103,7 +103,7 @@ static void csv_trace (int signum)
 
 	close(gPdct.fd_lock);
 
-	log_info("WARN : crash process pid[%d] via signum[%d]=%s", 
+	log_warn("WARN : crash process pid[%d] via signum[%d]=%s.", 
 		getpid(), signum, strSIG);
 
 	csv_udp_deinit();
@@ -131,7 +131,7 @@ void csv_stop (int signum)
 
 	csv_deinit();
 
-	log_info("OK : Stop process pid[%d] via signum[%d]=%s", 
+	log_warn("WARN : Stop process pid[%d] via signum[%d]=%s.", 
 		getpid(), signum, strSIG);
 
 	csv_udp_deinit();
@@ -146,12 +146,12 @@ static struct csv_info_t *csv_global_init (void)
 
 	pCSV = (struct csv_info_t *) malloc(sizeof(*pCSV));
 	if (pCSV == NULL) {
-		log_alert("ERROR : malloc csv_info_t");
+		log_err("ERROR : malloc csv_info_t.");
 		exit(-1);
 		return NULL;
 	}
 
-	memset(pCSV, 0, sizeof(*pCSV));
+	memset(pCSV, 0, sizeof(struct csv_info_t));
 
 	return pCSV;
 }
@@ -163,7 +163,7 @@ static int csv_lock_pid (void)
 
 	fd = open(FILE_PID_LOCK, O_RDWR|O_CREAT, 0600);
 	if (fd < 0) {
-		log_err("ERROR : open '%s'", FILE_PID_LOCK);
+		log_err("ERROR : open '%s'.", FILE_PID_LOCK);
 		log_warn("You should delete '%s' first.", FILE_PID_LOCK);
 
 		exit(EXIT_FAILURE);
@@ -171,7 +171,7 @@ static int csv_lock_pid (void)
 
 	ret = lockf(fd, F_TLOCK, 0);
 	if (ret < 0) {
-		log_err("ERROR : lockf fd(%d)", fd);
+		log_err("ERROR : lockf fd(%d).", fd);
 		log_warn("You don't need to start me again!");
 
 		exit(EXIT_FAILURE);
@@ -182,10 +182,10 @@ static int csv_lock_pid (void)
 	snprintf(strpid, 32, "%d", getpid());
 	ret = write(fd, strpid, strlen(strpid));
 	if (ret < 0) {
-		log_err("ERROR : write fd(%d)", fd);
+		log_err("ERROR : write fd(%d).", fd);
 	}
 
-	log_info("My pid is %d from %d", getpid(), getppid());
+	log_info("My pid %d from %d.", getpid(), getppid());
 
 	return 0;
 }
@@ -220,7 +220,6 @@ static void startup_opts (int argc, char **argv)
 	struct csv_product_t *pPdct = &gPdct;
 
 	printf("\n");
-	csv_udp_init();
 
 	utility_conv_buildtime();
 	utility_conv_kbuildtime();
@@ -273,6 +272,7 @@ static void startup_opts (int argc, char **argv)
 		}
 	}
 
+	csv_udp_init();
 	csv_lock_pid();
 
 	utility_calibrate_clock();
@@ -330,6 +330,7 @@ int csv_init (void)
 
 int main (int argc, char **argv)
 {
+	int cnt_err = 0;
 	int ret = 0;
 	int maxfd = 0;
 	struct timeval tv;
@@ -396,9 +397,15 @@ int main (int argc, char **argv)
 		break;
 		case -1:		// error must be restart ?
 			log_err("ERROR : select");
+			if (++cnt_err >= 10) {	// 1s later
+				log_warn("WARN : select failed.");
+				sleep(5);
+				exit(-1);
+			}
 		break;
 		default:		// number of descriptors
 			// log_debug("select %d", ret);
+			cnt_err = 0;
 		break;
 		}
 

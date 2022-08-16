@@ -11,17 +11,17 @@ static int csv_gpi_open (struct csv_gpi_t *pGPI)
 
     fd = open(pGPI->dev, O_RDONLY);
     if (fd < 0) {
-        log_err("ERROR : open '%s'", pGPI->dev);
+        log_err("ERROR : open '%s'.", pGPI->dev);
         return -1;
     }
 
     if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0) {
-        log_err("ERROR : fcntl %s", pGPI->name);
+        log_err("ERROR : fcntl %s.", pGPI->name);
         return -1;
     }
 
     pGPI->fd = fd;
-    log_info("OK : open %s : '%s' as fd(%d)", pGPI->name, pGPI->dev, fd);
+    log_info("OK : open %s : '%s' as fd(%d).", pGPI->name, pGPI->dev, fd);
 
     return 0;
 }
@@ -30,7 +30,7 @@ static int csv_gpi_close (struct csv_gpi_t *pGPI)
 {
 	if (pGPI->fd > 0) {
 		if (close(pGPI->fd) < 0) {
-			log_err("ERROR : close %s", pGPI->name);
+			log_err("ERROR : close %s.", pGPI->name);
 			return -1;
 		}
 

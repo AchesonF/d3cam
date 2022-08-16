@@ -15,7 +15,7 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 	int ret = 0;
 
 	if ((NULL == pstImageInfo)||(NULL == pData)) {
-		log_info("ERROR : null point.");
+		log_info("ERROR : null image.");
 		return -1;
 	}
 
@@ -32,7 +32,7 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 		}
 		break;
 	default:
-		log_info("ERROR : not support PixelType[%08X]", pstImageInfo->enPixelType);
+		log_info("ERROR : not support PixelType[%08X].", pstImageInfo->enPixelType);
 		ret = -1;
 		break;
 	}
@@ -81,7 +81,7 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 			pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 			if (NULL == pACK->buf_send) {
-				log_err("ERROR : malloc send");
+				log_err("ERROR : malloc send.");
 				return -1;
 			}
 
@@ -167,7 +167,7 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 			pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 			pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 			if (NULL == pACK->buf_send) {
-				log_err("ERROR : malloc send");
+				log_err("ERROR : malloc send.");
 				return -1;
 			}
 
@@ -254,19 +254,19 @@ int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 	uint8_t *pData = (uint8_t *)malloc(len_data);
 	if (NULL == pData) {
-		log_err("ERROR : malloc");
+		log_err("ERROR : malloc data.");
 		return -1;
 	}
 
 	int fd = open("/dev/urandom", O_RDONLY);
 	if (fd < 0) {
-		log_err("ERROR : open urandom");
+		log_err("ERROR : open urandom.");
 		return -1;
 	}
 
 	ret = read(fd, pData, len_data);
 	if (ret < 0) {
-		log_err("ERROR : read");
+		log_err("ERROR : read.");
 		free(pData);
 		return -1;
 	}
@@ -282,7 +282,7 @@ int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 	pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 	if (NULL == pACK->buf_send) {
-		log_err("ERROR : malloc send");
+		log_err("ERROR : malloc send.");
 		return -1;
 	}
 

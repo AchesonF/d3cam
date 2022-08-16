@@ -104,27 +104,27 @@ static int csv_uevent_open (struct csv_uevent_t *pUE)
 
 	fd = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT);
 	if (fd < 0) {
-		log_err("ERROR : socket %s", pUE->name);
+		log_err("ERROR : socket %s.", pUE->name);
 		return -1;
 	}
 
 	ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &sz, sizeof(sz));
 	if (ret < 0) {
-		log_err("ERROR : setsockopt %s", pUE->name);
+		log_err("ERROR : setsockopt %s.", pUE->name);
 		close(fd);
 		return -1;
 	}
 
 	ret = bind(fd, (struct sockaddr *)&nl_addr, sizeof(struct sockaddr_nl));
 	if (ret < 0) {
-		log_err("ERROR : bind %s", pUE->name);
+		log_err("ERROR : bind %s.", pUE->name);
 		close(fd);
 		return -1;
 	}
 
 	int err = fcntl(fd, F_SETFL, O_NONBLOCK);
 	if (err < 0) {
-		log_err("ERROR : fcntl %s", pUE->name);
+		log_err("ERROR : fcntl %s.", pUE->name);
 		return err;
 	}
 

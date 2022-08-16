@@ -191,7 +191,7 @@ static int csv_stat_get_diskinfo (struct diskinfo_t *diskinfo)
 			diskinfo->blocks_used_percent, diskinfo->inodes_used_percent);
 #endif
 	} else {
-		log_err("ERROR : statfs");
+		log_err("ERROR : statfs.");
 		diskinfo->total = 0;
 		diskinfo->free = 0;
 		diskinfo->used = 0;
@@ -224,7 +224,7 @@ static int csv_stat_get_netinfo (struct netinfo_t *netinfo)
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (fd < 0) {
-		log_err("ERROR : socket");
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
 		return -1;
 	}
 

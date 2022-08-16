@@ -14,7 +14,7 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 {
 	struct termios tio;
 	if (tcgetattr(fd, &tio) != 0) {
-		log_err("ERROR : tcgetattr");
+		log_err("ERROR : tcgetattr.");
 		return -1;
 	}
 	
@@ -65,17 +65,17 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 		break;
 	default:
 		baudrate = B9600;
-		log_info("ERROR : invalid baudrate(%d)", speed);
+		log_warn("ERROR : invalid baudrate(%d).", speed);
 		//return -1;
 	}
 	
 	if (-1 == cfsetispeed(&tio, baudrate)) {
-		log_err("ERROR : cfsetispeed");
+		log_err("ERROR : cfsetispeed.");
 		return -1;
 	}
 	
 	if (-1 == cfsetospeed(&tio, baudrate)) {
-		log_err("ERROR : cfsetispeed");
+		log_err("ERROR : cfsetispeed.");
 		return -1;
 	}
 	
@@ -89,7 +89,7 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 		tio.c_cflag |= CS8;
 		break;
 	default:
-		log_info("ERROR : invalid databits(%d)", databits);
+		log_warn("ERROR : invalid databits(%d).", databits);
 		tio.c_cflag |= CS8;
 //		return -1;
 	}
@@ -110,7 +110,7 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 		tio.c_cflag &= ~PARODD;		
 		break;
 	default:
-		log_info("ERROR : invalid parity(%c)", parity);
+		log_warn("ERROR : invalid parity(%c).", parity);
 		tio.c_cflag &= ~PARENB;
 //		return -1;
 	}
@@ -124,7 +124,7 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 		tio.c_cflag |= CSTOPB;
 		break;
 	default:		
-		log_info("ERROR : invalid stopbits(%d)", stopbits);
+		log_warn("ERROR : invalid stopbits(%d).", stopbits);
 		tio.c_cflag &= ~CSTOPB;
 		//return -1;
 	}
@@ -142,7 +142,7 @@ static int csv_tty_config (int fd, int speed, int databits, int stopbits, int pa
 
 	tcflush(fd, TCIFLUSH);
 	if (tcsetattr(fd, TCSANOW, &tio) != 0) {
-		log_err("ERROR : tcsetattr");
+		log_err("ERROR : tcsetattr.");
 		return -1;
 	}
 
@@ -182,7 +182,7 @@ int csv_tty_read (int fd, uint8_t *buf, int nbytes)
 	if (ret == 0) {	/* EOF */
 		return n_read;
 	} else if (ret < 0) {
-		log_err("ERROR : read fd(%d)", fd);
+		log_err("ERROR : read fd(%d).", fd);
 		if (errno == EAGAIN) {			
 			return n_read;
 		}
@@ -222,7 +222,7 @@ int csv_tty_init (char *tty_name, struct csv_tty_param_t *pPARAM)
 
 	int fd = open(tty_name, O_RDWR | O_NOCTTY);
 	if (fd < 0) {
-		log_err("ERROR : open '%s'", tty_name);
+		log_err("ERROR : open '%s'.", tty_name);
 		return -1;
 	}
 
@@ -233,7 +233,7 @@ int csv_tty_init (char *tty_name, struct csv_tty_param_t *pPARAM)
 		return -1;
 	}
 
-	log_info("OK : config '%s' via '%d,%c,%d,%d,%d'", tty_name, pPARAM->baudrate, 
+	log_info("OK : config '%s' via '%d,%c,%d,%d,%d'.", tty_name, pPARAM->baudrate, 
 		pPARAM->parity, pPARAM->databits, pPARAM->stopbits, pPARAM->delay);
 
 	return fd;

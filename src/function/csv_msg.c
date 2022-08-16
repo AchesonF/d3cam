@@ -11,7 +11,7 @@ int csv_msg_ack_package (struct msg_package_t *pMP, struct msg_ack_t *pACK,
 	pACK->len_send = len+sizeof(struct msg_head_t);
 	pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 	if (NULL == pACK->buf_send) {
-		log_err("ERROR : malloc send");
+		log_err("ERROR : malloc send.");
 		return -1;
 	}
 
@@ -256,7 +256,7 @@ static int msg_cameras_calibrate_file_get (struct msg_package_t *pMP, struct msg
 		if (len_msg > 0) {
 			str_cali = (char *)malloc(len_msg);
 			if (NULL == str_cali) {
-				log_err("ERROR : malloc cali");
+				log_err("ERROR : malloc cali.");
 				ret = -1;
 			}
 
@@ -572,7 +572,7 @@ static struct msg_command_list *msg_command_malloc (void)
 
 	cur = (struct msg_command_list *)malloc(sizeof(struct msg_command_list));
 	if (cur == NULL) {
-		log_err("ERROR : malloc msg_command_list");
+		log_err("ERROR : malloc msg_command_list.");
 		return NULL;
 	}
 	memset(cur, 0, sizeof(struct msg_command_list));
@@ -674,7 +674,7 @@ static int csv_msg_push (struct csv_msg_t *pMSG, uint8_t *buf, uint32_t len)
 
 	cur = (struct msglist_t *)malloc(sizeof(struct msglist_t));
 	if (cur == NULL) {
-		log_err("ERROR : malloc msglist_t");
+		log_err("ERROR : malloc msglist_t.");
 		return -1;
 	}
 	memset(cur, 0, sizeof(struct msglist_t));
@@ -685,7 +685,7 @@ static int csv_msg_push (struct csv_msg_t *pMSG, uint8_t *buf, uint32_t len)
 		pMP->payload = (uint8_t *)malloc(pHDR->length);
 
 		if (NULL == pMP->payload) {
-			log_err("ERROR : malloc payload");
+			log_err("ERROR : malloc payload.");
 			return -1;
 		}
 
@@ -720,8 +720,13 @@ int csv_msg_check (uint8_t *buf, uint32_t len)
 
 	if (len_need > 0) {
 		ret = csv_tcp_local_recv(buf+len, len_need);
-		if (ret <= 0) {
-			log_info("ERROR : recv %d", ret);
+		if (ret == -1) {
+			log_err("ERROR : recv (%d)", ret);
+			return -1;
+		} else if (ret == 0) {
+			log_warn("WARN : recv end-of-file.");
+			return -2;
+		} else if (ret < 0) {
 			return -1;
 		}
 	}
@@ -752,7 +757,7 @@ static int csv_msg_execute (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 		}
 	}
 
-	log_debug("WARN : unknown msg[0x%08X]", pMP->hdr.cmdtype);
+	log_debug("WARN : unknown msg[0x%08X].", pMP->hdr.cmdtype);
 
 	return -1;
 }
@@ -827,21 +832,21 @@ static int csv_msg_thread (struct csv_msg_t *pMSG)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     if (pthread_mutex_init(&pMSG->mutex_msg, NULL) != 0) {
-		log_err("ERROR : mutex %s", pMSG->name_msg);
+		log_err("ERROR : mutex %s.", pMSG->name_msg);
         return -1;
     }
 
     if (pthread_cond_init(&pMSG->cond_msg, NULL) != 0) {
-		log_err("ERROR : cond %s", pMSG->name_msg);
+		log_err("ERROR : cond %s.", pMSG->name_msg);
         return -1;
     }
 
 	ret = pthread_create(&pMSG->thr_msg, &attr, csv_msg_loop, (void *)pMSG);
 	if (ret < 0) {
-		log_err("ERROR : create pthread %s", pMSG->name_msg);
+		log_err("ERROR : create pthread %s.", pMSG->name_msg);
 		return -1;
 	} else {
-		log_info("OK : create pthread %s @ (%p)", pMSG->name_msg, pMSG->thr_msg);
+		log_info("OK : create pthread %s @ (%p).", pMSG->name_msg, pMSG->thr_msg);
 	}
 
 	//pthread_attr_destory(&attr);
@@ -881,9 +886,9 @@ static int csv_msg_thread_cancel (struct csv_msg_t *pMSG)
 
 	ret = pthread_cancel(pMSG->thr_msg);
 	if (ret != 0) {
-		log_err("ERROR : pthread_cancel %s", pMSG->name_msg);
+		log_err("ERROR : pthread_cancel %s.", pMSG->name_msg);
 	} else {
-		log_info("OK : cancel pthread %s", pMSG->name_msg);
+		log_info("OK : cancel pthread %s.", pMSG->name_msg);
 	}
 
 	ret = pthread_join(pMSG->thr_msg, &retval);

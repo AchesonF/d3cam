@@ -10,7 +10,7 @@ static struct reglist_t *csv_gev_reg_malloc (void)
 
 	cur = (struct reglist_t *)malloc(sizeof(struct reglist_t));
 	if (cur == NULL) {
-		log_err("ERROR : malloc reglist_t");
+		log_err("ERROR : malloc reglist_t.");
 		return NULL;
 	}
 	memset(cur, 0, sizeof(struct reglist_t));
@@ -36,7 +36,7 @@ static void csv_gev_reg_add (uint32_t addr, uint8_t type, uint8_t mode,
 			pRI->value = value;
 		} else if (GEV_REG_TYPE_MEM == type) {
 			if (NULL == info) {
-				log_info("WARN : mem 0x%04X null", addr);
+				log_warn("WARN : mem 0x%04X null.", addr);
 				return ;
 			}
 
@@ -47,21 +47,21 @@ static void csv_gev_reg_add (uint32_t addr, uint8_t type, uint8_t mode,
 				}
 				pRI->info = (char *)malloc(len+1);
 				if (NULL == pRI->info) {
-					log_err("ERROR : malloc ri info");
+					log_err("ERROR : malloc reg info.");
 					return ;
 				}
 				memset(pRI->info, 0, len+1);
 				memcpy(pRI->info, info, len);
 			}
 		} else {
-			log_info("ERROR : not support type");
+			log_warn("ERROR : not support type.");
 		}
 
 		if (NULL != desc) {
 			len = strlen(desc);
 			pRI->desc = (char *)malloc(len+1);
 			if (NULL == pRI->desc) {
-				log_err("ERROR : malloc ri desc");
+				log_err("ERROR : malloc reg desc.");
 				return ;
 			}
 			memset(pRI->desc, 0, len+1);
@@ -248,7 +248,7 @@ int csv_gev_mem_info_set (uint32_t addr, char *info)
 
 				pRI->info = (char *)malloc(len+1);
 				if (NULL == pRI->info) {
-					log_err("ERROR : malloc mem info");
+					log_err("ERROR : malloc mem info.");
 					return -1;
 				}
 				memset(pRI->info, 0, len+1);
@@ -480,7 +480,7 @@ static void csv_gev_reg_enroll (void)
 
 
 
-	log_info("OK : enroll gev reg");
+	log_info("OK : enroll gev reg.");
 }
 
 static void csv_gev_reg_disroll (void)
@@ -512,7 +512,7 @@ static void csv_gev_reg_disroll (void)
 		task = NULL;
 	}
 
-	log_info("OK : disroll gev reg");
+	log_info("OK : disroll gev reg.");
 }
 
 
@@ -657,13 +657,13 @@ static int csv_gvcp_packetresend_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pH
 static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
 	if (pHDR->nLength > GVCP_MAX_PAYLOAD_LEN) {
-		log_info("ERROR : read too long reg addrs");
+		log_warn("ERROR : read too long reg addrs.");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
 	if ((pHDR->nLength % sizeof(uint32_t) != 0)||(pGEV->rxlen != 8+pHDR->nLength)) {
-		log_info("ERROR : length not match");
+		log_warn("ERROR : length not match.");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
@@ -934,13 +934,13 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 
 	if (pHDR->nLength > GVCP_MAX_PAYLOAD_LEN) {
-		log_info("ERROR : too long regs");
+		log_warn("ERROR : too long regs.");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
 	if ((pHDR->nLength % sizeof(WRITEREG_CMD_MSG) != 0)||(pGEV->rxlen != 8+pHDR->nLength)) {
-		log_info("ERROR : length not match");
+		log_warn("ERROR : length not match.");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
@@ -1013,13 +1013,13 @@ static int csv_gvcp_writereg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
 	if (pHDR->nLength != sizeof(READMEM_CMD_MSG)) {
-		log_info("ERROR : readmem param length");
+		log_warn("ERROR : readmem param length.");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
 
 	if (pGEV->rxlen != 8+pHDR->nLength) {
-		log_info("ERROR : length not match");
+		log_warn("ERROR : length not match.");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
@@ -1076,7 +1076,7 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	}
 
 	if (NULL != desc) {
-		log_debug("read mem : %s", desc);
+		log_debug("MemR : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_get(mem_addr, &info);
@@ -1118,13 +1118,13 @@ static int csv_gvcp_writemem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
 	if ((pHDR->nLength == 0)||(pHDR->nLength % 4)
 	  ||(pHDR->nLength <= 4)||(pHDR->nLength > GVCP_MAX_PAYLOAD_LEN+4)) {
-		log_info("ERROR : writemem param length");
+		log_warn("ERROR : writemem param length.");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
 
 	if (pGEV->rxlen != 8+pHDR->nLength) {
-		log_info("ERROR : length not match");
+		log_warn("ERROR : length not match.");
 		csv_gvcp_error_ack(pGEV, pHDR, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
@@ -1154,7 +1154,7 @@ static int csv_gvcp_writemem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	}
 
 	if (NULL != desc) {
-		log_debug("write mem : %s", desc);
+		log_debug("MemW : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_set(mem_addr, info);
@@ -1260,7 +1260,7 @@ static int csv_gvcp_msg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 		break;
 
 	default:
-		log_debug("WARN : not support cmd 0x%04X", pHdr->nCommand);
+		log_debug("WARN : not support cmd 0x%04X.", pHdr->nCommand);
 		ret = csv_gvcp_error_ack(pGEV, pHdr, GEV_STATUS_NOT_IMPLEMENTED);
 		break;
 	}
@@ -1298,7 +1298,7 @@ int csv_gvcp_trigger (struct csv_gev_t *pGEV)
 	if (GVCP_CMD_KEY_VALUE != pHeader->cKeyValue) {
 		if ((GEV_STATUS_SUCCESS == (pHeader->cKeyValue<<8)+pHeader->cFlg)
 		  &&(GEV_EVENT_ACK == Cmdheader.nCommand)) {
-			log_info("OK : event ack id[%d]", Cmdheader.nReqId);
+			log_info("OK : event ack id[%d].", Cmdheader.nReqId);
 		}
 
 		return -1;
@@ -1317,7 +1317,7 @@ static int csv_gvcp_server_open (struct csv_gev_t *pGEV)
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if( fd < 0 ) {
-		log_err("ERROR : socket %s", pGEV->name);
+		log_err("ERROR : socket %s.", pGEV->name);
 
 		return -1;
 	}
@@ -1330,16 +1330,16 @@ static int csv_gvcp_server_open (struct csv_gev_t *pGEV)
 
 	ret = bind(fd, (struct sockaddr*)&local_addr, sizeof(struct sockaddr));
 	if(ret < 0) {
-		log_err("ERROR : bind %s", pGEV->name);
+		log_err("ERROR : bind %s.", pGEV->name);
 
 		return -2;
 	}
 
     ret = fcntl(fd, F_SETFL, O_NONBLOCK);
     if (ret < 0) {
-        log_err("ERROR : fcntl %s", pGEV->name);
+        log_err("ERROR : fcntl %s.", pGEV->name);
         if (close(fd)<0) {
-            log_err("ERROR : close %s", pGEV->name);
+            log_err("ERROR : close %s.", pGEV->name);
         }
         return ret;
     }
@@ -1359,7 +1359,7 @@ static int csv_gvcp_server_close (struct csv_gev_t *pGEV)
 
 	if (pGEV->fd > 0) {
 		if (close(pGEV->fd) < 0) {
-			log_err("ERROR : close %s", pGEV->name);
+			log_err("ERROR : close %s.", pGEV->name);
 			return -1;
 		}
 
@@ -1378,7 +1378,7 @@ static int csv_gvcp_message_open (struct gev_message_t *pMsg)
 	if (pMsg->fd > 0) {
 		ret = close(pMsg->fd);
 		if (ret < 0) {
-			log_err("ERROR : close '%s'", pMsg->name);
+			log_err("ERROR : close %s.", pMsg->name);
 		}
 		pMsg->fd = -1;
 	}
@@ -1388,7 +1388,7 @@ static int csv_gvcp_message_open (struct gev_message_t *pMsg)
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if( fd < 0 ) {
-		log_err("ERROR : socket %s", pMsg->name);
+		log_err("ERROR : socket %s.", pMsg->name);
 
 		return -1;
 	}
@@ -1401,7 +1401,7 @@ static int csv_gvcp_message_open (struct gev_message_t *pMsg)
 
 	ret = bind(fd, (struct sockaddr*)&local_addr, sizeof(struct sockaddr));
 	if(ret < 0) {
-		log_err("ERROR : bind %s", pMsg->name);
+		log_err("ERROR : bind %s.", pMsg->name);
 
 		return -1;
 	}
@@ -1425,7 +1425,7 @@ static int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream,
 
 	cur = (struct stream_list_t *)malloc(sizeof(struct stream_list_t));
 	if (cur == NULL) {
-		log_err("ERROR : malloc stream_list_t");
+		log_err("ERROR : malloc stream_list_t.");
 		return -1;
 	}
 	memset(cur, 0, sizeof(struct stream_list_t));
@@ -1443,7 +1443,7 @@ static int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream,
 	if (imgLength > 0) {
 		pIMG->payload = (uint8_t *)malloc(imgLength);
 		if (NULL == pIMG->payload) {
-			log_err("ERROR : malloc payload. [%d]", imgLength);
+			log_err("ERROR : malloc payload. [%d].", imgLength);
 			return -1;
 		}
 	}
@@ -1483,12 +1483,12 @@ static void *csv_gvsp_cam_grab_loop (void *pData)
 
 	nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_OFF);
 	if (MV_OK != nRet) {
-		log_info("ERROR : SetEnumValue 'TriggerMode' failed. [0x%08X]", nRet);
+		log_warn("ERROR : SetEnumValue 'TriggerMode' errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
 	}
 
 	nRet = MV_CC_StartGrabbing(pCAM->pHandle);
 	if (MV_OK != nRet) {
-		log_info("ERROR : StartGrabbing failed. [0x%08X]", nRet);
+		log_warn("ERROR : StartGrabbing errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
 		goto exit_thr;
 	}
 
@@ -1505,7 +1505,8 @@ static void *csv_gvsp_cam_grab_loop (void *pData)
 		nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
 			pCAM->sizePayload.nCurValue, &pCAM->imgInfo, 3000);
 		if (nRet != MV_OK) {
-			log_info("ERROR : CAM '%s' : GetOneFrameTimeout, [0x%08X]", pCAM->sn, nRet);
+			log_warn("ERROR : CAM '%s' : GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
+				pCAM->sn, nRet, strMsg(nRet));
 			continue;
 		}
 		log_debug("OK : CAM '%s' : GetOneFrame[%d] %d x %d", pCAM->sn, 
@@ -1516,12 +1517,13 @@ static void *csv_gvsp_cam_grab_loop (void *pData)
 
 	nRet = MV_CC_StopGrabbing(pCAM->pHandle);
 	if (MV_OK != nRet) {
-		log_info("ERROR : CAM '%s' StopGrabbing failed. [0x%08X]", pCAM->sn, nRet);
+		log_warn("ERROR : CAM '%s' StopGrabbing errcode[0x%08X]:'%s'.", 
+				pCAM->sn, nRet, strMsg(nRet));
 	}
 
 	nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_ON);
 	if (MV_OK != nRet) {
-		log_info("ERROR : SetEnumValue 'TriggerMode' failed. [0x%08X]", nRet);
+		log_warn("ERROR : SetEnumValue 'TriggerMode' errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
 	}
 
 exit_thr:
@@ -1558,11 +1560,11 @@ int csv_gvsp_cam_grab_thread (uint8_t idx)
 
 	ret = pthread_create(&pStream->thr_grab, &attr, csv_gvsp_cam_grab_loop, (void *)pStream);
 	if (ret < 0) {
-		log_err("ERROR : create pthread '%s'", pStream->name_egvgrab);
+		log_err("ERROR : create pthread '%s'.", pStream->name_egvgrab);
 		pStream->grab_status = GRAB_STATUS_NONE;
 		return -1;
 	} else {
-		log_info("OK : create pthread '%s' @ (%p)", pStream->name_egvgrab, pStream->thr_grab);
+		log_info("OK : create pthread '%s' @ (%p).", pStream->name_egvgrab, pStream->thr_grab);
 	}
 
 	return ret;
@@ -1688,7 +1690,7 @@ static int csv_gvsp_client_open (struct gvsp_stream_t *pStream)
 	if (pStream->fd > 0) {
 		ret = close(pStream->fd);
 		if (ret < 0) {
-			log_err("ERROR : close '%s'", pStream->name);
+			log_err("ERROR : close '%s'.", pStream->name);
 		}
 		pStream->fd = -1;
 	}
@@ -1698,7 +1700,7 @@ static int csv_gvsp_client_open (struct gvsp_stream_t *pStream)
 
 	fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if( fd < 0 ) {
-		log_err("ERROR : socket %s", pStream->name);
+		log_err("ERROR : socket %s.", pStream->name);
 
 		return -1;
 	}
@@ -1711,7 +1713,7 @@ static int csv_gvsp_client_open (struct gvsp_stream_t *pStream)
 
 	ret = bind(fd, (struct sockaddr*)&local_addr, sizeof(struct sockaddr));
 	if(ret < 0) {
-		log_err("ERROR : bind %s", pStream->name);
+		log_err("ERROR : bind %s.", pStream->name);
 
 		return -1;
 	}
@@ -1719,7 +1721,7 @@ static int csv_gvsp_client_open (struct gvsp_stream_t *pStream)
 	int val = IP_PMTUDISC_DO; /* don't fragment */
 	ret = setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
 	if (ret < 0) {
-		log_err("ERROR : setsockopt 'IP_MTU_DISCOVER'");
+		log_err("ERROR : setsockopt 'IP_MTU_DISCOVER'.");
 
 		return -1;
 	}
@@ -1727,7 +1729,7 @@ static int csv_gvsp_client_open (struct gvsp_stream_t *pStream)
 	int send_len = (64<<10);	// 64K
 	ret = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &send_len, sizeof(send_len));
 	if (ret < 0) {
-		log_err("ERROR : setsockopt 'SO_SNDBUF'");
+		log_err("ERROR : setsockopt 'SO_SNDBUF'.");
 
 		return -1;
 	}
@@ -1751,7 +1753,7 @@ static int csv_gvsp_client_close (struct gvsp_stream_t *pStream)
 
 	if (pStream->fd > 0) {
 		if (close(pStream->fd) < 0) {
-			log_err("ERROR : close '%s'", pStream->name);
+			log_err("ERROR : close '%s'.", pStream->name);
 			return -1;
 		}
 		pStream->fd = -1;
@@ -1821,7 +1823,7 @@ static void *csv_gvsp_client_loop (void *data)
 
 exit_thr:
 
-	log_info("WARN : exit pthread %s", pStream->name_stream);
+	log_warn("WARN : exit pthread %s.", pStream->name_stream);
 
 	pStream->thr_stream = 0;
 	csv_gvsp_client_close(pStream);
@@ -1844,21 +1846,21 @@ int csv_gvsp_client_thread (struct gvsp_stream_t *pStream)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     if (pthread_mutex_init(&pStream->mutex_stream, NULL) != 0) {
-		log_err("ERROR : mutex '%s'", pStream->name_stream);
+		log_err("ERROR : mutex '%s'.", pStream->name_stream);
         return -1;
     }
 
     if (pthread_cond_init(&pStream->cond_stream, NULL) != 0) {
-		log_err("ERROR : cond '%s'", pStream->name_stream);
+		log_err("ERROR : cond '%s'.", pStream->name_stream);
         return -1;
     }
 
 	ret = pthread_create(&pStream->thr_stream, &attr, csv_gvsp_client_loop, (void *)pStream);
 	if (ret < 0) {
-		log_err("ERROR : create pthread '%s'", pStream->name_stream);
+		log_err("ERROR : create pthread '%s'.", pStream->name_stream);
 		return -1;
 	} else {
-		log_info("OK : create pthread '%s' @ (%p)", pStream->name_stream, pStream->thr_stream);
+		log_info("OK : create pthread '%s' @ (%p).", pStream->name_stream, pStream->thr_stream);
 	}
 
 	return ret;
@@ -1877,9 +1879,9 @@ static int csv_gvsp_client_thread_cancel (struct gvsp_stream_t *pStream)
 
 	ret = pthread_cancel(pStream->thr_stream);
 	if (ret != 0) {
-		log_err("ERROR : pthread_cancel '%s'", pStream->name_stream);
+		log_err("ERROR : pthread_cancel '%s'.", pStream->name_stream);
 	} else {
-		log_info("OK : cancel pthread '%s'", pStream->name_stream);
+		log_info("OK : cancel pthread '%s'.", pStream->name_stream);
 	}
 
 	ret = pthread_join(pStream->thr_stream, &retval);

@@ -80,13 +80,13 @@ int point_cloud_calc(void)
 
 	if ((NULL == pPC->calibFile)
 		||(!csv_file_isExist(pPC->calibFile))) {
-		log_info("ERROR : calibFile null");
+		log_info("ERROR : calibFile null.");
 		return -1;
 	}
 
 	if ((NULL == pPC->ImageSaveRoot)
 		||(!csv_file_isExist(pPC->ImageSaveRoot))) {
-		log_info("ERROR : ImageSaveRoot null");
+		log_info("ERROR : ImageSaveRoot null.");
 		return -1;
 	}
 
