@@ -178,6 +178,17 @@ int system_redef (const char *cmd)
 	return 0;
 }
 
+void utility_close (void)
+{
+	int i = 0, ret = 0;
+
+	for (i = 255; i >= 0; i--) {
+		ret = close(i);
+		if (0 == ret) {
+			printf("close fd(%d).\n", i);
+		}
+	}
+}
 
 static uint8_t utility_conv_month (char *month)
 {

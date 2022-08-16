@@ -888,7 +888,7 @@ static int csv_msg_thread_cancel (struct csv_msg_t *pMSG)
 	if (ret != 0) {
 		log_err("ERROR : pthread_cancel %s.", pMSG->name_msg);
 	} else {
-		log_info("OK : cancel pthread %s.", pMSG->name_msg);
+		log_info("OK : cancel pthread %s (%p).", pMSG->name_msg, pMSG->thr_msg);
 	}
 
 	ret = pthread_join(pMSG->thr_msg, &retval);

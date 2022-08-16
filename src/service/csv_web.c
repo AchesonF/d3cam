@@ -64,7 +64,7 @@ static int csv_web_thread_cancel (struct csv_web_t *pWEB)
 	if (ret != 0) {
 		log_err("ERROR : pthread_cancel %s.", pWEB->name_web);
 	} else {
-		log_info("OK : cancel pthread %s.", pWEB->name_web);
+		log_info("OK : cancel pthread %s (%p).", pWEB->name_web, pWEB->thr_web);
 	}
 
 	ret = pthread_join(pWEB->thr_web, &retval);

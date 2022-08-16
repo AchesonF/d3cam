@@ -1363,8 +1363,8 @@ static int csv_gvcp_server_close (struct csv_gev_t *pGEV)
 			return -1;
 		}
 
+		log_info("OK : close %s fd(%d).", pGEV->name, pGEV->fd);
 		pGEV->fd = -1;
-		log_info("OK : close %s.", pGEV->name);
 	}
 
 	return 0;
@@ -1411,8 +1411,27 @@ static int csv_gvcp_message_open (struct gev_message_t *pMsg)
 	pMsg->fd = fd;
 	pMsg->port = ntohs(local_addr.sin_port);
 
-	log_info("OK : bind '%s' : '%d/udp' as fd(%d).", pMsg->name, 
+	log_info("OK : bind %s : '%d/udp' as fd(%d).", pMsg->name, 
 		pMsg->port, pMsg->fd);
+
+	return 0;
+}
+
+static int csv_gvcp_message_close (struct gev_message_t *pMsg)
+{
+	if (NULL == pMsg) {
+		return -1;
+	}
+
+	if (pMsg->fd > 0) {
+		if (close(pMsg->fd) < 0) {
+			log_err("ERROR : close %s.", pMsg->name);
+			return -1;
+		}
+
+		log_info("OK : close %s fd(%d).", pMsg->name, pMsg->fd);
+		pMsg->fd = -1;
+	}
 
 	return 0;
 }
@@ -1881,7 +1900,7 @@ static int csv_gvsp_client_thread_cancel (struct gvsp_stream_t *pStream)
 	if (ret != 0) {
 		log_err("ERROR : pthread_cancel '%s'.", pStream->name_stream);
 	} else {
-		log_info("OK : cancel pthread '%s'.", pStream->name_stream);
+		log_info("OK : cancel pthread '%s' (%p).", pStream->name_stream, pStream->thr_stream);
 	}
 
 	ret = pthread_join(pStream->thr_stream, &retval);
@@ -1950,7 +1969,8 @@ int csv_gev_deinit (void)
 		ret |= csv_gvsp_client_thread_cancel(pStream);
 	}
 
-	ret = csv_gvcp_server_close(&gCSV->gev);
+	ret |= csv_gvcp_message_close(&pGEV->message);
+	ret |= csv_gvcp_server_close(pGEV);
 
 	return ret;
 }

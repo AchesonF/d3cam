@@ -6,7 +6,7 @@ extern "C" {
 
 int csv_hb_close (int fd)
 {
-	log_info("OK : close pipe fd(%d).", fd);
+	log_info("OK : close 'pipe' fd(%d).", fd);
 
 	return close(fd);
 }
@@ -85,10 +85,11 @@ void csv_hb_stop (int signum)
 	}
 
 	csv_hb_close(gPdct.hb.pipefd[0]);
+	csv_lock_close();
 
 	log_info("OK : Stop process pid[%d] via signum[%d]=%s", 
 		getpid(), signum, strSIG);
-
+	utility_close();
 	exit(ret);
 }
 

@@ -76,6 +76,7 @@ extern struct csv_product_t gPdct;
 
 extern struct csv_info_t *gCSV;
 
+extern int csv_lock_close (void);
 
 #ifdef __cplusplus
 }

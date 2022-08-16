@@ -169,8 +169,8 @@ int csv_udp_deinit (void)
 	if (pUDP->fd > 0) {
 		close(pUDP->fd);
 
+		log_info("OK : close %s fd(%d).", pUDP->name, pUDP->fd);
 		pUDP->fd = -1;
-		log_info("OK : close %s.", pUDP->name);
 	}
 
 	return 0;

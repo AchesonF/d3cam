@@ -49,8 +49,8 @@ static int csv_tick_timer_close (struct csv_tick_t *pTICK)
 			return -1;
 		}
 
+		log_info("OK : close timerfd %s fd(%d).", pTICK->name, pTICK->fd);
 		pTICK->fd = -1;
-		log_info("OK : close timerfd %s.", pTICK->name);
 	}
 
 	return 0;

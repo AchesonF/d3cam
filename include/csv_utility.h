@@ -39,6 +39,8 @@ extern uint64_t utility_get_millisecond (void);
 
 extern int system_redef (const char *cmd);
 
+extern void utility_close (void);
+
 /* 转换编译时间显示格式 */
 extern int utility_conv_buildtime (void);
 

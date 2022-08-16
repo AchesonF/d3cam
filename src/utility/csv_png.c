@@ -241,7 +241,7 @@ static int csv_png_thread_cancel (struct csv_png_t *pPNG)
 	if (ret != 0) {
 		log_err("ERROR : pthread_cancel %s.", pPNG->name_png);
 	} else {
-		log_info("OK : cancel pthread %s.", pPNG->name_png);
+		log_info("OK : cancel pthread %s (%p).", pPNG->name_png, pPNG->thr_png);
 	}
 
 	ret = pthread_join(pPNG->thr_png, &retval);

@@ -80,8 +80,8 @@ static int csv_tcp_local_release (struct csv_tcp_t *pTCPL)
 			return -1;
 		}
 
+		log_info("OK : close %s fd(%d).", pTCPL->name_listen, pTCPL->fd_listen);
 		pTCPL->fd_listen = -1;
-		log_info("OK : close %s.", pTCPL->name_listen);
 	}
 
 	return 0;
@@ -95,7 +95,7 @@ int csv_tcp_local_close (void)
 
 	if (pTCPL->fd > 0) {
 		close(pTCPL->fd);
-		log_info("OK : close %s. cnnt: %f s.", pTCPL->name, 
+		log_info("OK : close %s fd(%d). cnnt: %f s.", pTCPL->name, pTCPL->fd,
 			(utility_get_sec_since_boot() - pTCPL->time_start));
 	}
 
@@ -245,7 +245,8 @@ int csv_tcp_reading_trigger (struct csv_tcp_t *pTCPL)
 
 	nRead = csv_tcp_local_recv(pTCPL->buf_recv, MAX_LEN_TCP_RCV);
 	if (nRead == -1) {
-		log_err("ERROR : %s recv (%d).", pTCPL->name, nRead);
+		log_err("ERROR : %s recv (%d)", pTCPL->name, nRead);
+		csv_tcp_local_close();
 		pTCPL->len_recv = 0;
 		return -1;
 	} else if (nRead == 0) {

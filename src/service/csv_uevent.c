@@ -150,7 +150,7 @@ int csv_uevent_deinit (void)
 	struct csv_uevent_t *pUE = &gCSV->uevent;
 
 	if (pUE->fd > 0) {
-		log_info("OK : close %s.", pUE->name);
+		log_info("OK : close %s fd(%d).", pUE->name, pUE->fd);
 		close(pUE->fd);
 		pUE->fd = -1;
 	}

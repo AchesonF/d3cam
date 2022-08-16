@@ -269,7 +269,7 @@ static int csv_dlp_thread_cancel (struct csv_dlp_t *pDLP)
 	if (ret != 0) {
 		log_err("ERROR : pthread_cancel %s.", pDLP->name_dlp);
 	} else {
-		log_info("OK : cancel pthread %s.", pDLP->name_dlp);
+		log_info("OK : cancel pthread %s (%p).", pDLP->name_dlp, pDLP->thr_dlp);
 	}
 
 	ret = pthread_join(pDLP->thr_dlp, &retval);

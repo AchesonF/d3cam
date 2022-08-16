@@ -1279,7 +1279,7 @@ static int csv_mvs_grab_thread_cancel (struct csv_mvs_t *pMVS)
 	if (ret != 0) {
 		log_err("ERROR : pthread_cancel %s.", pMVS->name_grab);
 	} else {
-		log_info("OK : cancel pthread %s.", pMVS->name_grab);
+		log_info("OK : cancel pthread %s (%p).", pMVS->name_grab, pMVS->thr_grab);
 	}
 
 	ret = pthread_join(pMVS->thr_grab, &retval);
@@ -1385,7 +1385,7 @@ static int csv_mvs_thread_cancel (struct csv_mvs_t *pMVS)
 	if (ret != 0) {
 		log_err("ERROR : pthread_cancel %s.", pMVS->name_mvs);
 	} else {
-		log_info("OK : cancel pthread %s.", pMVS->name_mvs);
+		log_info("OK : cancel pthread %s (%p).", pMVS->name_mvs, pMVS->thr_mvs);
 	}
 
 	ret = pthread_join(pMVS->thr_mvs, &retval);

@@ -51,7 +51,7 @@ static void csv_deinit (void)
 		free(gCSV);
 	}
 
-	close(gPdct.fd_lock);
+	csv_lock_close();
 
 }
 
@@ -101,12 +101,10 @@ static void csv_trace (int signum)
 		free(gCSV);
 	}
 
-	close(gPdct.fd_lock);
-
 	log_warn("WARN : crash process pid[%d] via signum[%d]=%s.", 
 		getpid(), signum, strSIG);
-
-	csv_udp_deinit();
+	csv_hb_close(gPdct.hb.pipefd[1]);
+	utility_close();
 	sync();
 
 	exit(1);
@@ -133,8 +131,8 @@ void csv_stop (int signum)
 
 	log_warn("WARN : Stop process pid[%d] via signum[%d]=%s.", 
 		getpid(), signum, strSIG);
-
-	csv_udp_deinit();
+	csv_hb_close(gPdct.hb.pipefd[1]);
+	utility_close();
 	sync();
 
 	exit(ret);
@@ -186,6 +184,17 @@ static int csv_lock_pid (void)
 	}
 
 	log_info("My pid %d from %d.", getpid(), getppid());
+
+	return 0;
+}
+
+int csv_lock_close (void)
+{
+	if (gPdct.fd_lock > 0) {
+		close(gPdct.fd_lock);
+		log_info("OK : close 'lock' fd(%d).", gPdct.fd_lock);
+		gPdct.fd_lock = -1;
+	}
 
 	return 0;
 }
