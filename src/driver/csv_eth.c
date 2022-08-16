@@ -674,6 +674,60 @@ int csv_eth_get (struct csv_eth_t *pETH)
 	return ret;
 }
 
+#define MAXINTERFACES	16
+int csv_eth_search (void)
+{
+	int fd = -1, intrface = 0, ret = 0;
+	struct ifreq buf[MAXINTERFACES];
+	//struct arpreq arp;
+	struct ifconf ifc;
+	// --> man netdevice
+	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >= 0) {
+		ifc.ifc_len = sizeof(buf);
+		ifc.ifc_buf = (caddr_t)buf;
+
+		if (!ioctl(fd, SIOCGIFCONF, (char *)&ifc)) {
+			intrface = ifc.ifc_len / sizeof(struct ifreq);
+			printf("interface %d\n", intrface);
+
+			while (intrface-- > 0) {
+				printf("netif %s.\n", buf[intrface].ifr_name);
+
+				// is promisc ?
+				if (!(ioctl(fd, SIOCGIFFLAGS, (char *)&buf[intrface]))) {
+					if (buf[intrface].ifr_flags & IFF_PROMISC) {
+						printf("is PROMISC\n");
+						ret++;
+					}
+				} else {
+					char str[256];
+					sprintf(str, "cpm:ioctl %s", buf[intrface].ifr_name);
+					perror(str);
+				}
+
+				// is up ?
+				if (buf[intrface].ifr_flags & IFF_UP) {
+					printf("is UP.\n");
+				} else {
+					printf("is DOWN.\n");
+				}
+
+				// get ip
+				if (!(ioctl(fd, SIOCGIFADDR, (char *)&buf[intrface]))) {
+					printf("IP is %s\n", inet_ntoa(((struct sockaddr_in *)(&buf[intrface].ifr_addr))->sin_addr));
+				} else {
+					char str[256];
+					sprintf(str, "cpm:ioctl %s", buf[intrface].ifr_name);
+					perror(str);
+				}
+			}
+		}
+
+	}
+
+	return 0;
+}
+
 int csv_eth_init (void)
 {
 	struct csv_eth_t *pETH = &gCSV->eth;
@@ -693,9 +747,11 @@ int csv_eth_init (void)
 	pGC->CurrentSubnetMask0 = pETH->NetmaskAddr;
 	pGC->CurrentDefaultGateway0 = pETH->GatewayAddr;
 
+	csv_eth_search();
 
 	return 0;
 }
+
 
 
 #ifdef __cplusplus

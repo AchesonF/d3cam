@@ -360,8 +360,8 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 	memset(pDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
 
 	// enum device
-	//nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, pDevList);
-	nRet = MV_CC_EnumDevices(MV_USB_DEVICE, pDevList);
+	nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE, pDevList);
+	//nRet = MV_CC_EnumDevices(MV_USB_DEVICE, pDevList);
 	if (MV_OK != nRet) {
 		log_warn("ERROR : EnumDevices errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
 		return -1;

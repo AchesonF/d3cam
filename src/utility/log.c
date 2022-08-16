@@ -118,7 +118,7 @@ static void log_printf (int priority, const char *fmt, va_list ap)
 		fflush(stderr);
 	}
 
-	if (priority <= gUDP.level) {
+	if (gUDP.enable && (priority <= gUDP.level)) {
 		csv_udp_sendto(buf);
 	}
 }

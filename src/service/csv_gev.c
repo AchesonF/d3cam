@@ -1277,6 +1277,12 @@ int csv_gvcp_trigger (struct csv_gev_t *pGEV)
 	pGEV->rxlen = recvfrom(pGEV->fd, pGEV->rxbuf, GVCP_MAX_MSG_LEN, 0, 
 		(struct sockaddr *)&pGEV->from_addr, &from_len);
 
+	if ((strcmp(inet_ntoa(pGEV->from_addr.sin_addr), "127.0.0.1") == 0)
+	  ||(strcmp(inet_ntoa(pGEV->from_addr.sin_addr), gCSV->eth.ip) == 0)) {
+		//log_debug("gvcp msg from myself.");
+		return 0;
+	}
+
 	if (pGEV->rxlen < sizeof(CMD_MSG_HEADER)) {
 		log_hex(STREAM_UDP, pGEV->rxbuf, pGEV->rxlen, "Wrong gev head length. '%s:%d'", 
 			inet_ntoa(pGEV->from_addr.sin_addr), htons(pGEV->from_addr.sin_port));

@@ -101,10 +101,6 @@ int csv_udp_sendto (const char *content)
 	static int err_cnt = 0;
 	struct csv_udp_t *pUDP = &gUDP;
 
-	if (!pUDP->enable) {
-		return 0;
-	}
-
 	if (!pUDP->initialled) {
 		csv_udp_server_init(pUDP);
 	}
