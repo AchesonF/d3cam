@@ -75,6 +75,7 @@ bool ParseDepthImage2CVMat(CsvImageSimple &depthImage, Mat& out) {
 
 int point_cloud_calc(void)
 {
+	static uint8_t create_once = 0;
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
@@ -95,13 +96,20 @@ int point_cloud_calc(void)
 
 	CsvCreatePoint3DParam param;
 	param.calibXml = string(pPC->calibFile);
+	param.modelPathFolder = "./";
 	param.type = CSV_DataFormatType::FixPoint16bits;
+
+	if (!create_once) {
+		create_once = 1;
+		CsvCreateLUT(param);
+	}
 
 	CsvSetCreatePoint3DParam(param); //set params
 
 	CsvCreatePoint3DParam param0;
 	CsvGetCreatePoint3DParam(param0);
-	cout << param0.calibXml << endl;
+	cout << "Calib XML : " << param0.calibXml << endl;
+	cout << "Model Path Root : " << param0.modelPathFolder << endl;
 	cout << param0.type << endl;
 
 	string imgRoot = string(pPC->ImageSaveRoot);
@@ -125,30 +133,30 @@ int point_cloud_calc(void)
 	pMVS->firstTimestamp = utility_get_microsecond();
 	log_debug("create 3d @ %ld us.", pMVS->firstTimestamp);
 
-	csvCreatePoint3D(imageGroups, depthImage, &point3D);
+	CsvCreatePoint3D(imageGroups, depthImage, &point3D);
 
 	pMVS->lastTimestamp = utility_get_microsecond();
 	log_debug("create3d take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
 	pMVS->firstTimestamp = utility_get_microsecond();
 	string outfilepng = string(pPC->outDepthImage);
-	Mat out;
-	Mat vdisp;
-	ParseDepthImage2CVMat(depthImage, out);
+	Mat out1;
+	ParseDepthImage2CVMat(depthImage, out1);
 
-	normalize(out, vdisp, 0, 256, NORM_MINMAX, CV_8U);
+	Mat vdisp;
+	normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
 	imwrite(outfilepng, vdisp);
 	pMVS->lastTimestamp = utility_get_microsecond();
 	log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
 #if 0
-	Mat out = Mat(rows, cols, CV_32FC1, point3D.m_point3DData.data());
-	ofstream outfile(pPC->outFileXYZ);
-	for (int i = 0; i < out.rows; i++) {
-		Vec3f *p0 = out.ptr<Vec3f>(i);
-		for (int j = 0; j < out.cols; j++) {
+	Mat out2 = Mat(out1.rows, out1.cols, CV_32FC3, point3D.data());
+	std::ofstream outfile(pPC->outFileXYZ);
+	for (int i = 0; i < out2.rows; i++) {
+		Vec3f *p0 = out2.ptr<Vec3f>(i);
+		for (int j = 0; j < out2.cols; j++) {
 			Vec3f p = p0[j];
-			if (isnan(p[0]) || isnan(p[1]) || isnan(p[2])) {
+			if (std::isnan(p[0]) || std::isnan(p[1]) || std::isnan(p[2])) {
 				continue;
 			}
 			outfile << p[0] << " " << p[1] << " " << p[2] << " " << "\n";
@@ -156,7 +164,6 @@ int point_cloud_calc(void)
 	}
 	outfile.close();
 #endif
-
 
 	pPC->groupPointCloud++;
 
