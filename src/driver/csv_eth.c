@@ -674,56 +674,205 @@ int csv_eth_get (struct csv_eth_t *pETH)
 	return ret;
 }
 
-#define MAXINTERFACES	16
-int csv_eth_search (void)
+/*
+	"man netdevice" - low-level access to Linux network devices
+
+	struct ifreq {
+	    char ifr_name[IFNAMSIZ]; // Interface name
+	    union {
+	        struct sockaddr ifr_addr;
+	        struct sockaddr ifr_dstaddr;
+	        struct sockaddr ifr_broadaddr;
+	        struct sockaddr ifr_netmask;
+	        struct sockaddr ifr_hwaddr;
+	        short           ifr_flags;
+	        int             ifr_ifindex;
+	        int             ifr_metric;
+	        int             ifr_mtu;
+	        struct ifmap    ifr_map;
+	        char            ifr_slave[IFNAMSIZ];
+	        char            ifr_newname[IFNAMSIZ];
+	        char           *ifr_data;
+	    };
+	};
+
+	SIOCGIFFLAGS, SIOCSIFFLAGS :
+	IFF_UP            Interface is running.
+	IFF_BROADCAST     Valid broadcast address set.
+	IFF_DEBUG         Internal debugging flag.
+	IFF_LOOPBACK      Interface is a loopback interface.
+	IFF_POINTOPOINT   Interface is a point-to-point link.
+	IFF_RUNNING       Resources allocated.
+	IFF_NOARP         No arp protocol, L2 destination address not set.
+	IFF_PROMISC       Interface is in promiscuous mode.
+	IFF_NOTRAILERS    Avoid use of trailers.
+	IFF_ALLMULTI      Receive all multicast packets.
+	IFF_MASTER        Master of a load balancing bundle.
+	IFF_SLAVE         Slave of a load balancing bundle.
+	IFF_MULTICAST     Supports multicast
+
+	IFF_PORTSEL       Is able to select media type via ifmap.
+	IFF_AUTOMEDIA     Auto media selection active.
+	IFF_DYNAMIC       The addresses are lost when the interface goes down.
+	IFF_LOWER_UP      Driver signals L1 up (since Linux 2.6.17)
+	IFF_DORMANT       Driver signals dormant (since Linux 2.6.17)
+	IFF_ECHO          Echo sent packets (since Linux 2.6.25)
+
+	SIOCGIFNAME
+	SIOCGIFINDEX
+	SIOCGIFPFLAGS, SIOCSIFPFLAGS
+		IFF_802_1Q_VLAN      Interface is 802.1Q VLAN device.
+		IFF_EBRIDGE          Interface is Ethernet bridging device.
+		IFF_SLAVE_INACTIVE   Interface is inactive bonding slave.
+		IFF_MASTER_8023AD    Interface is 802.3ad bonding master.
+		IFF_MASTER_ALB       Interface is balanced-alb bonding master.
+		IFF_BONDING          Interface is a bonding master or slave.
+		IFF_SLAVE_NEEDARP    Interface needs ARPs for validation.
+		IFF_ISATAP           Interface is RFC4214 ISATAP interface.
+	SIOCGIFADDR, SIOCSIFADDR
+	SIOCGIFDSTADDR, SIOCSIFDSTADDR
+	SIOCGIFBRDADDR, SIOCSIFBRDADDR
+	SIOCGIFNETMASK, SIOCSIFNETMASK
+	SIOCGIFMETRIC, SIOCSIFMETRIC
+	SIOCGIFMTU, SIOCSIFMTU
+	SIOCGIFHWADDR, SIOCSIFHWADDR
+	SIOCSIFHWBROADCAST
+	SIOCGIFMAP, SIOCSIFMAP
+	SIOCADDMULTI, SIOCDELMULTI
+	SIOCGIFTXQLEN, SIOCSIFTXQLEN
+	SIOCSIFNAME
+	SIOCGIFCONF
+		struct ifconf {
+		    int                 ifc_len; // size of buffer
+		    union {
+		        char           *ifc_buf; // buffer address
+		        struct ifreq   *ifc_req; // array of structures
+		    };
+		};
+
+*/
+
+int csv_ifc_update (struct csv_ifcfg_t *pIFCFG)
 {
-	int fd = -1, intrface = 0, ret = 0;
-	struct ifreq buf[MAXINTERFACES];
-	//struct arpreq arp;
-	struct ifconf ifc;
-	// --> man netdevice
-	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) >= 0) {
-		ifc.ifc_len = sizeof(buf);
-		ifc.ifc_buf = (caddr_t)buf;
+	int fd = -1, ret = 0, i = 0;
+	uint8_t nCaddr = 0;
+	struct csv_eth_t *pETHER = NULL;
 
-		if (!ioctl(fd, SIOCGIFCONF, (char *)&ifc)) {
-			intrface = ifc.ifc_len / sizeof(struct ifreq);
-			printf("interface %d\n", intrface);
+	// for more help : "man netdevice"
 
-			while (intrface-- > 0) {
-				printf("netif %s.\n", buf[intrface].ifr_name);
+	pIFCFG->ifc.ifc_len = sizeof(pIFCFG->buf_ifc);
+	pIFCFG->ifc.ifc_buf = (caddr_t)pIFCFG->buf_ifc;
 
-				// is promisc ?
-				if (!(ioctl(fd, SIOCGIFFLAGS, (char *)&buf[intrface]))) {
-					if (buf[intrface].ifr_flags & IFF_PROMISC) {
-						printf("is PROMISC\n");
-						ret++;
-					}
-				} else {
-					char str[256];
-					sprintf(str, "cpm:ioctl %s", buf[intrface].ifr_name);
-					perror(str);
-				}
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (fd < 0) {
+		log_err("ERROR : socket 'SOCK_DGRAM'.");
+		return -1;
+	}
 
-				// is up ?
-				if (buf[intrface].ifr_flags & IFF_UP) {
-					printf("is UP.\n");
-				} else {
-					printf("is DOWN.\n");
-				}
+	ret = ioctl(fd, SIOCGIFCONF, (char *)&pIFCFG->ifc);
+	if (ret < 0) {
+		log_err("ERROR : ioctl 'SIOCGIFCONF'.");
+		close(fd);
+		return -1;
+	}
 
-				// get ip
-				if (!(ioctl(fd, SIOCGIFADDR, (char *)&buf[intrface]))) {
-					printf("IP is %s\n", inet_ntoa(((struct sockaddr_in *)(&buf[intrface].ifr_addr))->sin_addr));
-				} else {
-					char str[256];
-					sprintf(str, "cpm:ioctl %s", buf[intrface].ifr_name);
-					perror(str);
-				}
-			}
+	pIFCFG->cnt_ifc = pIFCFG->ifc.ifc_len / sizeof(struct ifreq);
+
+	log_info("OK : found ifc %d caddrs.", pIFCFG->cnt_ifc);
+
+	nCaddr = pIFCFG->cnt_ifc;
+	if (pIFCFG->cnt_ifc > MAX_INTERFACES) {
+		nCaddr = MAX_INTERFACES;
+		log_warn("WARN : show first %d caddrs.", MAX_INTERFACES);
+	}
+
+	for (i = 0; i < nCaddr; i++) {
+		pETHER = &pIFCFG->ether[i];
+
+		strcpy(pETHER->name, pIFCFG->buf_ifc[i].ifr_name);
+
+		ret = ioctl(fd, SIOCGIFFLAGS, (char *)&pIFCFG->buf_ifc[i]);
+		if (ret < 0) {
+			log_err("ERROR : ioctl 'SIOCGIFFLAGS' : '%s'.", pETHER->name);
+			continue;
 		}
 
+		pETHER->flags = pIFCFG->buf_ifc[i].ifr_flags;
+		log_debug("%s : flags 0x%04X.", pETHER->name, pETHER->flags);
+
+		if (pETHER->flags & IFF_UP) {
+			printf("UP, ");
+		} else {
+			printf("DOWN, ");
+		}
+
+		if (pETHER->flags & IFF_BROADCAST) {
+			printf("BROADCAST, ");
+		}
+
+		if (pETHER->flags & IFF_LOOPBACK) {
+			printf("LOOPBACK, ");
+		}
+
+		if (pETHER->flags & IFF_POINTOPOINT) {
+			printf("POINTOPOINT, ");
+		}
+
+		if (pETHER->flags & IFF_RUNNING) {
+			printf("RUNNING, ");
+		}
+
+		if (pETHER->flags & IFF_PROMISC) {
+			printf("PROMISC, ");
+		}
+
+		if (pETHER->flags & IFF_NOTRAILERS) {
+			printf("NOTRAILERS, ");
+		}
+
+		if (pETHER->flags & IFF_ALLMULTI) {
+			printf("ALLMULTI, ");
+		}
+
+		if (pETHER->flags & IFF_MASTER) {
+			printf("MASTER, ");
+		}
+
+		if (pETHER->flags & IFF_SLAVE) {
+			printf("SLAVE, ");
+		}
+
+		if (pETHER->flags & IFF_MULTICAST) {
+			printf("MULTICAST, ");
+		}
+
+		if (pETHER->flags & IFF_DYNAMIC) {
+			printf("DYNAMIC, ");
+		}
+
+		ret = ioctl(fd, SIOCGIFADDR, (char *)&pIFCFG->buf_ifc[i]);
+		if (ret < 0) {
+			log_err("ERROR : ioctl 'SIOCGIFADDR' : '%s'.", pETHER->name);
+			continue;
+		}
+		printf("\nIP : %s\t", inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
+
+		ret = ioctl(fd, SIOCGIFNETMASK, (char *)&pIFCFG->buf_ifc[i]);
+		if (ret < 0) {
+			log_err("ERROR : ioctl 'SIOCGIFNETMASK' : '%s'.", pETHER->name);
+			continue;
+		}
+		printf("NM : %s\t", inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
+
+		ret = ioctl(fd, SIOCGIFBRDADDR, (char *)&pIFCFG->buf_ifc[i]);
+		if (ret < 0) {
+			log_err("ERROR : ioctl 'SIOCGIFBRDADDR' : '%s'.", pETHER->name);
+			continue;
+		}
+		printf("BR : %s\n", inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
 	}
+
+	close(fd);
 
 	return 0;
 }
@@ -733,7 +882,12 @@ int csv_eth_init (void)
 	struct csv_eth_t *pETH = &gCSV->eth;
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
-	pETH->name = DEV_ETH;
+	csv_ifc_update(&gCSV->ifcfg);
+
+
+
+
+	strcpy(pETH->name, DEV_ETH);
 	pETH->fd = -1;
 	pETH->now_sta = false;
 	pETH->last_sta = false;
@@ -746,8 +900,6 @@ int csv_eth_init (void)
 	pGC->CurrentIPAddress0 = pETH->IPAddr;
 	pGC->CurrentSubnetMask0 = pETH->NetmaskAddr;
 	pGC->CurrentDefaultGateway0 = pETH->GatewayAddr;
-
-	csv_eth_search();
 
 	return 0;
 }

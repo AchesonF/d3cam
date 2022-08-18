@@ -11,8 +11,11 @@ extern "C" {
 
 #define MAX_LEN_IP					(16)				///< IP地址最大长度
 
+#define MAX_INTERFACES				(16)				/// 最多支持16个网卡
+
 struct csv_eth_t {
-	const char			*name;					///< 网口设备名称
+	char				name[16];		///< 网口设备名称
+	//char				ifr_name[IFNAMSIZ+1];
 	int					fd;						///< 网口socket
 	uint8_t				now_sta;				///< 网口连线运行状态
 	uint8_t				last_sta;				///< 网口上周期运行状态
@@ -31,10 +34,21 @@ struct csv_eth_t {
 	uint32_t			BroadcastAddr;			///< 广播地址
 	uint32_t			DNSAddr;				///< DNS地址
 
+	uint16_t			flags;					///< 当前状态标识
+
+
 	const char			*name_dhcp;				///< 动态获取IP线程
 	pthread_t			thr_dhcp;
 };
 
+// 本地多个网卡
+struct csv_ifcfg_t {
+	uint8_t				cnt_ifc;				///< 实际网卡数
+	struct ifconf		ifc;
+	struct ifreq		buf_ifc[MAX_INTERFACES];
+
+	struct csv_eth_t	ether[MAX_INTERFACES];
+};
 
 
 extern int check_user_ip(const char* ip);

@@ -51,6 +51,7 @@ struct csv_info_t {
 	struct csv_xml_t	xml;					///< config file using xml
 	struct csv_cfg_t	cfg;
 	struct csv_eth_t	eth;					///< 本地网络参数
+	struct csv_ifcfg_t	ifcfg;
 	struct csv_stat_t	stat;					///< 系统状态信息
 	struct csv_gpi_t	gpi;					///< 输入按键事件
 
