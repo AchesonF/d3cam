@@ -551,7 +551,7 @@ int csv_mvs_cams_exposure_get (struct csv_mvs_t *pMVS)
 
 		nRet = MV_CC_GetFloatValue(pCAM->pHandle, "ExposureTime", &pCAM->expoTime);
 		if (MV_OK == nRet) {
-			log_info("OK：CAM '%s' get ExposureTime : %f [%f, %f].", pCAM->sn, 
+			log_info("OK : CAM '%s' get ExposureTime : %f [%f, %f].", pCAM->sn, 
 				pCAM->expoTime.fCurValue, pCAM->expoTime.fMin, pCAM->expoTime.fMax);
 		} else {
 			errNum++;
