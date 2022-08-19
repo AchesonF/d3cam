@@ -71,7 +71,7 @@ int csv_uevent_trigger (struct csv_uevent_t *pUE)
 
 	while ((rcvlen = recv(pUE->fd, kmsg, LEN_UEVENT_MSG, 0)) > 0) {
 		if (++timeo >= 200) {
-			log_info("WARN : too many event flush. Something go wrong.");
+			log_warn("WARN : too many event flush. Something go wrong.");
 			csv_uevent_deinit();
 			csv_uevent_init();
 			break;

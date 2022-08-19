@@ -60,8 +60,6 @@ struct csv_info_t {
 	struct csv_gev_t	gev;					///< GigE Vision
 	struct csv_dlp_t	dlp;					///< 光机控制通道
 
-	struct csv_so_t		so;						///< 挂载算法so 
-
 	struct csv_tcp_t	tcpl;					///< 本地tcp服务
 	struct csv_web_t	web;					///< WEB 服务
 

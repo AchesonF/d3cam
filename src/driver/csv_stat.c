@@ -213,7 +213,7 @@ static int csv_stat_get_netinfo (struct netinfo_t *netinfo)
 	int ret = 0;
 	struct ifreq ifreq;
 	char buffer[BUFSIZ] = {0};
-	char name[16] = {0};
+	char name[18] = {0};
 	uint32_t values[16] = {0};
 	int fd = -1;
 
@@ -296,7 +296,7 @@ int csv_stat_init (void)
 	pSTAT->disk[0].path = "/";
 
 	pSTAT->cnt_net = 1;
-	pSTAT->net[0].dev = DEV_ETH; // eth0
+	strcpy(pSTAT->net[0].dev, gCSV->ifcfg.ifrname);
 
 	return csv_stat_update();
 }

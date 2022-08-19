@@ -161,7 +161,7 @@ int csv_dlp_write_and_read (uint8_t idx)
 
 	ret = pthread_cond_timedwait(&pDLP->cond_dlp, &pDLP->mutex_dlp, &timeo);
 	if (ret == ETIMEDOUT) {
-		log_info("ERROR : dlp read timeo.");
+		log_warn("ERROR : dlp read timeo.");
 		return -1;
 	}
 
@@ -173,19 +173,19 @@ int csv_dlp_write_and_read (uint8_t idx)
 			ret = 0;
 			break;
 		case 0x02:
-			log_info("ERROR : dlp cannot trigger out.");
+			log_warn("ERROR : dlp cannot trigger out.");
 			break;
 		case 0x03:
-			log_info("ERROR : dlp crc.");
+			log_warn("ERROR : dlp crc.");
 			break;
 		case 0x04:
-			log_info("ERROR : dlp light.");
+			log_warn("ERROR : dlp light.");
 			break;
 		case 0x05:
-			log_info("ERROR : dlp device info.");
+			log_warn("ERROR : dlp device info.");
 			break;
 		case 0x06:
-			log_info("ERROR : dlp param.");
+			log_warn("ERROR : dlp param.");
 			break;
 		}
 	}
@@ -217,7 +217,7 @@ static void *csv_dlp_loop (void *data)
 		}
 	}
 
-	log_info("WARN : exit pthread %s.", pDLP->name_dlp);
+	log_warn("WARN : exit pthread %s.", pDLP->name_dlp);
 
 	pDLP->thr_dlp = 0;
 
@@ -305,7 +305,7 @@ int csv_dlp_init (void)
 
 	ret = csv_tty_init(pDLP->dev, pParam);
 	if (ret <= 0) {
-		log_info("ERROR : init %s.", pDLP->name);
+		log_warn("ERROR : init %s.", pDLP->name);
 		return -1;
 	}
 

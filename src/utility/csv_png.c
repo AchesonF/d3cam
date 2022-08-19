@@ -166,7 +166,7 @@ static void *csv_png_loop (void *data)
 		}
 	}
 
-	log_info("WARN : exit pthread %s.", pPNG->name_png);
+	log_warn("WARN : exit pthread %s.", pPNG->name_png);
 
 	pPNG->thr_png = 0;
 

@@ -340,7 +340,7 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
     }
 
 	if (pMVS->Cam[CAM_LEFT].sizePayload.nCurValue != pMVS->Cam[CAM_RIGHT].sizePayload.nCurValue) {
-		log_info("ERROR : CAMS not coupled. PayloadSize : %d vs %d.", 
+		log_warn("ERROR : CAMs not coupled. PayloadSize : %d vs %d.", 
 			pMVS->Cam[CAM_LEFT].sizePayload.nCurValue,
 			pMVS->Cam[CAM_RIGHT].sizePayload.nCurValue);
 		return -1;
@@ -705,7 +705,7 @@ int csv_mvs_cams_name_set (struct csv_mvs_t *pMVS, char *camSNum, char *strValue
 		}
 	}
 
-	log_info("WARN : CAM '%s' not found.", camSNum);
+	log_warn("WARN : CAM '%s' not found.", camSNum);
 
 	return -1;
 }
@@ -800,12 +800,12 @@ static int save_image_to_bmp (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
 	uint8_t *pDataForSaveImage = NULL;
 
 	if ((NULL == img_name)&&(!isprint(img_name[0]))) {
-		log_info("ERROR : img name error.");
+		log_warn("ERROR : img name error.");
 		return -1;
 	}
 
 	if ((NULL == stImageInfo)||(NULL == handle)||(NULL == pData)) {
-		log_info("ERROR : null point.");
+		log_warn("ERROR : null point.");
 		return -1;
 	}
 
@@ -841,7 +841,7 @@ static int save_image_to_bmp (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
 
 	ret = csv_file_write_data(img_name, pDataForSaveImage, stSaveParam.nImageLen);
 	if (ret < 0) {
-		log_info("ERROR : write file '%s'.", img_name);
+		log_warn("ERROR : write file '%s'.", img_name);
 	}
 
 exit:
@@ -861,12 +861,12 @@ static int save_image_to_jpeg (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
 	uint8_t *pDataForSaveImage = NULL;
 
 	if ((NULL == img_name)&&(!isprint(img_name[0]))) {
-		log_info("ERROR : img name error.");
+		log_warn("ERROR : img name error.");
 		return -1;
 	}
 
 	if ((NULL == stImageInfo)||(NULL == handle)||(NULL == pData)) {
-		log_info("ERROR : null point.");
+		log_warn("ERROR : null point.");
 		return -1;
 	}
 
@@ -902,7 +902,7 @@ static int save_image_to_jpeg (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
 
 	ret = csv_file_write_data(img_name, pDataForSaveImage, stSaveParam.nImageLen);
 	if (ret < 0) {
-		log_info("ERROR : write file '%s'.", img_name);
+		log_warn("ERROR : write file '%s'.", img_name);
 	}
 
 exit:
@@ -1094,7 +1094,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, 
 					pCAM->sizePayload.nCurValue, pDevC->SaveImageFormat, img_name, end_pc);
 			} else {
-				log_info("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
+				log_warn("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
 					pCAM->sn, idx, i, nRet, strMsg(nRet));
 
 				if (MV_E_NODATA == nRet) {

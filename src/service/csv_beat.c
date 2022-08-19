@@ -80,7 +80,7 @@ int csv_beat_timer_trigger (struct csv_beat_t *pBeat)
 	}
 
 	if (++pBeat->cnt_timeo >= HEARTBEAT_TIMEO) {
-		log_info("WARN : %s beat timeout.", pBeat->name);
+		log_warn("WARN : %s beat timeout.", pBeat->name);
 
 		return csv_tcp_local_close();
 	}

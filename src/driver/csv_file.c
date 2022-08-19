@@ -19,7 +19,7 @@ int csv_file_get_size (const char *path, uint32_t *filesize)
 	FILE *fp = NULL;
 
 	if (NULL == path) {
-		log_info("ERROR : %s null path.",  __func__);
+		log_warn("ERROR : %s null path.",  __func__);
 
 		return -1;
 	}
@@ -55,7 +55,7 @@ int csv_file_read_data (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size == 0) {
-		log_info("ERROR : %s size 0.", __func__);
+		log_warn("ERROR : %s size 0.", __func__);
 
 		return -1;
 	}
@@ -126,7 +126,7 @@ int csv_file_write_data (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size==0) {
-		log_info("ERROR : %s size 0.", __func__);
+		log_warn("ERROR : %s size 0.", __func__);
 		
 		return -1;
 	}
@@ -156,7 +156,7 @@ int csv_file_write_data_append (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size==0) {
-		log_info("ERROR : %s size 0.", __func__);
+		log_warn("ERROR : %s size 0.", __func__);
 		
 		return -1;
 	}

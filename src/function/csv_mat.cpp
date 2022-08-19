@@ -15,7 +15,7 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 	int ret = 0;
 
 	if ((NULL == pstImageInfo)||(NULL == pData)) {
-		log_info("ERROR : null image.");
+		log_warn("ERROR : null image.");
 		return -1;
 	}
 
@@ -32,13 +32,13 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 		}
 		break;
 	default:
-		log_info("ERROR : not support PixelType[%08X].", pstImageInfo->enPixelType);
+		log_warn("ERROR : not support PixelType[%08X].", pstImageInfo->enPixelType);
 		ret = -1;
 		break;
 	}
 
 	if (NULL == outImgMat.data){
-		log_info("ERROR : null image out.");
+		log_warn("ERROR : null image out.");
 
 		ret = -1;
 	}
@@ -160,7 +160,7 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 				len_msg = sizeof(struct img_hdr_t) + rightsize;
 				break;
 			default:
-				// log_info("ERROR : unknown cmdtype");
+				// log_warn("ERROR : unknown cmdtype");
 				return -1;
 			}
 

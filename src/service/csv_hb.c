@@ -132,7 +132,7 @@ static int csv_hb_server_init (struct csv_hb_t *pHB)
 				close(fd);
 				fd = -1;
 
-				log_info("ERROR : lost parent process.");
+				log_warn("ERROR : lost parent process.");
 				// send signal kill
 				kill(ppid, SIGKILL);
 
@@ -160,7 +160,7 @@ static int csv_hb_server_init (struct csv_hb_t *pHB)
 				close(fd);
 				fd = -1;
 
-				log_info("ERROR : parent process pipe broken.");
+				log_warn("ERROR : parent process pipe broken.");
 				// send signal kill
 				kill(ppid, SIGKILL);
 

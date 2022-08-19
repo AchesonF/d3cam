@@ -296,8 +296,6 @@ static uint8_t csv_gev_reg_type_get (uint32_t addr, char **desc)
 static void csv_gev_reg_enroll (void)
 {
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
-	struct csv_eth_t *pETH = &gCSV->eth;
-	//struct csv_mvs_t *pMVS = &gCSV->mvs;
 
 	csv_gev_reg_add(REG_Version, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, (pGC->VersionMajor<<16)|pGC->VersionMinor, NULL, toSTR(REG_Version));
@@ -339,11 +337,11 @@ static void csv_gev_reg_enroll (void)
 		4, pGC->NumberofNetworkInterfaces, NULL, toSTR(REG_NumberofNetworkInterfaces));
 
 	csv_gev_reg_add(REG_PersistentIPAddress, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pETH->IPAddr, NULL, toSTR(REG_PersistentIPAddress));
+		4, pGC->CurrentIPAddress0, NULL, toSTR(REG_PersistentIPAddress));
 	csv_gev_reg_add(REG_PersistentSubnetMask0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pETH->NetmaskAddr, NULL, toSTR(REG_PersistentSubnetMask0));
+		4, pGC->CurrentSubnetMask0, NULL, toSTR(REG_PersistentSubnetMask0));
 	csv_gev_reg_add(REG_PersistentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pETH->GatewayAddr, NULL, toSTR(REG_PersistentDefaultGateway0));
+		4, pGC->CurrentDefaultGateway0, NULL, toSTR(REG_PersistentDefaultGateway0));
 	csv_gev_reg_add(REG_LinkSpeed0, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGC->LinkSpeed0, NULL, toSTR(REG_LinkSpeed0));
 
@@ -568,7 +566,6 @@ static int csv_gvcp_discover_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	pAckHdr->nAckId				= htons(pHDR->nReqId);
 
 	DISCOVERY_ACK_MSG *pAckMsg = (DISCOVERY_ACK_MSG *)(pGEV->txbuf + sizeof(ACK_MSG_HEADER));
-	struct csv_eth_t *pETH = &gCSV->eth;
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
 	pAckMsg->nMajorVer			= htons(pGC->VersionMajor);
@@ -578,9 +575,9 @@ static int csv_gvcp_discover_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	pAckMsg->nMacAddrLow		= htonl(pGC->MacLow);
 	pAckMsg->nIpCfgOption		= htonl(pGC->IfCapability0);
 	pAckMsg->nIpCfgCurrent		= htonl(pGC->IfConfiguration0);
-	pAckMsg->nCurrentIp			= inet_addr(pETH->ip);
-	pAckMsg->nCurrentSubNetMask	= inet_addr(pETH->nm);
-	pAckMsg->nDefultGateWay		= inet_addr(pETH->gw);
+	pAckMsg->nCurrentIp			= pGC->CurrentIPAddress0;
+	pAckMsg->nCurrentSubNetMask	= pGC->CurrentSubnetMask0;
+	pAckMsg->nDefultGateWay		= pGC->CurrentDefaultGateway0;
 
 	strncpy((char *)pAckMsg->chManufacturerName, pGC->ManufacturerName, 32);
 	strncpy((char *)pAckMsg->chModelName, pGC->ModelName, 32);
@@ -610,17 +607,17 @@ static int csv_gvcp_forceip_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	// TODO compare mac
 
 	pETH->IPAddr = pFIP->nStaticIp;
-	pETH->GatewayAddr = pFIP->nStaticDefaultGateWay;
-	pETH->NetmaskAddr = pFIP->nStaticSubNetMask;
+	pETH->netmask = pFIP->nStaticSubNetMask;
+	gCSV->ifcfg.gateway = pFIP->nStaticDefaultGateWay;
 
 	struct in_addr addr;
 	addr.s_addr = pETH->IPAddr;
 	strcpy(pETH->ip, inet_ntoa(addr));
 
-	addr.s_addr = pETH->GatewayAddr;
-	strcpy(pETH->gw, inet_ntoa(addr));
+	addr.s_addr = gCSV->ifcfg.gateway;
+	strcpy(gCSV->ifcfg.gw, inet_ntoa(addr));
 
-	addr.s_addr = pETH->NetmaskAddr;
+	addr.s_addr = pETH->netmask;
 	strcpy(pETH->nm, inet_ntoa(addr));
 
 	// TODO effective ip
@@ -1272,15 +1269,20 @@ static int csv_gvcp_msg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHdr)
 
 int csv_gvcp_trigger (struct csv_gev_t *pGEV)
 {
+	int i = 0;
+	struct csv_ifcfg_t *pIFCFG = &gCSV->ifcfg;
+	struct csv_eth_t *pETHER = NULL;
 	socklen_t from_len = sizeof(struct sockaddr_in);
 
 	pGEV->rxlen = recvfrom(pGEV->fd, pGEV->rxbuf, GVCP_MAX_MSG_LEN, 0, 
 		(struct sockaddr *)&pGEV->from_addr, &from_len);
 
-	if ((strcmp(inet_ntoa(pGEV->from_addr.sin_addr), "127.0.0.1") == 0)
-	  ||(strcmp(inet_ntoa(pGEV->from_addr.sin_addr), gCSV->eth.ip) == 0)) {
-		//log_debug("gvcp msg from myself.");
-		return 0;
+	for (i = 0; i < pIFCFG->cnt_ifc; i++) {
+		pETHER = &pIFCFG->ether[i];
+		if (pGEV->from_addr.sin_addr.s_addr == pETHER->IPAddr) {
+			//log_debug("gvcp msg from myself.");
+			return 0;
+		}
 	}
 
 	if (pGEV->rxlen < sizeof(CMD_MSG_HEADER)) {

@@ -16,7 +16,7 @@ static void *csv_web_loop (void *data)
 
 	maRunWebServer(pWEB->ConfigFile);
 
-	log_info("WARN : exit pthread 'thr_web'.");
+	log_warn("WARN : exit pthread 'thr_web'.");
 
 	pWEB->thr_web = 0;
 	pthread_exit(NULL);
