@@ -626,6 +626,9 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 		strcpy(pETHER->ifrname, pIFCFG->buf_ifc[i].ifr_name);
 		if (strcmp(pETHER->ifrname, pIFCFG->ifrname) == 0) {
 			pETHER->ether_ug = true;
+			if (first) {
+				log_info("default gateway '%s'", pETHER->ifrname);
+			}
 		} else {
 			pETHER->ether_ug = false;
 		}
@@ -668,10 +671,10 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 		}
 		if (pETHER->ipaddress != ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr) {
 			pETHER->update = true;
+			pETHER->ipaddress = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
+			memset(pETHER->ip, 0, MAX_LEN_IP);
+			strcpy(pETHER->ip, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
 		}
-		pETHER->ipaddress = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
-		strcpy(pETHER->ip, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
-
 
 		// netmask
 		ret = ioctl(fd, SIOCGIFNETMASK, (char *)&pIFCFG->buf_ifc[i]);
@@ -681,9 +684,10 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 		}
 		if (pETHER->netmask != ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr) {
 			pETHER->update = true;
+			pETHER->netmask = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
+			memset(pETHER->nm, 0, MAX_LEN_IP);
+			strcpy(pETHER->nm, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
 		}
-		pETHER->netmask = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
-		strcpy(pETHER->nm, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
 
 		// broadcast
 		ret = ioctl(fd, SIOCGIFBRDADDR, (char *)&pIFCFG->buf_ifc[i]);
@@ -693,9 +697,10 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 		}
 		if (pETHER->broadcast != ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr) {
 			pETHER->update = true;
+			pETHER->broadcast = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
+			memset(pETHER->bc, 0, MAX_LEN_IP);
+			strcpy(pETHER->bc, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
 		}
-		pETHER->broadcast = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
-		strcpy(pETHER->bc, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
 
 		// mac
 		ret = ioctl(fd, SIOCGIFHWADDR, (char *)&pIFCFG->buf_ifc[i]);
