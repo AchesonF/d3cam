@@ -7,6 +7,14 @@ extern "C" {
 
 #include <stdarg.h>
 
+#if (CONFIG_DEBUG_HEX_FORMAT==1)
+  #define HEX_SHOW_FORMAT	1
+#endif
+
+#define MAX_LINE					(4096)		///< 每行最大字符数
+
+extern const char Hex2Ascii[17];
+
 /*
 * @param[in]	priority	日志级别
 *		LOG_EMERG		system is unusable\n
@@ -20,6 +28,8 @@ extern "C" {
 */
 
 extern int hex_printf (const uint8_t *buff, int count);
+
+extern uint64_t utility_get_microsecond (void);
 
 extern void log_do (int priority, const char *fmt, ...);
 
@@ -44,7 +54,7 @@ extern void log_do (int priority, const char *fmt, ...);
 
   #define log_hex(type, buff, len, fmt, ...) do {\
 		if ((gPdct.tdata == type)||(gPdct.tdata == STREAM_ALL)) {	\
-  			log_do(LOG_DEBUG, "%lld： %s(%d): " fmt, utility_get_microsecond(), \
+  			log_do(LOG_DEBUG, "%lld: %s(%d): " fmt, utility_get_microsecond(), \
   				__func__, __LINE__, ##__VA_ARGS__); \
   			hex_printf(buff, len); } } while(0)
 

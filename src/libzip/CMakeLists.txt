@@ -1,11 +1,12 @@
-set(LIB_POINTCLOUD3D pointcloud3d)
+set(LIB_ZIP zip)
 
-add_library(${LIB_POINTCLOUD3D} SHARED
-	csvCreatePoint3D.cpp
-	CsvMeasure3D.cpp
+add_library(${LIB_ZIP} SHARED
+	zip.c
+	zip.h
+	miniz.h
 )
 
-install(TARGETS ${LIB_POINTCLOUD3D}
+install(TARGETS ${LIB_ZIP}
         EXPORT PROJECTTargets
         COMPONENT bin
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

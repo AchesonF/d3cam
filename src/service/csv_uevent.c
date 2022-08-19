@@ -4,104 +4,6 @@
 extern "C" {
 #endif
 
-/*
-remove@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.0
-ACTION=remove
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.0
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/0
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip00in00
-SEQNUM=6369
-
-remove@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.1
-ACTION=remove
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.1
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/1
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip01in01
-SEQNUM=6370
-
-remove@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.2
-ACTION=remove
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.2
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/2
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip02in02
-SEQNUM=6371
-
-remove@/devices/3610000.xhci/usb2/2-3/2-3.1
-ACTION=remove
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1
-SUBSYSTEM=usb
-MAJOR=189
-MINOR=135
-DEVNAME=bus/usb/002/008
-DEVTYPE=usb_device
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-BUSNUM=002
-DEVNUM=008
-SEQNUM=6372
-
-
-
-add@/devices/3610000.xhci/usb2/2-3/2-3.1
-ACTION=add
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1
-SUBSYSTEM=usb
-MAJOR=189
-MINOR=136
-DEVNAME=bus/usb/002/009
-DEVTYPE=usb_device
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-BUSNUM=002
-DEVNUM=009
-SEQNUM=6373
-
-add@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.0
-ACTION=add
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.0
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/0
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip00in00
-SEQNUM=6374
-
-add@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.1
-ACTION=add
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.1
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/1
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip01in01
-SEQNUM=6375
-
-add@/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.2
-ACTION=add
-DEVPATH=/devices/3610000.xhci/usb2/2-3/2-3.1/2-3.1:1.2
-SUBSYSTEM=usb
-DEVTYPE=usb_interface
-PRODUCT=2bdf/1/100
-TYPE=239/2/1
-INTERFACE=239/5/2
-MODALIAS=usb:v2BDFp0001d0100dcEFdsc02dp01icEFisc05ip02in02
-SEQNUM=6376
-
-*/
 
 static void parse_event (const char *kmsg)
 {
@@ -109,6 +11,7 @@ static void parse_event (const char *kmsg)
 	kuevent.action = "";
 	kuevent.devpath = "";
 	kuevent.subsystem = "";
+	kuevent.devname = "";
 	kuevent.devtype = "";
 	kuevent.product = "";
 	kuevent.major = -1;
@@ -124,6 +27,9 @@ static void parse_event (const char *kmsg)
 			kuevent.devpath = kmsg;
 		} else if (!strncmp(kmsg, "SUBSYSTEM=", 10)) {
 			kmsg += 10;
+			kuevent.subsystem = kmsg;
+		} else if (!strncmp(kmsg, "DEVNAME=", 8)) {
+			kmsg += 8;
 			kuevent.subsystem = kmsg;
 		} else if (!strncmp(kmsg, "DEVTYPE=", 8)) {
 			kmsg += 8;
@@ -142,6 +48,9 @@ static void parse_event (const char *kmsg)
 		while (*kmsg++) ; // 以 \n 分割字段
 	}
 
+	log_info("Action(%s) : subsystem(%s) devpath(%s) devname(%s) devtype(%s) product(%s) major(%d) minor(%d)", 
+		kuevent.action, kuevent.subsystem, kuevent.devpath, kuevent.devname, 
+		kuevent.devtype, kuevent.product, kuevent.major, kuevent.minor);
 	if ((strncasecmp(kuevent.devtype, "usb_device", 10) == 0)
 		&&(strncasecmp(kuevent.product, "2bdf", 4) == 0)) { // hik
 		if ((strncasecmp(kuevent.action, "add", 3) == 0)
@@ -159,8 +68,16 @@ int csv_uevent_trigger (struct csv_uevent_t *pUE)
 {
 	int rcvlen = 0;
 	char kmsg[LEN_UEVENT_MSG+2] = {0};
+	int timeo = 0;
 
 	while ((rcvlen = recv(pUE->fd, kmsg, LEN_UEVENT_MSG, 0)) > 0) {
+		if (++timeo >= 200) {
+			log_warn("WARN : too many event flush. Something go wrong.");
+			csv_uevent_deinit();
+			csv_uevent_init();
+			break;
+		}
+
 		if (rcvlen == LEN_UEVENT_MSG) { // overflow. omit
 			continue;
 		}
@@ -188,22 +105,28 @@ static int csv_uevent_open (struct csv_uevent_t *pUE)
 
 	fd = socket(AF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT);
 	if (fd < 0) {
-		log_err("ERROR : socket uevent");
+		log_err("ERROR : socket %s.", pUE->name);
 		return -1;
 	}
 
 	ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &sz, sizeof(sz));
 	if (ret < 0) {
-		log_err("ERROR : setsockopt");
+		log_err("ERROR : setsockopt %s.", pUE->name);
 		close(fd);
 		return -1;
 	}
 
 	ret = bind(fd, (struct sockaddr *)&nl_addr, sizeof(struct sockaddr_nl));
 	if (ret < 0) {
-		log_err("ERROR : bind");
+		log_err("ERROR : bind %s.", pUE->name);
 		close(fd);
 		return -1;
+	}
+
+	int err = fcntl(fd, F_SETFL, O_NONBLOCK);
+	if (err < 0) {
+		log_err("ERROR : fcntl %s.", pUE->name);
+		return err;
 	}
 
 	pUE->fd = fd;
@@ -228,6 +151,7 @@ int csv_uevent_deinit (void)
 	struct csv_uevent_t *pUE = &gCSV->uevent;
 
 	if (pUE->fd > 0) {
+		log_info("OK : close %s fd(%d).", pUE->name, pUE->fd);
 		close(pUE->fd);
 		pUE->fd = -1;
 	}

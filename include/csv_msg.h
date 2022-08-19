@@ -8,6 +8,16 @@ extern "C" {
 
 #define NAME_THREAD_MSG					"'thr_msg'"
 
+// 存储图片后缀
+enum {
+	SUFFIX_BMP		= 0,
+	SUFFIX_JPG		= 1,
+	SUFFIX_PNG		= 2,
+
+	END_SUFFIX
+};
+
+
 /* 消息头结构 */
 struct msg_head_t {
 	csv_cmd_e				cmdtype;		///< 命令代号

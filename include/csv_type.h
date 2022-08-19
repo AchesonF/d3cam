@@ -19,6 +19,9 @@ typedef enum {
 	CAMERA_GET_CALIB_FILE			= (0x00003003),	// 获取标定文件
 	CAMERA_GET_CAMERA_NAME			= (0x00003004),	// 获取相机名称
 
+	CAMERA_GET_RATE					= (0x00003010),	// 获取帧率
+	CAMERA_GET_BRIGHTNESS			= (0x00003011),	// 获取亮度
+
 	CAMERA_SET_INFO					= (0x00004000),	// 空值
 	CAMERA_SET_EXPOSURE				= (0x00004001),	// 设置相机曝光参数
 	CAMERA_SET_GAIN					= (0x00004002),	// 设置相机增益
@@ -30,6 +33,9 @@ typedef enum {
 	CAMERA_SET_CONT_EXPOSURE		= (0x00004008),	// 设置相机曝光参数
 	CAMERA_SET_IMG_TYPE				= (0x00004009),	// 设置相机图像格式
 	CAMERA_PARAM_SAVE				= (0x00004100),	// 保存相机参数到配置文件里
+
+	CAMERA_SET_RATE					= (0x00004010),	// 设置帧率
+	CAMERA_SET_BRIGHTNESS			= (0x00004011),	// 设置亮度
 
 	CAMERA_GET_GRAB_FLASH			= (0x00005000),	// 获取带随机光的图像,闪动
 	CAMERA_GET_GRAB_LEFT			= (0x00005001),
@@ -67,6 +73,13 @@ typedef enum {
 	SYS_ENCRYPT_SYS_INIT			= (0x00021001),	// 使用mac地址和相机sn生成md5序列号，
 														//并将序列号写入到 /root/loid文件里
 	SYS_ENCRYPT_RESTORE_PWD			= (0x00021002),	// 带正确的key后将系统密码改为简单密码，同时打开屏幕显示开关
+
+	SYS_HEARTBEAT_CFG_SET			= 0x00022001,	// 设置心跳使能/周期 1:enable ms
+	SYS_HEARTBEAT_CFG_GET			= 0x00022002,	// 查询心跳使能/周期
+	SYS_HEARTBEAT_KICK				= 0x00022003,	// 心跳包 无内容
+
+	SYS_LOG_SERVER_SET				= 0x00023001,	// 设置udp服务器(接收日志)(ip地址:端口号)
+	SYS_LOG_SERVER_GET				= 0x00023002,	// 查询udp服务器(接收日志)
 
 	// 设置终端的类型
 	SET_DEVTYPE_RL					= (0x00030000),	// 终端类型=随机光

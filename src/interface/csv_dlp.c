@@ -4,39 +4,85 @@
 extern "C" {
 #endif
 
+static uint8_t csv_dlp_pick_code (uint8_t idx)
+{
+	uint8_t cmd = CMD_NORMAL;
 
-static uint8_t dlp_ctrl_cmd[TOTAL_DLP_CMD][LEN_DLP_CTRL] = {
-	{0x36, 0xAA, 0x01, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// PINSTRIPE
-	{0x36, 0xAA, 0x02, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// DEMARCATE
-	{0x36, 0xAA, 0x03, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// WIDISTRIPE
-	{0x36, 0xAA, 0x04, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// FOCUS
-	{0x36, 0xAA, 0x05, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// BRIGHT
-	{0x36, 0xAA, 0x06, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// SINGLE_SINE
-	{0x36, 0xAA, 0x07, 0x2D, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// SINGLE_WIDESTRIPE_SINE
-	{0x36, 0xAA, 0x0A, 0x2D, 0xF4, 0x01, 0x27, 0x10, 0x00, 0x00, 0xAA, 0xAA},	// HIGH_SPEED
-	{0x36, 0xAA, 0x21, 0x04, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// FOCUS_BRIGHT
-	{0x36, 0xAA, 0x21, 0x05, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// LIGHT_BRIGHT
-	{0x36, 0xAA, 0x21, 0x06, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA},	// PINSTRIPE_SINE_BRIGHT
-	{0x36, 0xAA, 0x21, 0x07, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00, 0xAA, 0xAA}	// WIDESTRIPE_SINE_BRIGHT
-};
+	switch (idx) {
+	case DLP_CMD_DEMARCATE:
+		cmd = CMD_DEMARCATE;
+		break;
+	case DLP_CMD_BRIGHT:
+		cmd = CMD_BRIGHT;
+		break;
+	case DLP_CMD_HIGHSPEED:
+		cmd = CMD_HIGH_SPEED;
+		break;
+	case DLP_CMD_NORMAL:
+	default:
+		cmd = CMD_NORMAL;
+		break;
+	}
+
+	return cmd;
+}
+
+static int csv_dlp_encode (struct csv_dlp_t *pDLP, uint8_t idx)
+{
+	if (idx >= TOTAL_DLP_CMDS) {
+		return -1;
+	}
+
+	uint8_t cmd = 0;
+	cmd = csv_dlp_pick_code(idx);
+
+	pDLP->tbuf[0] = DLP_HEAD_A;
+	pDLP->tbuf[1] = DLP_HEAD_B;
+	pDLP->tbuf[2] = cmd;
+	pDLP->tbuf[3] = (uint8_t)pDLP->rate;
+	u16_to_u8v(swap16((uint16_t)pDLP->brightness), &pDLP->tbuf[4]);
+	u32_to_u8v(swap32((uint32_t)pDLP->expoTime), &pDLP->tbuf[6]);
+	pDLP->tbuf[10] = 0xAA;	// no crc check
+	pDLP->tbuf[11] = 0xAA;
+
+	pDLP->tlen = 12;
+
+	return pDLP->tlen;
+}
 
 int csv_dlp_just_write (uint8_t idx)
 {
 	int ret = 0;
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
 
+	if (idx >= TOTAL_DLP_CMDS) {
+		return -1;
+	}
+
 	if (pDLP->fd <= 0) {
 		return -1;
 	}
 
-	ret = csv_tty_write(pDLP->fd, dlp_ctrl_cmd[idx], sizeof(dlp_ctrl_cmd[idx]));
+	// update parameter before encode
+	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[idx];
+	csv_mvs_cams_exposure_set(&gCSV->mvs, pDlpcfg->expoTime);
+	pDLP->expoTime = pDlpcfg->expoTime;
+	pDLP->rate = pDlpcfg->rate;
+	pDLP->brightness = pDlpcfg->brightness;
+
+	ret = csv_dlp_encode(pDLP, idx);
+	if (ret < 0) {
+		return -1;
+	}
+
+	ret = csv_tty_write(pDLP->fd, pDLP->tbuf, pDLP->tlen);
 	if (ret < 0) {
 		log_err("ERROR : %s write failed.", pDLP->name);
 		return -1;
 	}
 
 	if (ret > 0) {
-		log_hex(STREAM_TTY, dlp_ctrl_cmd[idx], ret, "DLP write");
+		log_hex(STREAM_TTY, pDLP->tbuf, ret, "DLP write");
 	}
 
 	return ret;
@@ -50,20 +96,25 @@ static int csv_dlp_write (struct csv_dlp_t *pDLP, uint8_t idx)
 		return -1;
 	}
 
-	ret = csv_tty_write(pDLP->fd, dlp_ctrl_cmd[idx], sizeof(dlp_ctrl_cmd[idx]));
+	ret = csv_dlp_encode(pDLP, idx);
+	if (ret < 0) {
+		return -1;
+	}
+
+	ret = csv_tty_write(pDLP->fd, pDLP->tbuf, pDLP->tlen);
 	if (ret < 0) {
 		log_err("ERROR : %s write failed.", pDLP->name);
 		return -1;
 	}
 
 	if (ret > 0) {
-		log_hex(STREAM_TTY, dlp_ctrl_cmd[idx], ret, "DLP write");
+		log_hex(STREAM_TTY, pDLP->tbuf, ret, "DLP write");
 	}
 
 	return ret;
 }
 
-int csv_dlp_read (struct csv_dlp_t *pDLP)
+static int csv_dlp_read (struct csv_dlp_t *pDLP)
 {
 	int ret = 0;
 
@@ -110,7 +161,7 @@ int csv_dlp_write_and_read (uint8_t idx)
 
 	ret = pthread_cond_timedwait(&pDLP->cond_dlp, &pDLP->mutex_dlp, &timeo);
 	if (ret == ETIMEDOUT) {
-		log_info("ERROR : dlp read timeo.");
+		log_warn("ERROR : dlp read timeo.");
 		return -1;
 	}
 
@@ -118,23 +169,23 @@ int csv_dlp_write_and_read (uint8_t idx)
 	if (pDLP->rlen == LEN_DLP_CTRL+2) { // need to add checksum
 		switch (pDLP->rbuf[0]) {
 		case 0x01:
-			log_info("OK : dlp cmd ctrl");
+			log_info("OK : dlp cmd ctrl.");
 			ret = 0;
 			break;
 		case 0x02:
-			log_info("ERROR : dlp cannot trigger out");
+			log_warn("ERROR : dlp cannot trigger out.");
 			break;
 		case 0x03:
-			log_info("ERROR : dlp crc");
+			log_warn("ERROR : dlp crc.");
 			break;
 		case 0x04:
-			log_info("ERROR : dlp light");
+			log_warn("ERROR : dlp light.");
 			break;
 		case 0x05:
-			log_info("ERROR : dlp device info");
+			log_warn("ERROR : dlp device info.");
 			break;
 		case 0x06:
-			log_info("ERROR : dlp param");
+			log_warn("ERROR : dlp param.");
 			break;
 		}
 	}
@@ -148,10 +199,16 @@ static void *csv_dlp_loop (void *data)
 		return NULL;
 	}
 
+	int ret = 0;
+
 	struct csv_dlp_t *pDLP = (struct csv_dlp_t *)data;
 
 	while (1) {
-		csv_dlp_read(pDLP);
+		ret = csv_dlp_read(pDLP);
+
+		if (ret <= 0) {
+			continue;
+		}
 
 		if (strstr((char *)pDLP->rbuf, "alive")) {
 			// dlp alive. do nothing
@@ -160,7 +217,7 @@ static void *csv_dlp_loop (void *data)
 		}
 	}
 
-	log_info("WARN : exit pthread %s", pDLP->name_dlp);
+	log_warn("WARN : exit pthread %s.", pDLP->name_dlp);
 
 	pDLP->thr_dlp = 0;
 
@@ -179,21 +236,21 @@ static int csv_dlp_thread (struct csv_dlp_t *pDLP)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
     if (pthread_mutex_init(&pDLP->mutex_dlp, NULL) != 0) {
-		log_err("ERROR : mutex %s", pDLP->name_dlp);
+		log_err("ERROR : mutex %s.", pDLP->name_dlp);
         return -1;
     }
 
     if (pthread_cond_init(&pDLP->cond_dlp, NULL) != 0) {
-		log_err("ERROR : cond %s", pDLP->name_dlp);
+		log_err("ERROR : cond %s.", pDLP->name_dlp);
         return -1;
     }
 
 	ret = pthread_create(&pDLP->thr_dlp, &attr, csv_dlp_loop, (void *)pDLP);
 	if (ret < 0) {
-		log_err("ERROR : create pthread %s", pDLP->name_dlp);
+		log_err("ERROR : create pthread %s.", pDLP->name_dlp);
 		return -1;
 	} else {
-		log_info("OK : create pthread %s @ (%p)", pDLP->name_dlp, pDLP->thr_dlp);
+		log_info("OK : create pthread %s @ (%p).", pDLP->name_dlp, pDLP->thr_dlp);
 	}
 
 	return ret;
@@ -210,12 +267,14 @@ static int csv_dlp_thread_cancel (struct csv_dlp_t *pDLP)
 
 	ret = pthread_cancel(pDLP->thr_dlp);
 	if (ret != 0) {
-		log_err("ERROR : pthread_cancel %s", pDLP->name_dlp);
+		log_err("ERROR : pthread_cancel %s.", pDLP->name_dlp);
 	} else {
-		log_info("OK : cancel pthread %s", pDLP->name_dlp);
+		log_info("OK : cancel pthread %s (%p).", pDLP->name_dlp, pDLP->thr_dlp);
 	}
 
 	ret = pthread_join(pDLP->thr_dlp, &retval);
+
+	pDLP->thr_dlp = 0;
 
 	return ret;
 }
@@ -225,7 +284,7 @@ int csv_dlp_init (void)
 	int ret = 0;
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
 	struct csv_tty_param_t *pParam = &pDLP->param;
-
+	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL];
 
 	pDLP->dev = DEV_TTY_DLP;
 	pDLP->name = NAME_DEV_DLP;
@@ -240,9 +299,13 @@ int csv_dlp_init (void)
 	pParam->flowcontrol = 0;
 	pParam->delay = 1;
 
+	pDLP->rate = pDlpcfg->rate;
+	pDLP->brightness = pDlpcfg->brightness;
+	pDLP->expoTime = pDlpcfg->expoTime;
+
 	ret = csv_tty_init(pDLP->dev, pParam);
 	if (ret <= 0) {
-		log_info("ERROR : init %s.", pDLP->name);
+		log_warn("ERROR : init %s.", pDLP->name);
 		return -1;
 	}
 

@@ -42,7 +42,7 @@ struct cpuinfo_t {
 };
 
 struct netinfo_t {
-	const char				*dev;
+	char					dev[IFNAMSIZ];
 	uint32_t				status;
 	uint32_t				rx_bytes;
 	uint32_t				rx_packets;

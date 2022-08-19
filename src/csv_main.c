@@ -23,6 +23,38 @@ struct csv_product_t gPdct = {
     .fd_lock = -1,
 };
 
+static void csv_deinit (void)
+{
+	csv_cfg_deinit();
+
+	csv_gev_deinit();
+
+	csv_gpi_deinit();
+
+	csv_dlp_deinit();
+
+	csv_msg_deinit();
+
+	csv_png_deinit();
+
+	csv_tcp_deinit();
+
+	csv_uevent_deinit();
+
+	csv_web_deinit();
+
+	csv_tick_deinit();
+
+	csv_mvs_deinit();
+
+	if (gCSV != NULL) {
+		free(gCSV);
+	}
+
+	csv_lock_close();
+
+}
+
 static void csv_trace (int signum)
 {
 	void *array[256];
@@ -63,12 +95,19 @@ static void csv_trace (int signum)
 	free(strings);
 	fclose(fp);
 
-	close(gPdct.fd_lock);
+	csv_deinit();
 
+	if (gCSV != NULL) {
+		free(gCSV);
+	}
+
+	log_warn("WARN : crash process pid[%d] via signum[%d]=%s.", 
+		getpid(), signum, strSIG);
+	csv_hb_close(gPdct.hb.pipefd[1]);
+	utility_close();
 	sync();
 
-	//system("reboot");
-	_exit(1);
+	exit(1);
 }
 
 void csv_stop (int signum)
@@ -88,32 +127,12 @@ void csv_stop (int signum)
 		break;
 	}
 
-	csv_gvcp_deinit();
+	csv_deinit();
 
-	csv_dlp_deinit();
-
-	csv_msg_deinit();
-
-	csv_tcp_deinit();
-
-	csv_uevent_deinit();
-
-	csv_mvs_deinit();
-
-	csv_web_deinit();
-
-	csv_tick_deinit();
-
-
-	if (gCSV != NULL) {
-		free(gCSV);
-	}
-
-	log_info("OK : Stop process pid[%d] via signum[%d]=%s", 
+	log_warn("WARN : Stop process pid[%d] via signum[%d]=%s.", 
 		getpid(), signum, strSIG);
-
-	close(gPdct.fd_lock);
-
+	csv_hb_close(gPdct.hb.pipefd[1]);
+	utility_close();
 	sync();
 
 	exit(ret);
@@ -125,12 +144,12 @@ static struct csv_info_t *csv_global_init (void)
 
 	pCSV = (struct csv_info_t *) malloc(sizeof(*pCSV));
 	if (pCSV == NULL) {
-		log_alert("ERROR : malloc csv_info_t");
+		log_err("ERROR : malloc csv_info_t.");
 		exit(-1);
 		return NULL;
 	}
 
-	memset(pCSV, 0, sizeof(*pCSV));
+	memset(pCSV, 0, sizeof(struct csv_info_t));
 
 	return pCSV;
 }
@@ -142,7 +161,7 @@ static int csv_lock_pid (void)
 
 	fd = open(FILE_PID_LOCK, O_RDWR|O_CREAT, 0600);
 	if (fd < 0) {
-		log_err("ERROR : open '%s'", FILE_PID_LOCK);
+		log_err("ERROR : open '%s'.", FILE_PID_LOCK);
 		log_warn("You should delete '%s' first.", FILE_PID_LOCK);
 
 		exit(EXIT_FAILURE);
@@ -150,7 +169,7 @@ static int csv_lock_pid (void)
 
 	ret = lockf(fd, F_TLOCK, 0);
 	if (ret < 0) {
-		log_err("ERROR : lockf fd(%d)", fd);
+		log_err("ERROR : lockf fd(%d).", fd);
 		log_warn("You don't need to start me again!");
 
 		exit(EXIT_FAILURE);
@@ -161,10 +180,21 @@ static int csv_lock_pid (void)
 	snprintf(strpid, 32, "%d", getpid());
 	ret = write(fd, strpid, strlen(strpid));
 	if (ret < 0) {
-		log_err("ERROR : write fd(%d)", fd);
+		log_err("ERROR : write fd(%d).", fd);
 	}
 
-	log_info("My pid id %d.", getpid());
+	log_info("My pid %d from %d.", getpid(), getppid());
+
+	return 0;
+}
+
+int csv_lock_close (void)
+{
+	if (gPdct.fd_lock > 0) {
+		close(gPdct.fd_lock);
+		log_info("OK : close 'lock' fd(%d).", gPdct.fd_lock);
+		gPdct.fd_lock = -1;
+	}
 
 	return 0;
 }
@@ -251,6 +281,7 @@ static void startup_opts (int argc, char **argv)
 		}
 	}
 
+	csv_udp_init();
 	csv_lock_pid();
 
 	utility_calibrate_clock();
@@ -263,17 +294,19 @@ static void startup_opts (int argc, char **argv)
 	}
 }
 
-int csv_init (struct csv_info_t *pCSV)
+int csv_init (void)
 {
-	csv_file_init();
+	csv_cfg_init();
 
-	csv_json_init();
+	csv_xml_init();
 
-	csv_eth_init();
+	csv_ether_init();
+
+	csv_gpi_init();
 
 	csv_dlp_init();
 
-	csv_gvcp_init();
+	csv_gev_init();
 
 	csv_tcp_init();
 
@@ -282,6 +315,8 @@ int csv_init (struct csv_info_t *pCSV)
 	csv_uevent_init();
 
 	csv_mvs_init();
+
+	csv_png_init();
 
 	csv_stat_init();
 
@@ -304,6 +339,7 @@ int csv_init (struct csv_info_t *pCSV)
 
 int main (int argc, char **argv)
 {
+	int cnt_err = 0;
 	int ret = 0;
 	int maxfd = 0;
 	struct timeval tv;
@@ -313,10 +349,11 @@ int main (int argc, char **argv)
 
 	gCSV = csv_global_init();
 
-	csv_init(gCSV);
+	csv_init();
 
 	struct csv_uevent_t *pUE = &gCSV->uevent;
-	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
+	struct csv_gpi_t *pGPI = &gCSV->gpi;
+	struct csv_gev_t *pGEV = &gCSV->gev;
 	struct csv_tick_t *pTICK = &gCSV->tick;
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
 
@@ -327,9 +364,14 @@ int main (int argc, char **argv)
 		FD_ZERO(&readset);
 		FD_ZERO(&writeset);
 
-		if (pGVCP->fd > 0) {
-			maxfd = MAX(maxfd, pGVCP->fd);
-			FD_SET(pGVCP->fd, &readset);
+		if (pGPI->fd > 0) {
+			maxfd = MAX(maxfd, pGPI->fd);
+			FD_SET(pGPI->fd, &readset);
+		}
+
+		if (pGEV->fd > 0) {
+			maxfd = MAX(maxfd, pGEV->fd);
+			FD_SET(pGEV->fd, &readset);
 		}
 
 		if (pUE->fd > 0) {
@@ -364,14 +406,24 @@ int main (int argc, char **argv)
 		break;
 		case -1:		// error must be restart ?
 			log_err("ERROR : select");
+			if (++cnt_err >= 10) {	// 1s later
+				log_warn("WARN : select failed.");
+				sleep(5);
+				exit(-1);
+			}
 		break;
 		default:		// number of descriptors
 			// log_debug("select %d", ret);
+			cnt_err = 0;
 		break;
 		}
 
-		if ((pGVCP->fd > 0)&&(FD_ISSET(pGVCP->fd, &readset))) {
-			csv_gvcp_trigger(pGVCP);
+		if ((pGPI->fd > 0)&&(FD_ISSET(pGPI->fd, &readset))) {
+			csv_gpi_trigger(pGPI);
+		}
+
+		if ((pGEV->fd > 0)&&(FD_ISSET(pGEV->fd, &readset))) {
+			csv_gvcp_trigger(pGEV);
 		}
 
 		if ((pUE->fd > 0)&&(FD_ISSET(pUE->fd, &readset))) {

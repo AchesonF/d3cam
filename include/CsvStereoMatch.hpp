@@ -35,7 +35,7 @@ private:
 	bool loadCameraParam(const string& file_path);
 
 private:
-	cv::Ptr<cv::StereoBM> stereo_bm;
+	Ptr<StereoBM> stereo_bm;
 	Mat rmap_[2][2], cam_Q_;
 	Mat leftcam_M_, leftcam_D_, leftcam_R_, leftcam_P_;
 	Mat rightcam_M_, rightcam_D_, rightcam_R_, rightcam_P_;

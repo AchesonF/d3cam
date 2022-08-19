@@ -15,30 +15,30 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 	int ret = 0;
 
 	if ((NULL == pstImageInfo)||(NULL == pData)) {
-		printf("ERROR : null point.\n");
+		log_warn("ERROR : null image.");
 		return -1;
 	}
 
 	switch (pstImageInfo->enPixelType) {
 	case PixelType_Gvsp_Mono8:
-		outImgMat = cv::Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC1, pData);
+		outImgMat = Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC1, pData);
 		break;
 	case PixelType_Gvsp_RGB8_Packed:
 		if (needRGB) {		// rgb 格式
-			outImgMat = cv::Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC3, pData);
+			outImgMat = Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC3, pData);
 		} else {			// Mono 格式，RGB 转 MONO
-			Mat rgbMat = cv::Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC3, pData);
-			cvtColor(rgbMat, outImgMat, cv::COLOR_RGB2GRAY);
+			Mat rgbMat = Mat(pstImageInfo->nHeight, pstImageInfo->nWidth, CV_8UC3, pData);
+			cvtColor(rgbMat, outImgMat, COLOR_RGB2GRAY);
 		}
 		break;
 	default:
-		log_info("ERROR : not support PixelType[%08X]", pstImageInfo->enPixelType);
+		log_warn("ERROR : not support PixelType[%08X].", pstImageInfo->enPixelType);
 		ret = -1;
 		break;
 	}
 
 	if (NULL == outImgMat.data){
-		log_info("ERROR : null image out.");
+		log_warn("ERROR : null image out.");
 
 		ret = -1;
 	}
@@ -53,33 +53,35 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int len_msg = 0;
 	Mat left, right;
     int leftsize = 0, rightsize = 0;
-	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
+    char str_err[128] = {0};
+    int len_err = 0;
+    struct csv_mvs_t *pMVS = &gCSV->mvs;
+	
+	csv_dlp_just_write(DLP_CMD_BRIGHT);
 
-	csv_dlp_just_write(DLP_BRIGHT);
-
-	ret = csv_mvs_cams_grab_both();
+	ret = csv_mvs_cams_grab_both(pMVS);
 	if (ret == 0) {
 		// TODO change side
-		ret = Convert2Mat(&pCAMLEFT->imageInfo, pCAMLEFT->imgData, left, false);
-		ret |= Convert2Mat(&pCAMRIGHT->imageInfo, pCAMRIGHT->imgData, right, false);
+		ret = Convert2Mat(&pMVS->Cam[CAM_LEFT].imgInfo, pMVS->Cam[CAM_LEFT].imgData, left, false);
+		ret |= Convert2Mat(&pMVS->Cam[CAM_LEFT].imgInfo, pMVS->Cam[CAM_LEFT].imgData, right, false);
 
 		if (ret == 0) {
 			if (left.channels() > 1){
-				cvtColor(left, left, cv::COLOR_RGB2GRAY);
+				cvtColor(left, left, COLOR_RGB2GRAY);
 			}
 
 			if (right.channels() > 1){
-				cvtColor(right, right, cv::COLOR_RGB2GRAY);
+				cvtColor(right, right, COLOR_RGB2GRAY);
 			}
 
 			leftsize = left.cols * left.rows * left.channels();
 			rightsize = right.cols * right.rows * right.channels();
 			len_msg = sizeof(struct img_hdr_t)*2 + leftsize + rightsize;
 
-			pACK->len_send = sizeof(struct msg_head_t) + len_msg;
+			pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 			pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 			if (NULL == pACK->buf_send) {
-				log_err("ERROR : malloc send");
+				log_err("ERROR : malloc send.");
 				return -1;
 			}
 
@@ -113,19 +115,13 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 			return csv_msg_send(pACK);
 		}
+	} else if (-2 == ret) {
+		len_err = snprintf(str_err, 128, "Cams busy now.");
+	} else {
+		len_err = snprintf(str_err, 128, "Cams grab failed.");
 	}
 
-	if (NULL != pCAMLEFT->imgData) {
-		free(pCAMLEFT->imgData);
-		pCAMLEFT->imgData = NULL;
-	}
-
-	if (NULL != pCAMRIGHT->imgData) {
-		free(pCAMRIGHT->imgData);
-		pCAMRIGHT->imgData = NULL;
-	}
-
-	csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
+	csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 
 	return csv_msg_send(pACK);
 }
@@ -136,16 +132,18 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int ret = -1;
 	int len_msg = 0;
 	Mat left, right;
-    int leftsize = 0, rightsize = 0;	// 左右图像的大小
-	struct cam_spec_t *pCAMLEFT = &Cam[CAM_LEFT], *pCAMRIGHT = &Cam[CAM_RIGHT];
+    int leftsize = 0, rightsize = 0;
+    char str_err[128] = {0};
+    int len_err = 0;
+    struct csv_mvs_t *pMVS = &gCSV->mvs;
 
-	csv_dlp_just_write(DLP_BRIGHT);
+	csv_dlp_just_write(DLP_CMD_BRIGHT);
 
-	ret = csv_mvs_cams_grab_both();
+	ret = csv_mvs_cams_grab_both(pMVS);
 	if (ret == 0) {
 		// TODO change side
-		ret = Convert2Mat(&pCAMLEFT->imageInfo, pCAMLEFT->imgData, left, true);
-		ret |= Convert2Mat(&pCAMRIGHT->imageInfo, pCAMRIGHT->imgData, right, true);
+		ret = Convert2Mat(&pMVS->Cam[CAM_LEFT].imgInfo, pMVS->Cam[CAM_LEFT].imgData, left, true);
+		ret |= Convert2Mat(&pMVS->Cam[CAM_LEFT].imgInfo, pMVS->Cam[CAM_LEFT].imgData, right, true);
 
 		if (ret == 0) {
 			leftsize = left.cols * left.rows * left.channels();
@@ -162,14 +160,14 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 				len_msg = sizeof(struct img_hdr_t) + rightsize;
 				break;
 			default:
-				// log_info("ERROR : unknown cmdtype");
+				// log_warn("ERROR : unknown cmdtype");
 				return -1;
 			}
 
-			pACK->len_send = sizeof(struct msg_head_t) + len_msg;
+			pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 			pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 			if (NULL == pACK->buf_send) {
-				log_err("ERROR : malloc send");
+				log_err("ERROR : malloc send.");
 				return -1;
 			}
 
@@ -230,23 +228,16 @@ int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 			return csv_msg_send(pACK);
 		}
+	} else if (-2 == ret) {
+		len_err = snprintf(str_err, 128, "Cams busy now.");
+	} else {
+		len_err = snprintf(str_err, 128, "Cams grab failed.");
 	}
 
-	if (NULL != pCAMLEFT->imgData) {
-		free(pCAMLEFT->imgData);
-		pCAMLEFT->imgData = NULL;
-	}
-
-	if (NULL != pCAMRIGHT->imgData) {
-		free(pCAMRIGHT->imgData);
-		pCAMRIGHT->imgData = NULL;
-	}
-
-	csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
+	csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 
 	return csv_msg_send(pACK);
 }
-
 
 /* 填充随机数据 */
 int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
@@ -255,27 +246,27 @@ int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int len_msg = 0;
 	Mat left, right;
     int leftsize = 0, rightsize = 0;	// 左右图像的大小
-	int len_data = 1240*1624;
+	int len_data = 1240*1616;
 	MV_FRAME_OUT_INFO_EX pstImageInfo;
 	pstImageInfo.enPixelType = PixelType_Gvsp_Mono8;
 	pstImageInfo.nHeight = 1240;
-	pstImageInfo.nWidth = 1624;
+	pstImageInfo.nWidth = 1616;
 
 	uint8_t *pData = (uint8_t *)malloc(len_data);
 	if (NULL == pData) {
-		log_err("ERROR : malloc");
+		log_err("ERROR : malloc data.");
 		return -1;
 	}
 
 	int fd = open("/dev/urandom", O_RDONLY);
 	if (fd < 0) {
-		log_err("ERROR : open urandom");
+		log_err("ERROR : open urandom.");
 		return -1;
 	}
 
 	ret = read(fd, pData, len_data);
 	if (ret < 0) {
-		log_err("ERROR : read");
+		log_err("ERROR : read.");
 		free(pData);
 		return -1;
 	}
@@ -288,10 +279,10 @@ int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	rightsize = right.cols * right.rows * right.channels();
 	len_msg = sizeof(struct img_hdr_t)*2 + leftsize + rightsize;
 
-	pACK->len_send = sizeof(struct msg_head_t) + len_msg;
+	pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
 	pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
 	if (NULL == pACK->buf_send) {
-		log_err("ERROR : malloc send");
+		log_err("ERROR : malloc send.");
 		return -1;
 	}
 

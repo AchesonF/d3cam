@@ -48,16 +48,16 @@ struct csv_product_t {
 
 struct csv_info_t {
 	struct csv_file_t	file;					///< 外部配置文件
-	struct csv_json_t	cfg;					///< config file using json
-	struct csv_eth_t	eth;					///< 本地网络参数
+	struct csv_xml_t	xml;					///< config file using xml
+	struct csv_cfg_t	cfg;
+	struct csv_ifcfg_t	ifcfg;
 	struct csv_stat_t	stat;					///< 系统状态信息
+	struct csv_gpi_t	gpi;					///< 输入按键事件
 
 	struct csv_uevent_t	uevent;					///< 探测内核事件
 	struct csv_mvs_t	mvs;					///< 支持海康工业相机
-	struct csv_gvcp_t	gvcp;					///< GVCP
+	struct csv_gev_t	gev;					///< GigE Vision
 	struct csv_dlp_t	dlp;					///< 光机控制通道
-
-	struct csv_so_t		so;						///< 挂载算法so 
 
 	struct csv_tcp_t	tcpl;					///< 本地tcp服务
 	struct csv_web_t	web;					///< WEB 服务
@@ -65,6 +65,8 @@ struct csv_info_t {
 	struct csv_tick_t	tick;					///< 轮询时钟
 
 	struct csv_msg_t	msg;					///< 接口消息处理
+
+	struct csv_png_t	png;					///< PNG 存储
 };
 
 
@@ -72,6 +74,7 @@ extern struct csv_product_t gPdct;
 
 extern struct csv_info_t *gCSV;
 
+extern int csv_lock_close (void);
 
 #ifdef __cplusplus
 }

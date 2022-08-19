@@ -9,27 +9,32 @@ extern "C" {
 #define NAME_THREAD_DLP			"'thr_dlp'"
 #define DEV_TTY_DLP				"/dev/ttyTHS0"
 
-#define SIZE_DLP_BUFF			(1024)
+#define SIZE_DLP_BUFF			(256)
 #define DEFAULT_DLP_BAUDRATE	(9600)
 
 #define LEN_DLP_CTRL			(12)
 
-typedef enum {
-	DLP_PINSTRIPE				= (0),		// 12 细条纹
-	DLP_DEMARCATE				= (1),		// 22 标定
-	DLP_WIDISTRIPE				= (2),		// 12 宽条纹
-	DLP_FOCUS					= (3),		// 1 调焦
-	DLP_BRIGHT					= (4),		// 1 亮光
-	DLP_SINGLE_SINE				= (5),		// 1 单张正弦
-	DLP_SINGLE_WIDESTRIPE_SINE	= (6),		// 1 单张宽条纹正弦
-	DLP_HIGH_SPEED				= (7),		// 13 高速光
-	DLP_FOCUS_BRIGHT,						// 调焦常亮
-	DLP_LIGHT_BRIGHT,						// 亮光常亮
-	DLP_PINSTRIPE_SINE_BRIGHT,				// 细纹正弦常亮
-	DLP_WIDESTRIPE_SINE_BRIGHT,				// 宽纹正弦常亮
 
-	TOTAL_DLP_CMD
-} dlp_ctrl_idx;
+// 起始位(0-1)[2B]+类别(2)[1B]+帧率(3)[1B]+亮度(4-5)[2B]+曝光(6-9)[4B]+校验(10-11)[2B]
+// 校验位 = 0xAAAA 不做校验
+#define DLP_HEAD_A			(0x36)
+#define DLP_HEAD_B			(0xAA)
+
+// 类别
+#define CMD_NORMAL			(0x01)	// 13 普通采图
+#define CMD_DEMARCATE		(0x02)	// 22 标定
+#define CMD_BRIGHT			(0x05)	// 1 亮光
+#define CMD_HIGH_SPEED		(0x0A)	// 13 高速采图
+
+enum {
+	DLP_CMD_NORMAL				= (0),
+	DLP_CMD_DEMARCATE			= (1),
+	DLP_CMD_BRIGHT				= (2),
+	DLP_CMD_HIGHSPEED			= (3),
+
+	TOTAL_DLP_CMDS				= (4)
+};
+
 
 
 struct csv_dlp_t {
@@ -40,7 +45,14 @@ struct csv_dlp_t {
 	uint8_t					rbuf[SIZE_DLP_BUFF];
 	uint16_t				rlen;
 
+	uint8_t					tbuf[SIZE_DLP_BUFF];
+	uint16_t				tlen;
+
 	struct csv_tty_param_t	param;
+
+	float					rate;			///< 帧率
+	float					brightness;		///< 亮度
+	float					expoTime;		///< 曝光时间
 
 	const char				*name_dlp;		///< 消息
 	pthread_t				thr_dlp;		///< ID

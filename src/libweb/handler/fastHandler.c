@@ -1880,7 +1880,7 @@ static void fastInfo(void *ignored, MprSignal *sp)
     HttpHost        *host;
     HttpRoute       *route;
     HttpStream      *stream;
-    HttpRx          *rx;
+//    HttpRx          *rx;
     int             nextHost, nextRoute, nextApp, nextReq;
 
     http = HTTP;
@@ -1896,7 +1896,7 @@ static void fastInfo(void *ignored, MprSignal *sp)
                     app->sockets->length, app->requests->length, app->ip, app->port);
                 for (ITERATE_ITEMS(app->requests, req, nextReq)) {
                     stream = req->stream;
-                    rx = stream->rx;
+//                    rx = stream->rx;
                     print("        Req %p ID %d, socket %p flags 0x%x, req eof %d, state %d, finalized output %d, input %d, bytes %d, error %d, netMask 0x%x reqMask 0x%x",
                         req, (int) req->id, req->socket, req->socket->flags, req->eof, stream->state,
                         stream->tx->finalizedOutput, stream->tx->finalizedInput, (int) req->bytesRead, stream->error,

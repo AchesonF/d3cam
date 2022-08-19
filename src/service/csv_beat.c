@@ -18,7 +18,7 @@ int csv_beat_timer_open (struct csv_beat_t *pBeat)
 
 	fd = timerfd_create(CLOCK_REALTIME, 0);
 	if (fd < 0) {
-		log_err("ERROR : create hb %s", pBeat->name);
+		log_err("ERROR : create hb %s.", pBeat->name);
 		return -1;
 	}
 
@@ -28,7 +28,7 @@ int csv_beat_timer_open (struct csv_beat_t *pBeat)
 	pBeat->its.it_value.tv_nsec = (pBeat->millis % 1000) * 1000000;
 
 	if (timerfd_settime(fd, 0, &pBeat->its, NULL) < 0) {
-		log_err("ERROR : settime timerfd %s", pBeat->name);
+		log_err("ERROR : settime timerfd %s.", pBeat->name);
 
 		close(fd);
 		return -1;
@@ -38,7 +38,7 @@ int csv_beat_timer_open (struct csv_beat_t *pBeat)
 	pBeat->responsed = false;
 	pBeat->cnt_timeo = 0;
 
-	log_info("OK : create timerfd %s as fd(%d)", pBeat->name, fd);
+	log_info("OK : create timerfd %s as fd(%d).", pBeat->name, fd);
 
 	return fd;
 }
@@ -51,13 +51,13 @@ int csv_beat_timer_close (struct csv_beat_t *pBeat)
 
 	if (pBeat->timerfd > 0) {
 		if (close(pBeat->timerfd) < 0) {
-			log_err("ERROR : close hb timer %s", pBeat->name);
+			log_err("ERROR : close hb timer %s.", pBeat->name);
 			return -1;
 		}
 
 		pBeat->timerfd = -1;
 
-		log_info("OK : close hb timer %s", pBeat->name);
+		log_info("OK : close hb timer %s.", pBeat->name);
 	}
 
 	return 0;
@@ -71,7 +71,7 @@ int csv_beat_timer_trigger (struct csv_beat_t *pBeat)
 
 	uint64_t num_exp = 0;
 	if (read(pBeat->timerfd, &num_exp, sizeof(uint64_t)) != sizeof(uint64_t)) {
-		log_err("ERROR : read timerfd %s", pBeat->name);
+		log_err("ERROR : read timerfd %s.", pBeat->name);
 		return -2;
 	}
 
@@ -80,7 +80,7 @@ int csv_beat_timer_trigger (struct csv_beat_t *pBeat)
 	}
 
 	if (++pBeat->cnt_timeo >= HEARTBEAT_TIMEO) {
-		log_info("WARN : %s beat timeout.", pBeat->name);
+		log_warn("WARN : %s beat timeout.", pBeat->name);
 
 		return csv_tcp_local_close();
 	}

@@ -16,6 +16,7 @@ extern "C" {
 #include <fcntl.h>
 #include <getopt.h>
 #include <limits.h>
+#include <linux/input.h>
 #include <malloc.h>
 #include <math.h>
 #include <net/if.h>
@@ -57,8 +58,18 @@ extern "C" {
 #include "project_version.h"
 #include "config.h"
 
-#include <json-c/json.h>
+// for xml2
+#include "libxml/parser.h"
+#include "libxml/tree.h"
+
+
+// for MVS
 #include "MvCameraControl.h"
+
+// for GigE Vision
+#include "GigEVisionGVCPDefine.h"
+#include "GigEVisionGVCPRegisterDefine.h"
+#include "GigEVisionGVSPDefine.h"
 
 #include "list.h"
 #include "queue.h"
@@ -66,11 +77,12 @@ extern "C" {
 
 #include "csv_utility.h"
 #include "csv_type.h"
-
+#include "csv_udp.h"
 #include "csv_hb.h"
 #include "csv_file.h"
-#include "csv_json.h"
+#include "csv_xml.h"
 #include "csv_eth.h"
+#include "csv_gpi.h"
 #include "csv_life.h"
 #include "csv_stat.h"
 #include "csv_beat.h"
@@ -81,10 +93,11 @@ extern "C" {
 #include "csv_msg.h"
 #include "csv_dlp.h"
 #include "csv_web.h"
-#include "csv_gvcp.h"
+#include "csv_png.h"
 #include "csv_mat.h"
 #include "csv_mvs.h"
-#include "csv_so.h"
+#include "csv_gev.h"
+#include "csv_cfg.h"
 #include "csv_main.h"
 
 #include "log.h"

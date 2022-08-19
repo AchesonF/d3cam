@@ -25,13 +25,13 @@ static int csv_tcp_local_open (void)
 
 	fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
-		log_err("ERROR : socket %s", pTCPL->name_listen);
+		log_err("ERROR : socket %s.", pTCPL->name_listen);
 		return -1;
 	}
 
 	ret = fcntl(fd, F_SETFL, O_NONBLOCK);
 	if (ret < 0) {
-		log_err("ERROR : fnctl %s", pTCPL->name_listen);
+		log_err("ERROR : fnctl %s.", pTCPL->name_listen);
 		close(fd);
 		return ret;
 	}
@@ -39,7 +39,7 @@ static int csv_tcp_local_open (void)
     int optval = 0;
     ret = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
     if (ret < 0) {
-        log_err("ERROR : setsockopt %s", pTCPL->name_listen);
+        log_err("ERROR : setsockopt %s.", pTCPL->name_listen);
         close(fd);
         return ret;
     }
@@ -52,14 +52,14 @@ static int csv_tcp_local_open (void)
 
 	ret = bind(fd, (struct sockaddr *)&sin, sizeof(sin));
 	if (ret < 0) {
-		log_err("ERROR : bind %s", pTCPL->name_listen);
+		log_err("ERROR : bind %s.", pTCPL->name_listen);
 		close(fd);
 		return ret;
 	}
 
 	ret = listen(fd, MAX_TCP_CONNECT);
 	if (ret < 0) {
-		log_err("ERROR : listen %s", pTCPL->name_listen);
+		log_err("ERROR : listen %s.", pTCPL->name_listen);
 		close(fd);
 		return ret;
 	}
@@ -76,12 +76,12 @@ static int csv_tcp_local_release (struct csv_tcp_t *pTCPL)
 {
 	if (pTCPL->fd_listen > 0) {
 		if (close(pTCPL->fd_listen) < 0) {
-			log_err("ERROR : close %s", pTCPL->name_listen);
+			log_err("ERROR : close %s.", pTCPL->name_listen);
 			return -1;
 		}
 
+		log_info("OK : close %s fd(%d).", pTCPL->name_listen, pTCPL->fd_listen);
 		pTCPL->fd_listen = -1;
-		log_info("OK : close %s.", pTCPL->name_listen);
 	}
 
 	return 0;
@@ -95,7 +95,7 @@ int csv_tcp_local_close (void)
 
 	if (pTCPL->fd > 0) {
 		close(pTCPL->fd);
-		log_info("OK : close %s. cnnt: %f s", pTCPL->name, 
+		log_info("OK : close %s fd(%d). cnnt: %f s.", pTCPL->name, pTCPL->fd,
 			(utility_get_sec_since_boot() - pTCPL->time_start));
 	}
 
@@ -115,7 +115,7 @@ int csv_tcp_local_accept (void)
 
 	fd = accept(pTCPL->fd_listen, (struct sockaddr *)&peer, &sock_len);
 	if (fd <= 0) {
-		log_err("ERROR : accept %s", pTCPL->name_listen);
+		log_err("ERROR : accept %s.", pTCPL->name_listen);
 		return fd;
 	}
 
@@ -124,14 +124,14 @@ int csv_tcp_local_accept (void)
     so_linger.l_linger = 0;
     ret = setsockopt(fd, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
     if (ret < 0) {
-        log_err("ERROR : setsockopt %s", pTCPL->name);
+        log_err("ERROR : setsockopt 'SO_LINGER'.");
         close(fd);
 
         return ret;
     }
 
     // 断线探测
-    int keepalive = 1;	// 开启 keepalive 属性
+/*    int keepalive = 1;	// 开启 keepalive 属性
     int keepidle = 5;		// 如果5s内无任何数据往来，进行探测
     int keepinterval = 3;	// 探测时发包的时间间隔3s
     int keepcount = 2;	// 探测尝试的次数。如果第1次探测包有响应，则后续不再发。
@@ -139,14 +139,14 @@ int csv_tcp_local_accept (void)
     setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, (void*)&keepidle, sizeof(keepidle));
     setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, (void*)&keepinterval, sizeof(keepinterval));
     setsockopt(fd, SOL_TCP, TCP_KEEPCNT, (void*)&keepcount, sizeof(keepcount));
-
-	int opt = 10*1024*1024;	// for send big data
+*/
+	int opt = 60*1024*1024;	// for send big data
 	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(int));
 
 
 	int err = fcntl(fd, F_SETFL, O_NONBLOCK);
 	if (err < 0) {
-		log_err("ERROR : fcntl %s", pTCPL->name);
+		log_err("ERROR : fcntl %s.", pTCPL->name);
 		return err;
 	}
 
@@ -172,7 +172,7 @@ int csv_tcp_local_recv (uint8_t *buf, int nbytes)
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
 
 	if (pTCPL->fd <= 0) {
-		return -1;
+		return -3;
 	}
 
 	while (n_read < nbytes) {
@@ -182,7 +182,7 @@ int csv_tcp_local_recv (uint8_t *buf, int nbytes)
 		n_read += ret;
 
 		if (++timeo >= 100) { // timeout, maybe more
-			return -2;
+			return -3;
 		}
 	}
 
@@ -217,7 +217,7 @@ int csv_tcp_local_send (uint8_t *buf, int nbytes)
 		ret = send(pTCPL->fd, buf+n_written, nbytes-n_written, 0);
 		if (ret < 0) {
 			if (++snd_err <= 10) {
-				log_err("ERROR : <%d> send", snd_err);
+				log_err("ERROR : <%d> send.", snd_err);
 			} else {
 				pTCPL->accepted = false;
 			}
@@ -244,15 +244,18 @@ int csv_tcp_reading_trigger (struct csv_tcp_t *pTCPL)
 	int nRead = 0;
 
 	nRead = csv_tcp_local_recv(pTCPL->buf_recv, MAX_LEN_TCP_RCV);
-	if (nRead < 0) {
-		log_err("ERROR : %s recv %d", pTCPL->name, nRead);
+	if (nRead == -1) {
+		log_err("ERROR : %s recv (%d)", pTCPL->name, nRead);
+		csv_tcp_local_close();
 		pTCPL->len_recv = 0;
 		return -1;
 	} else if (nRead == 0) {
-		log_info("WARN : %s EOF.", pTCPL->name);
+		log_warn("WARN : %s recv end-of-file.", pTCPL->name);
 		csv_tcp_local_close();
 		pTCPL->len_recv = 0;
 		return 0;
+	} else if (nRead < 0) {
+		return -1;
 	}
 
 	pTCPL->len_recv = nRead;

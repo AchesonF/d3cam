@@ -10,7 +10,9 @@ namespace CSV{
 		FixPoint48bits = 0,
 		FixPoint64bits = 1,
 		FixZMap = 2,
-		FixZMapSimple = 3
+		FixZMapSimple = 3,
+		FloatPoint96bits = 4,
+		FixPoint16bits
 	};
 	enum Point3DFrame {
 		Point3DFrameCamera1 = 0,

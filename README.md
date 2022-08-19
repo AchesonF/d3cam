@@ -6,7 +6,7 @@
 
 ```sh
 sudo apt update && sudo apt upgrade
-sudo apt install -y git gitk cmake cmake-curses-gui libssl-dev libjson-c-dev
+sudo apt install -y git gitk cmake cmake-curses-gui libssl-dev libjson-c-dev libxml2-dev
 sudo apt install -y ./MVS-2.1.1_aarch64_20211224.deb
 ```
 

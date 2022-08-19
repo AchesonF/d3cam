@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+struct csv_file_t gFILE;
 
 /**
 * @brief		获取指定文件的大小
@@ -18,14 +19,14 @@ int csv_file_get_size (const char *path, uint32_t *filesize)
 	FILE *fp = NULL;
 
 	if (NULL == path) {
-		log_info("ERROR : %s",  __func__);
+		log_warn("ERROR : %s null path.",  __func__);
 
 		return -1;
 	}
 
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		log_err("ERROR : open '%s'", path);
+		log_err("ERROR : open '%s'.", path);
 
 		return -2;
 	}
@@ -54,14 +55,14 @@ int csv_file_read_data (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size == 0) {
-		log_info("ERROR : %s", __func__);
+		log_warn("ERROR : %s size 0.", __func__);
 
 		return -1;
 	}
 
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		log_err("ERROR : fopen '%s'", path);
+		log_err("ERROR : fopen '%s'.", path);
 
 		return -2;
 	}
@@ -70,7 +71,7 @@ int csv_file_read_data (const char *path, uint8_t *buf, uint32_t size)
 
 	ret = fread(buf, size, 1, fp);
 	if (ret < 0) {
-		log_err("ERROR : fread ret[%ld] vs size[%ld]", ret, size);
+		log_err("ERROR : fread ret[%ld] vs size[%ld].", ret, size);
 
 		fclose(fp);
 		return -3;
@@ -89,13 +90,13 @@ int csv_file_read_string (const char *filename, char *buf, size_t size)
 
 	fp = fopen(filename, "r");
 	if (fp == NULL) {
-		log_err("ERROR : fopen '%s'", filename);
+		log_err("ERROR : fopen '%s'.", filename);
 		return -1;
 	}
 
 	rv = fread(buf, 1, size - 1, fp);
 	if (rv <= 0) {
-		log_err("ERROR : fread '%s'", filename);
+		log_err("ERROR : fread '%s'.", filename);
 		
 		fclose(fp);
 		return -1;
@@ -104,7 +105,7 @@ int csv_file_read_string (const char *filename, char *buf, size_t size)
 	buf[rv] = '\0';
 
 	if (fclose(fp) != 0) {
-		log_err("ERROR : fclose '%s'", filename);
+		log_err("ERROR : fclose '%s'.", filename);
 		return -1;
 	}
 
@@ -125,21 +126,21 @@ int csv_file_write_data (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size==0) {
-		log_info("ERROR : %s", __func__);
+		log_warn("ERROR : %s size 0.", __func__);
 		
 		return -1;
 	}
 
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		log_err("ERROR : open '%s'", path);
+		log_err("ERROR : open '%s'.", path);
 
 		return -2;
 	}
 
 	ret = fwrite(buf, size, 1, fp);
 	if (ret < 0) {
-		log_err("ERROR : fwrite");
+		log_err("ERROR : fwrite.");
 		fclose(fp);
 		return -3;
 	}
@@ -155,21 +156,21 @@ int csv_file_write_data_append (const char *path, uint8_t *buf, uint32_t size)
 	FILE *fp = NULL;
 
 	if (size==0) {
-		log_info("ERROR : %s", __func__);
+		log_warn("ERROR : %s size 0.", __func__);
 		
 		return -1;
 	}
 
 	fp = fopen(path, "a");
 	if (fp == NULL) {
-		log_err("ERROR : open '%s'", path);
+		log_err("ERROR : open '%s'.", path);
 
 		return -2;
 	}
 
 	ret = fwrite(buf, size, 1, fp);
 	if (ret < 0) {
-		log_err("ERROR : fwrite");
+		log_err("ERROR : fwrite.");
 		fclose(fp);
 		return -3;
 	}
@@ -184,6 +185,10 @@ uint8_t csv_file_isExist (char *path)
 	struct stat st;
 	int ret = 0;
 
+	if (NULL == path) {
+		return false;
+	}
+
 	ret = stat(path, &st);
 	if (0 == ret) {
 		return true;
@@ -192,51 +197,103 @@ uint8_t csv_file_isExist (char *path)
 	return false;
 }
 
+uint32_t csv_file_modify_time (char *path)
+{
+	int ret = 0;
+	struct stat st;
+
+	if (NULL == path) {
+		return 0;
+	}
+
+	ret = stat(path, &st);
+	if (0 == ret) {
+		return st.st_mtim.tv_sec;
+	}
+
+	return 0;
+}
+
 static int csv_file_get (struct csv_file_t *pFILE)
 {
 	int ret = 0;
-/*	char str_cmd[256] = {0};
+	uint32_t len_file = 0;
+	char str_cmd[512] = {0};
 
-	// birthday
-	if (csv_file_isExist(pFILE->file_birthday)) {
-		ret = csv_file_get_size(pFILE->file_birthday, &pFILE->len_birthday);
-		if ((ret < 0)||(pFILE->len_birthday < SIZE_BIRTHDAY)) {
-			pFILE->len_birthday = SIZE_BIRTHDAY;
-			memcpy(pFILE->birthday, DEFAULT_BIRTHDAY, pFILE->len_birthday);
-		} else {
-			pFILE->len_birthday = SIZE_BIRTHDAY;	// 确保只读取前8个字节
-			uhf_file_read_data(pFILE->file_birthday, pFILE->birthday, pFILE->len_birthday);
-		}
-	} else {
-		memset(str_cmd, 0, 256);
-		snprintf(str_cmd, 256, "echo %s > %s", DEFAULT_BIRTHDAY, FILE_PATH_BIRTHDAY);
-		system_redef(str_cmd);
-		pFILE->len_birthday = SIZE_BIRTHDAY;
-		memcpy(pFILE->birthday, DEFAULT_BIRTHDAY, pFILE->len_birthday);
-		sync();
+	// file 1
+	if (!csv_file_isExist(pFILE->udpserv)) {
+		memset(str_cmd, 0, 512);
+		snprintf(str_cmd, 512, "echo \"%s:%d\" > %s", 
+			DEFAULT_LOG_SERV, DEFAULT_LOG_PORT, pFILE->udpserv);
+		system(str_cmd);
 	}
 
-	// sn = uuid
-	if (csv_file_isExist(pFILE->file_uuid)) {
-		ret = csv_file_get_size(pFILE->file_uuid, &pFILE->len_uuid);
-		if ((ret < 0)||(pFILE->len_uuid < SIZE_UUID)) {
-			pFILE->len_uuid = SIZE_UUID;
-			memcpy(pFILE->uuid, DEFAULT_UUID, pFILE->len_uuid);
-			pFILE->uuid[SIZE_UUID] = 0x00;
-		} else {
-			pFILE->len_uuid = SIZE_UUID;	// 确保只读取前8个字节
-			uhf_file_read_data(pFILE->file_uuid, pFILE->uuid, pFILE->len_uuid);
-			pFILE->uuid[SIZE_UUID] = 0x00;
+	ret = csv_file_get_size(pFILE->udpserv, &len_file);
+	if ((0 == ret)&&(len_file > 0)&&(len_file <= 22)) {
+		uint8_t *buf_file = (uint8_t *)malloc(len_file);
+		if (NULL != buf_file) {
+			int nget = 0;
+			char str_ip[32] = {0};
+			char str_port[32] = {0};
+			int port = 0;
+			ret = csv_file_read_data(pFILE->udpserv, buf_file, len_file);
+
+			nget = sscanf((char *)buf_file, "%[^:]:%[^:]", str_ip, str_port);
+			if (2 == nget) {
+				ret = check_user_ip(str_ip);
+				if (0 == ret) {
+					strcpy(gUDP.ip, str_ip);
+				}
+				port = atoi(str_port);
+				if (port > 1024) {
+					gUDP.port = port;
+				}
+				gUDP.reinit = 1;
+				//printf("log server : '%s:%d'.\n", gUDP.ip, gUDP.port);
+			}
+
+			free(buf_file);
 		}
-	} else {
-		memset(str_cmd, 0, 256);
-		snprintf(str_cmd, 256, "echo %s > %s", DEFAULT_UUID, FILE_PATH_UUID);
-		system_redef(str_cmd);
-		pFILE->len_uuid = SIZE_UUID;
-		memcpy(pFILE->uuid, DEFAULT_UUID, pFILE->len_uuid);
-		pFILE->uuid[SIZE_UUID] = 0x00;
 	}
-*/
+
+	// file 2
+	if (!csv_file_isExist(pFILE->heartbeat_cfg)) {
+		memset(str_cmd, 0, 512);
+		snprintf(str_cmd, 512, "echo \"0:3000\" > %s", pFILE->heartbeat_cfg);
+		system(str_cmd);
+	}
+
+	ret = csv_file_get_size(pFILE->heartbeat_cfg, &len_file);
+	if ((0 == ret)&&(len_file > 0)&&(len_file <= 12)) {
+		uint8_t *buf_file = (uint8_t *)malloc(len_file);
+		if (NULL != buf_file) {
+			int nget = 0;
+			char str_enable[12] = {0};
+			char str_period[12] = {0};
+			
+			ret = csv_file_read_data(pFILE->heartbeat_cfg, buf_file, len_file);
+
+			nget = sscanf((char *)buf_file, "%[^:]:%[^:]", str_enable, str_period);
+			if (2 == nget) {
+				if (atoi(str_enable)) {
+					pFILE->beat_enable = 1;
+				} else {
+					pFILE->beat_enable = 0;
+				}
+
+				if (atoi(str_period) > 100) { // at least 0.1s
+					pFILE->beat_period = atoi(str_period);
+				} else {
+					pFILE->beat_period = 3000;
+				}
+
+				//printf("heartbeat cfg : '%d:%d'.\n", pFILE->beat_enable, pFILE->beat_period);
+			}
+
+			free(buf_file);
+		}
+	}
+
 	return ret;
 }
 
@@ -267,10 +324,23 @@ int file_write_data(char *buf, FILE *fp, uint32_t size)
 
 int csv_file_init (void)
 {
-	struct csv_file_t *pFILE = &gCSV->file;
+	char *env_home = getenv("HOME");
+	char dir_cfg[256]={0};
+	struct csv_file_t *pFILE = &gFILE;
 
-	pFILE->file_birthday = FILE_PATH_BIRTHDAY;
-	pFILE->file_uuid = FILE_PATH_UUID;
+	memset(pFILE, 0, sizeof(struct csv_file_t));
+	memset(dir_cfg, 0, 256);
+
+	snprintf(dir_cfg, 256, "%s/%s", env_home, PATH_D3CAM_CFG);
+	snprintf(pFILE->udpserv, 256, "%s/%s", env_home, FILE_UDP_SERVER);
+	snprintf(pFILE->heartbeat_cfg, 256, "%s/%s", env_home, FILE_CFG_HEARTBEAT);
+
+	if (!csv_file_isExist(dir_cfg)) {
+		char str_cmd[256] = {0};
+		memset(str_cmd, 0, 256);
+		snprintf(str_cmd, 256, "mkdir -p %s", dir_cfg);
+		system(str_cmd);
+	}
 
 	return csv_file_get(pFILE);
 }

@@ -10,43 +10,31 @@ extern "C" {
 */
 #define CONFIG_APPLICATION			"d3cam"
 
-#define FILE_PATH_BIRTHDAY			("/home/rfid/birthday")	///< 设备生产年月日
-#define FILE_PATH_UUID				("/home/rfid/uuid")
-
-
 #define FILE_PATH_BACKTRACE			"backtrace.log"
 #define FILE_CAMERA_CALIBRATE		"camera_param.yml"
 
+// prefix : getenv("HOME")
+#define PATH_D3CAM_CFG				(".config/d3cam")
+#define FILE_UDP_SERVER				(".config/d3cam/udpserv")	// "127.0.0.1:36666"
+#define FILE_CFG_HEARTBEAT			(".config/d3cam/hbcfg")	// "1:3000"
 
 /** @}*/
 
-/**@name	本地部分文件内容长度
-* @{
-*/
-#define SIZE_BIRTHDAY				(8)
-#define SIZE_UUID					(8)
-/** @}*/
-
-
-#define SIZE_BIRTHDAY				(8)
-#define SIZE_UUID					(8)
-#define SIZE_SERIAL_NO				(16)
 
 /**@name	文件数据流结构体
 * @{
 */
 struct csv_file_t {
-	char				*file_birthday;			///< 设备生产年月文件路径
-	uint8_t				birthday[SIZE_BIRTHDAY+1];///< "20220530"年月日
-	uint32_t			len_birthday;			///< 正常8个字节
+	char				udpserv[256];
+	char				heartbeat_cfg[256];
 
-	char				*file_uuid;				///< sn 设备序列号文件路径
-	uint8_t				uuid[SIZE_UUID+1];		///< "CS000001"设备序列号内容
-	uint32_t			len_uuid;				///< 设备序列号长度// 正常8字节
+	uint8_t				beat_enable;
+	uint32_t			beat_period;
 
 };
 /** @}*/
 
+extern struct csv_file_t gFILE;
 
 /* 获取指定文件的大小 */
 extern int csv_file_get_size (const char *path, uint32_t *filesize);
@@ -66,6 +54,8 @@ extern int csv_file_write_data_append (const char *path, uint8_t *buf, uint32_t 
 extern int file_write_data (char * buf, FILE * fp, uint32_t size);
 
 extern uint8_t csv_file_isExist (char *path);
+
+extern uint32_t csv_file_modify_time (char *path);
 
 extern int csv_file_init (void);
 

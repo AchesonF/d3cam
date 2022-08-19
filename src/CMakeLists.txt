@@ -9,11 +9,17 @@ if (USING_WEB_SERVER)
 	set(LIB_WEB_SERVER "web")
 endif ()
 
-if (USING_POINTCLOUD)
-	add_definitions(-DUSING_POINTCLOUD3D=1)
-	add_subdirectory(libpointcloud3d)
+if (USING_SPNG)
+	add_subdirectory(libspng)
 
-	set(LIB_POINTCLOUD "pointcloud3d")
+	set(LIB_SPNG "spng")
+endif ()
+
+if (USING_ZIP)
+	add_definitions(-DZIP_SHARED)
+	add_subdirectory(libzip)
+
+	set(LIB_ZIP "zip")
 endif ()
 
 # add some include directories
@@ -44,11 +50,13 @@ target_link_libraries(${EXE_TARGET}
 #	sqlite3
 	dl
 	MvCameraControl
-	json-c
+	${libXML_LIBS}
 	opencv_world
 #	${OpenCV_LIBS}
 	${LIB_WEB_SERVER}
-	${LIB_POINTCLOUD}
+	measureJetson
+	${LIB_SPNG}
+	${LIB_ZIP}
 )
 
 
