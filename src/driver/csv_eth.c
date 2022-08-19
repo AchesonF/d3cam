@@ -497,6 +497,10 @@ static int csv_ether_route_refresh (struct csv_ifcfg_t *pIFCFG)
 
 	ret = csv_eth_gateway_get(pIFCFG->ifrname, pIFCFG->gw);
 	if (ret == 0) {
+		pIFCFG->update_gw = false;
+		if (pIFCFG->gateway != inet_addr(pIFCFG->gw)) {
+			pIFCFG->update_gw = true;
+		}
 		pIFCFG->gateway = inet_addr(pIFCFG->gw);
 	}
 
@@ -654,20 +658,29 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 			}
 		}
 
+		pETHER->update = false;
+
 		// ip address
 		ret = ioctl(fd, SIOCGIFADDR, (char *)&pIFCFG->buf_ifc[i]);
 		if (ret < 0) {
 			log_err("ERROR : ioctl 'SIOCGIFADDR' : '%s'.", pETHER->ifrname);
 			continue;
 		}
-		pETHER->IPAddr = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
+		if (pETHER->ipaddress != ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr) {
+			pETHER->update = true;
+		}
+		pETHER->ipaddress = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
 		strcpy(pETHER->ip, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
+
 
 		// netmask
 		ret = ioctl(fd, SIOCGIFNETMASK, (char *)&pIFCFG->buf_ifc[i]);
 		if (ret < 0) {
 			log_err("ERROR : ioctl 'SIOCGIFNETMASK' : '%s'.", pETHER->ifrname);
 			continue;
+		}
+		if (pETHER->netmask != ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr) {
+			pETHER->update = true;
 		}
 		pETHER->netmask = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
 		strcpy(pETHER->nm, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
@@ -677,6 +690,9 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 		if (ret < 0) {
 			log_err("ERROR : ioctl 'SIOCGIFBRDADDR' : '%s'.", pETHER->ifrname);
 			continue;
+		}
+		if (pETHER->broadcast != ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr) {
+			pETHER->update = true;
 		}
 		pETHER->broadcast = ((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr.s_addr;
 		strcpy(pETHER->bc, inet_ntoa(((struct sockaddr_in *)(&pIFCFG->buf_ifc[i].ifr_addr))->sin_addr));
@@ -688,10 +704,10 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 			continue;
 		}
 
-		memcpy(pETHER->MACAddr, (uint8_t *)pIFCFG->buf_ifc[i].ifr_hwaddr.sa_data, 6);
-		snprintf(pETHER->mac, 18, "%02X:%02X:%02X:%02X:%02X:%02X", pETHER->MACAddr[0],
-			pETHER->MACAddr[1],pETHER->MACAddr[2],pETHER->MACAddr[3],
-			pETHER->MACAddr[4],pETHER->MACAddr[5]);
+		memcpy(pETHER->macaddrress, (uint8_t *)pIFCFG->buf_ifc[i].ifr_hwaddr.sa_data, 6);
+		snprintf(pETHER->mac, 18, "%02X:%02X:%02X:%02X:%02X:%02X", pETHER->macaddrress[0],
+			pETHER->macaddrress[1],pETHER->macaddrress[2],pETHER->macaddrress[3],
+			pETHER->macaddrress[4],pETHER->macaddrress[5]);
 
 		//log_debug("'%s' : IP(%s) NM(%s) BC(%s) MAC(%s)", pETHER->ifrname, 
 		//	pETHER->ip, pETHER->nm, pETHER->bc, pETHER->mac);
@@ -704,38 +720,49 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 
 int csv_ether_refresh (uint8_t first)
 {
-	int ret = 0;
-	struct csv_ifcfg_t *pIFCFG = &gCSV->ifcfg;
-
-	ret = csv_ether_route_refresh(pIFCFG);
-	ret |= csv_ether_caddrs_refresh(pIFCFG, first);
-
-	return ret;
-}
-
-int csv_eth_init (void)
-{
-	int ret = 0, i = 0;
+	int ret = 0, i = 0;;
 	struct csv_ifcfg_t *pIFCFG = &gCSV->ifcfg;
 	struct csv_eth_t *pETHER = NULL;
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
-	pIFCFG->cnt_ifc = 0;
-
-	csv_ether_refresh(true);
+	ret = csv_ether_route_refresh(pIFCFG);
+	ret |= csv_ether_caddrs_refresh(pIFCFG, first);
 
 	for (i = 0 ; i < pIFCFG->cnt_ifc; i++) {
 		pETHER = &pIFCFG->ether[i];
-		if (pETHER->ether_ug) {
-			pGC->MacHi = (uint32_t)u8v_to_u16(&pETHER->MACAddr[0]);
-			pGC->MacLow = u8v_to_u32(&pETHER->MACAddr[2]);
-			pGC->CurrentIPAddress0 = pETHER->IPAddr;
+		if (pETHER->ether_ug && pETHER->update) {
+			pGC->MacHi = (uint32_t)u8v_to_u16(&pETHER->macaddrress[0]);
+			pGC->MacLow = u8v_to_u32(&pETHER->macaddrress[2]);
+			pGC->CurrentIPAddress0 = pETHER->ipaddress;
 			pGC->CurrentSubnetMask0 = pETHER->netmask;
+
+			if (!first) {
+				csv_gev_reg_value_update(REG_DeviceMACAddressHigh0, pGC->MacHi);
+				csv_gev_reg_value_update(REG_DeviceMACAddressLow0, pGC->MacLow);
+				csv_gev_reg_value_update(REG_CurrentIPAddress0, pGC->CurrentIPAddress0);
+				csv_gev_reg_value_update(REG_CurrentSubnetMask0, pGC->CurrentSubnetMask0);
+			}
 			break;
 		}
 	}
 
 	pGC->CurrentDefaultGateway0 = pIFCFG->gateway;
+	if (pIFCFG->update_gw && (!first)) {
+		csv_gev_reg_value_update(REG_CurrentDefaultGateway0, pGC->CurrentDefaultGateway0);
+	}
+
+	return ret;
+}
+
+int csv_ether_init (void)
+{
+	int ret = 0;
+	struct csv_ifcfg_t *pIFCFG = &gCSV->ifcfg;
+
+	pIFCFG->cnt_ifc = 0;
+	pIFCFG->update_gw = false;
+
+	ret = csv_ether_refresh(true);
 
 	return ret;
 }

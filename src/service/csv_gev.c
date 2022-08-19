@@ -595,6 +595,8 @@ static int csv_gvcp_discover_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 
 static int csv_gvcp_forceip_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 {
+	int ret = 0, i = 0;
+	uint8_t match_mac = false;
 	FORCEIP_CMD_MSG *pFIP = (FORCEIP_CMD_MSG *)(pGEV->rxbuf + sizeof(CMD_MSG_HEADER));
 
 	if (pFIP->nStaticIp == 0x00000000) {
@@ -602,25 +604,21 @@ static int csv_gvcp_forceip_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 		return 0;
 	}
 
-	struct csv_eth_t *pETH = &gCSV->eth;
+	struct csv_ifcfg_t *pIFCFG = &gCSV->ifcfg;
+	struct csv_eth_t *pETHER = NULL;
 
-	// TODO compare mac
+	for (i = 0; i < pIFCFG->cnt_ifc; i++) {
+		pETHER = &pIFCFG->ether[i];
+		if ((pFIP->nMacAddrHigh == u8v_to_u16(pETHER->macaddrress))
+		  &&(pFIP->nMacAddrLow == u8v_to_u16(&pETHER->macaddrress[2]))) {
+			match_mac = true;
+			break;
+		}
+	}
 
-	pETH->IPAddr = pFIP->nStaticIp;
-	pETH->netmask = pFIP->nStaticSubNetMask;
-	gCSV->ifcfg.gateway = pFIP->nStaticDefaultGateWay;
-
-	struct in_addr addr;
-	addr.s_addr = pETH->IPAddr;
-	strcpy(pETH->ip, inet_ntoa(addr));
-
-	addr.s_addr = gCSV->ifcfg.gateway;
-	strcpy(gCSV->ifcfg.gw, inet_ntoa(addr));
-
-	addr.s_addr = pETH->netmask;
-	strcpy(pETH->nm, inet_ntoa(addr));
-
-	// TODO effective ip
+	if (!match_mac) {
+		return -1;
+	}
 
 	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGEV->txbuf;
 
@@ -630,8 +628,18 @@ static int csv_gvcp_forceip_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	pAckHdr->nAckId				= htons(pHDR->nReqId);
 
 	pGEV->txlen = sizeof(ACK_MSG_HEADER) + pAckHdr->nLength;
+	ret = csv_gvcp_sendto(pGEV);
 
-	return csv_gvcp_sendto(pGEV);
+	if (NULL != pETHER) {
+		usleep(100000);
+		csv_eth_ipaddr_set(pETHER->ifrname, pFIP->nStaticIp);
+		csv_eth_mask_set(pETHER->ifrname, pFIP->nStaticSubNetMask);
+		csv_eth_gateway_set(pFIP->nStaticDefaultGateWay);
+		log_info("OK : forceip to IP(0x%08X), NM(0x%08X), GW(0x%08X)", 
+			pFIP->nStaticIp, pFIP->nStaticSubNetMask, pFIP->nStaticDefaultGateWay);
+	}
+
+	return ret;
 }
 
 static int csv_gvcp_packetresend_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
@@ -1279,7 +1287,7 @@ int csv_gvcp_trigger (struct csv_gev_t *pGEV)
 
 	for (i = 0; i < pIFCFG->cnt_ifc; i++) {
 		pETHER = &pIFCFG->ether[i];
-		if (pGEV->from_addr.sin_addr.s_addr == pETHER->IPAddr) {
+		if (pGEV->from_addr.sin_addr.s_addr == pETHER->ipaddress) {
 			//log_debug("gvcp msg from myself.");
 			return 0;
 		}
