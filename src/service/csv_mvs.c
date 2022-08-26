@@ -174,7 +174,7 @@ static int csv_mvs_camera_deinit (struct cam_spec_t *pCAM)
 		return -1;
 	}
 
-	log_info("CAM %s detach handle.", pCAM->sn);
+	log_info("CAM '%s' detach handle.", pCAM->sn);
 
 	if (pCAM->grabbing) {
 		nRet = MV_CC_StopGrabbing(pCAM->pHandle);

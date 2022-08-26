@@ -48,8 +48,9 @@ static void parse_event (const char *kmsg)
 		while (*kmsg++) ; // 以 \n 分割字段
 	}
 
-	log_debug("%s : %s %s %s", kuevent.action, kuevent.subsystem, 
-		kuevent.devname, kuevent.devtype, kuevent.product);
+	log_info("Action(%s) : subsystem(%s) devpath(%s) devname(%s) devtype(%s) product(%s) major(%d) minor(%d)", 
+		kuevent.action, kuevent.subsystem, kuevent.devpath, kuevent.devname, 
+		kuevent.devtype, kuevent.product, kuevent.major, kuevent.minor);
 	if ((strncasecmp(kuevent.devtype, "usb_device", 10) == 0)
 		&&(strncasecmp(kuevent.product, "2bdf", 4) == 0)) { // hik
 		if ((strncasecmp(kuevent.action, "add", 3) == 0)
