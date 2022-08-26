@@ -78,6 +78,22 @@ int csv_3d_calc (void)
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
+	if ((NULL == pPC->calibFile)
+		||(!csv_file_isExist(pPC->calibFile))) {
+		log_warn("ERROR : calibFile null.");
+		return -1;
+	}
+
+	if ((NULL == pPC->ImageSaveRoot)
+		||(!csv_file_isExist(pPC->ImageSaveRoot))) {
+		log_warn("ERROR : ImageSaveRoot null.");
+		return -1;
+	}
+
+	if (!pPC->initialized) {
+		csv_3d_init();
+	}
+
 	string imgRoot = string(pPC->ImageSaveRoot);
 	vector<vector<Mat>> imgGroupList;
 	loadSrcImageEx(imgRoot, imgGroupList);
@@ -115,7 +131,8 @@ int csv_3d_calc (void)
 	pMVS->lastTimestamp = utility_get_microsecond();
 	log_debug("depthimage take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
-#if 0
+#if 1
+	pMVS->firstTimestamp = utility_get_microsecond();
 	Mat out2 = Mat(out1.rows, out1.cols, CV_32FC3, point3D.data());
 	std::ofstream outfile(pPC->outFileXYZ);
 	for (int i = 0; i < out2.rows; i++) {
@@ -129,6 +146,8 @@ int csv_3d_calc (void)
 		}
 	}
 	outfile.close();
+	pMVS->lastTimestamp = utility_get_microsecond();
+	log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 #endif
 
 	pPC->groupPointCloud++;
@@ -153,9 +172,6 @@ int csv_3d_init (void)
 		return -1;
 	}
 
-	string version =  csvGetCreatePoint3DALgVersion();
-	cout << version << endl;
-
 	CsvCreatePoint3DParam param;
 	param.calibXml = string(pPC->calibFile);
 	param.modelPathFolder = "./";
@@ -163,7 +179,9 @@ int csv_3d_init (void)
 
 	if (!pPC->initialized) {
 		pPC->initialized = 1;
+		cout << "Create LUT Begin ..." << endl;
 		ret = CsvCreateLUT(param);
+		cout << "Create LUT Over" << endl;
 
 		if (ret) {
 			csv_xml_write_PointCloudParameters();

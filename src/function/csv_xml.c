@@ -601,7 +601,7 @@ static int csv_xml_PointCloudConfiguration (
 {
 	int ret = 0;
 	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[6];
+	struct key_value_pair_t key_pair[8];
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	xml_strlcpy(key_pair[nums].key, "ImageSaveRoot", MAX_KEY_SIZE);
