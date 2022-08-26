@@ -57,7 +57,7 @@ namespace CSV {
 	bool CsvCreatePoint3D(
 		const std::vector<std::vector<CsvImageSimple>>& inImages,
 		CsvImageSimple &depthImage,
-		std::vector<float> *point3D = NULL
+		std::vector<float> *point3D = nullptr
 		);
 
 	bool ParseDepthImage2PointCloud(CsvImageSimple &depthImage, std::vector<float> *point3D);

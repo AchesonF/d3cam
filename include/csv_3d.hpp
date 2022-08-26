@@ -5,8 +5,9 @@
 extern "C" {
 #endif
 
-extern int point_cloud_calc (void);
+extern int csv_3d_calc (void);
 
+extern int csv_3d_init (void);
 
 
 #ifdef __cplusplus

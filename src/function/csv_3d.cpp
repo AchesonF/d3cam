@@ -73,44 +73,10 @@ bool ParseDepthImage2CVMat(CsvImageSimple &depthImage, Mat& out) {
 }
 
 
-int point_cloud_calc(void)
+int csv_3d_calc (void)
 {
-	static uint8_t create_once = 0;
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
-
-	if ((NULL == pPC->calibFile)
-		||(!csv_file_isExist(pPC->calibFile))) {
-		log_warn("ERROR : calibFile null.");
-		return -1;
-	}
-
-	if ((NULL == pPC->ImageSaveRoot)
-		||(!csv_file_isExist(pPC->ImageSaveRoot))) {
-		log_warn("ERROR : ImageSaveRoot null.");
-		return -1;
-	}
-
-	string version =  csvGetCreatePoint3DALgVersion();
-	cout << version << endl;
-
-	CsvCreatePoint3DParam param;
-	param.calibXml = string(pPC->calibFile);
-	param.modelPathFolder = "./";
-	param.type = CSV_DataFormatType::FixPoint16bits;
-
-	if (!create_once) {
-		create_once = 1;
-		CsvCreateLUT(param);
-	}
-
-	CsvSetCreatePoint3DParam(param); //set params
-
-	CsvCreatePoint3DParam param0;
-	CsvGetCreatePoint3DParam(param0);
-	cout << "Calib XML : " << param0.calibXml << endl;
-	cout << "Model Path Root : " << param0.modelPathFolder << endl;
-	cout << param0.type << endl;
 
 	string imgRoot = string(pPC->ImageSaveRoot);
 	vector<vector<Mat>> imgGroupList;
@@ -147,7 +113,7 @@ int point_cloud_calc(void)
 	normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
 	imwrite(outfilepng, vdisp);
 	pMVS->lastTimestamp = utility_get_microsecond();
-	log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
+	log_debug("depthimage take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
 #if 0
 	Mat out2 = Mat(out1.rows, out1.cols, CV_32FC3, point3D.data());
@@ -170,7 +136,50 @@ int point_cloud_calc(void)
 	return 0;
 }
 
+int csv_3d_init (void)
+{
+	bool ret = false;
+	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
+	if ((NULL == pPC->calibFile)
+		||(!csv_file_isExist(pPC->calibFile))) {
+		log_warn("ERROR : calibFile null.");
+		return -1;
+	}
+
+	if ((NULL == pPC->ImageSaveRoot)
+		||(!csv_file_isExist(pPC->ImageSaveRoot))) {
+		log_warn("ERROR : ImageSaveRoot null.");
+		return -1;
+	}
+
+	string version =  csvGetCreatePoint3DALgVersion();
+	cout << version << endl;
+
+	CsvCreatePoint3DParam param;
+	param.calibXml = string(pPC->calibFile);
+	param.modelPathFolder = "./";
+	param.type = CSV_DataFormatType::FixPoint16bits;
+
+	if (!pPC->initialized) {
+		pPC->initialized = 1;
+		ret = CsvCreateLUT(param);
+
+		if (ret) {
+			csv_xml_write_PointCloudParameters();
+		}
+	}
+
+	CsvSetCreatePoint3DParam(param); //set params
+
+	CsvCreatePoint3DParam param0;
+	CsvGetCreatePoint3DParam(param0);
+	cout << "Calib XML : " << param0.calibXml << endl;
+	cout << "Model Path Root : " << param0.modelPathFolder << endl;
+	cout << param0.type << endl;
+
+	return 0;
+}
 
 
 #ifdef __cplusplus

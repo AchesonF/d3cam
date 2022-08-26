@@ -59,6 +59,7 @@ static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 	strcpy(pPC->outDepthImage, "depthImage.png");
 	pPC->groupPointCloud = 1;
 	pPC->enable = 0;
+	pPC->initialized = 0;
 
 	return 0;
 }

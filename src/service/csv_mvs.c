@@ -1116,7 +1116,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 		pthread_cond_broadcast(&gCSV->png.cond_png);
 	} else {
 		if (pPC->enable) {
-			ret = point_cloud_calc();
+			ret = csv_3d_calc();
 		} else {
 			pPC->groupPointCloud++;
 		}
@@ -1188,7 +1188,7 @@ int csv_mvs_cams_img_depth (struct csv_mvs_t *pMVS)
 		return -1;
 	}
 
-	ret = point_cloud_calc();
+	ret = csv_3d_calc();
 
 	return ret;
 }
@@ -1299,7 +1299,9 @@ static void *csv_mvs_loop (void *data)
 
 	int ret = 0, i = 0, timeo = 0;
 	struct csv_mvs_t *pMVS = (struct csv_mvs_t *)data;
-	//sleep(5);	// waiting for stable.
+
+	sleep(2);
+	csv_3d_init();
 
 	while (1) {
 		do {

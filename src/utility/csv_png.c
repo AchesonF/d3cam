@@ -142,7 +142,7 @@ static void *csv_png_loop (void *data)
 
 			if ((pPP->end_pc)&&(pPC->enable)) {
 				sleep(1);
-				point_cloud_calc();
+				csv_3d_calc();
 			}
 
 			if (NULL != pPP->payload) {
