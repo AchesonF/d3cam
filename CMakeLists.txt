@@ -46,8 +46,10 @@ message(STATUS "Compile for Machine: " ${ARCHITECTURE})
 
 if ("${ARCHITECTURE}" STREQUAL "aarch64")
 	set(DIR_LIBS_MVS "/opt/MVS/lib/aarch64/")
+	set(DIR_LIBS_3D "libs/")
 elseif ("${ARCHITECTURE}" STREQUAL "x86_64")
 	set(DIR_LIBS_MVS "/opt/MVS/lib/64/")
+	set(DIR_LIBS_3D "libs/x64/")
 else ()
 	message(FATAL_ERROR "Not support machine: " ${ARCHITECTURE})
 endif ()
@@ -67,7 +69,7 @@ set(libXML_LIBS "xml2")
 
 link_directories(
 	${DIR_LIBS_MVS}
-	"libs"
+	${DIR_LIBS_3D}
 )
 
 option(USING_WEB_SERVER "Add web thread" OFF)
