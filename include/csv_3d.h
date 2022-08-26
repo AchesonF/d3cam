@@ -1,5 +1,5 @@
-#ifndef __CSV_POINTCLOUD_HPP__
-#define __CSV_POINTCLOUD_HPP__
+#ifndef __CSV_POINTCLOUD_H__
+#define __CSV_POINTCLOUD_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,3 +15,4 @@ extern int csv_3d_init (void);
 #endif
 
 #endif /* __CSV_POINTCLOUD_HPP__ */
+

@@ -98,6 +98,7 @@ extern "C" {
 #include "csv_mvs.h"
 #include "csv_gev.h"
 #include "csv_cfg.h"
+#include "csv_3d.h"
 #include "csv_main.h"
 
 #include "log.h"
