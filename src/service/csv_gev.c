@@ -788,7 +788,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_PrimaryApplicationPort:
-		pGC->PrimaryPort = swap16((uint16_t)regData);
+		pGC->PrimaryPort = (uint16_t)regData;
 		break;
 
 	case REG_PrimaryApplicationIPAddress:
@@ -800,14 +800,14 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_MessageChannelPort:
-		pGC->MessagePort = swap16((uint16_t)regData);
-		pGEV->message.peer_addr.sin_port = swap16((uint16_t)regData);
+		pGC->MessagePort = (uint16_t)regData;
+		pGEV->message.peer_addr.sin_port = (uint16_t)regData;
 		break;
 
 	case REG_MessageChannelDestination:
 		if (0 != regData) {
-			pGC->MessageAddress = regData;
-			pGEV->message.peer_addr.sin_addr.s_addr = htonl(regData);
+			pGC->MessageAddress = swap32(regData);
+			pGEV->message.peer_addr.sin_addr.s_addr = swap32(regData);
 		} else {
 			ret = -1;
 		}
@@ -826,8 +826,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelPort0:
-		pGC->Channel[CAM_LEFT].Port = swap16((uint16_t)regData);
-		pGEV->stream[CAM_LEFT].peer_addr.sin_port = swap16((uint16_t)regData);
+		pGC->Channel[CAM_LEFT].Port = (uint16_t)regData;
+		pGEV->stream[CAM_LEFT].peer_addr.sin_port = (uint16_t)regData;
 		if (0 == pGC->Channel[CAM_LEFT].Port) {
 			pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_STOP;
 		} else {
@@ -853,8 +853,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	case REG_StreamChannelDestinationAddress0:
 		if (0 != regData) {
-			pGC->Channel[CAM_LEFT].Address = regData;
-			pGEV->stream[CAM_LEFT].peer_addr.sin_addr.s_addr = regData;
+			pGC->Channel[CAM_LEFT].Address = swap32(regData);
+			pGEV->stream[CAM_LEFT].peer_addr.sin_addr.s_addr = swap32(regData);
 		} else {
 			ret = -1;
 		}
@@ -865,8 +865,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelPort1:
-		pGC->Channel[CAM_RIGHT].Port = swap16((uint16_t)regData);
-		pGEV->stream[CAM_RIGHT].peer_addr.sin_port = swap16((uint16_t)regData);
+		pGC->Channel[CAM_RIGHT].Port = (uint16_t)regData;
+		pGEV->stream[CAM_RIGHT].peer_addr.sin_port = (uint16_t)regData;
 		if (0 == pGC->Channel[CAM_RIGHT].Port) {
 			pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_STOP;
 		} else {
@@ -892,8 +892,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	case REG_StreamChannelDestinationAddress1:
 		if (0 != regData) {
-			pGC->Channel[CAM_RIGHT].Address = regData;
-			pGEV->stream[CAM_RIGHT].peer_addr.sin_addr.s_addr = regData;
+			pGC->Channel[CAM_RIGHT].Address = swap32(regData);
+			pGEV->stream[CAM_RIGHT].peer_addr.sin_addr.s_addr = swap32(regData);
 		} else {
 			ret = -1;
 		}
