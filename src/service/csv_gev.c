@@ -1671,10 +1671,6 @@ static int csv_gvsp_cam_grab_thread (struct gvsp_stream_t *pStream)
 		return -1;
 	}
 
-	if (GRAB_STATUS_RUNNING == pStream->grab_status) {
-		return 0;
-	}
-
 	pthread_attr_t attr;
 
 	pthread_attr_init(&attr);

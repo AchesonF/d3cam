@@ -122,6 +122,9 @@ void csv_stop (int signum)
 	case SIGSTOP:
 		strSIG = toSTR(SIGSTOP);
 		break;
+	case SIGKILL:
+		strSIG = toSTR(SIGKILL);
+		break;
 	default:
 		strSIG = "htop maybe help";
 		break;
@@ -331,6 +334,7 @@ int csv_init (void)
 
 	signal(SIGINT, csv_stop);
 	signal(SIGSTOP, csv_stop);
+	signal(SIGKILL, csv_stop);
 
 	signal(SIGPIPE, SIG_IGN);
 
