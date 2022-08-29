@@ -977,7 +977,7 @@ extern "C" {
 #define REG_DLCValue							0x000a3000
 #define REG_FPNCValue							0x00080000
 #define REG_PRNUCValue							0x00088000
-FPNCXValue_BaseRegAddr							0x00300000
+#define REG_FPNCXValue							0x00300000
 #define REG_UserDataValue						0x00400000
 #define REG_ClampLevelValueALL					0x000a0000
 #define REG_UCCValue							0x00505000
@@ -1236,7 +1236,7 @@ FPNCXValue_BaseRegAddr							0x00300000
 
 
 //O R 536(max) Start of XML file ... size 1M bytes  [0x100000-0x1FFFFF]
-#define REG_StartOfXmlFile									(0x100000)
+#define REG_StartOfXmlFile									(0x00100000)
 
 
 

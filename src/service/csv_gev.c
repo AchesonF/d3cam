@@ -474,6 +474,12 @@ static void csv_gev_reg_enroll (void)
 		4, 0x00000000, NULL, toSTR(REG_StartofManufacturerSpecificRegisterSpace));
 
 	// add more from genicam xml.
+	csv_gev_reg_add(REG_AcquisitionStart, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0x00000000, NULL, toSTR(REG_AcquisitionStart));
+
+	csv_gev_reg_add(REG_AcquisitionStop, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0x00000000, NULL, toSTR(REG_AcquisitionStop));
+
 
 
 
@@ -522,7 +528,7 @@ int csv_gvcp_sendto (struct csv_gev_t *pGEV)
 		return 0;
 	}
 
-	log_hex(STREAM_UDP, pGEV->txbuf, pGEV->txlen, "gev sendto '%s:%d'",
+	log_hex(STREAM_UDP, pGEV->txbuf, pGEV->txlen, "gvcp send[%d] '%s:%d'", pGEV->txlen, 
 		inet_ntoa(pGEV->from_addr.sin_addr), htons(pGEV->from_addr.sin_port));
 
 	return sendto(pGEV->fd, pGEV->txbuf, pGEV->txlen, 0, 
@@ -847,12 +853,6 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 	case REG_StreamChannelPort0:
 		pGC->Channel[CAM_LEFT].Port = (uint16_t)regData;
 		pGEV->stream[CAM_LEFT].peer_addr.sin_port = (uint16_t)regData;
-		if (0 == pGC->Channel[CAM_LEFT].Port) {
-			pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_STOP;
-		} else {
-			pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_RUNNING;
-		}
-		pthread_cond_broadcast(&pGEV->stream[CAM_LEFT].cond_gevgrab);
 		break;
 
 	case REG_StreamChannelPacketSize0:
@@ -899,12 +899,6 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 	case REG_StreamChannelPort1:
 		pGC->Channel[CAM_RIGHT].Port = (uint16_t)regData;
 		pGEV->stream[CAM_RIGHT].peer_addr.sin_port = (uint16_t)regData;
-		if (0 == pGC->Channel[CAM_RIGHT].Port) {
-			pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_STOP;
-		} else {
-			pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_RUNNING;
-		}
-		pthread_cond_broadcast(&pGEV->stream[CAM_RIGHT].cond_gevgrab);
 		break;
 
 	case REG_StreamChannelPacketSize1:
@@ -969,6 +963,25 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StartofManufacturerSpecificRegisterSpace:
+		break;
+
+	case REG_AcquisitionStart:
+		if (0 != pGC->Channel[CAM_RIGHT].Port) {
+			pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_RUNNING;
+			pthread_cond_broadcast(&pGEV->stream[CAM_LEFT].cond_gevgrab);
+		}
+
+		if (0 != pGC->Channel[CAM_RIGHT].Port) {
+			pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_RUNNING;
+			pthread_cond_broadcast(&pGEV->stream[CAM_RIGHT].cond_gevgrab);
+		}
+		break;
+
+	case REG_AcquisitionStop:
+		pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_STOP;
+		pthread_cond_broadcast(&pGEV->stream[CAM_LEFT].cond_gevgrab);
+		pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_STOP;
+		pthread_cond_broadcast(&pGEV->stream[CAM_RIGHT].cond_gevgrab);
 		break;
 
 	default:
@@ -1126,7 +1139,7 @@ static int csv_gvcp_readmem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	}
 
 	if (NULL != desc) {
-		log_debug("MemR : %s", desc);
+		log_debug("MR : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_get(mem_addr, &info);
@@ -1204,7 +1217,7 @@ static int csv_gvcp_writemem_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	}
 
 	if (NULL != desc) {
-		log_debug("MemW : %s", desc);
+		log_debug("MW : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_set(mem_addr, info);
@@ -1344,7 +1357,7 @@ int csv_gvcp_trigger (struct csv_gev_t *pGEV)
 		return -1;
 	}
 
-	log_hex(STREAM_UDP, pGEV->rxbuf, pGEV->rxlen, "gev recvfrom '%s:%d'", 
+	log_hex(STREAM_UDP, pGEV->rxbuf, pGEV->rxlen, "gvcp recv[%d] '%s:%d'", pGEV->rxlen, 
 		inet_ntoa(pGEV->from_addr.sin_addr), htons(pGEV->from_addr.sin_port));
 
 	CMD_MSG_HEADER *pHeader = (CMD_MSG_HEADER *)pGEV->rxbuf;
@@ -1439,7 +1452,7 @@ int csv_gvcp_message_sendto (struct gev_message_t *pMsg, uint8_t *buf, uint32_t 
 		return 0;
 	}
 
-	log_hex(STREAM_UDP, buf, len, "msg sendto '%s:%d'",
+	log_hex(STREAM_UDP, buf, len, "msg send[%d] '%s:%d'", len, 
 		inet_ntoa(pMsg->peer_addr.sin_addr), htons(pMsg->peer_addr.sin_port));
 
 	return sendto(pMsg->fd, buf, len, 0, 
@@ -1729,8 +1742,8 @@ int csv_gvsp_sendto (int fd, struct sockaddr_in *peer, uint8_t *txbuf, uint32_t 
 		return 0;
 	}
 
-//	log_hex(STREAM_UDP, txbuf, txlen, "gvsp sendto '%s:%d'",
-//		inet_ntoa(peer.sin_addr), htons(peer.sin_port));
+//	log_hex(STREAM_UDP, txbuf, txlen, "gvsp send[%d] '%s:%d'", txlen, 
+//		inet_ntoa(peer->sin_addr), htons(peer->sin_port));
 
 	return sendto(fd, txbuf, txlen, 0, (struct sockaddr *)&peer, sizeof(struct sockaddr_in));
 }
