@@ -113,8 +113,9 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pGC->NumberofActiveLinks = 1;
 	pGC->GVSPCapability = GVSPCap_SP|GVSPCap_LB;
 	pGC->MessageCapability = MSGCap_SP;
-	pGC->GVCPCapability = GVCPCap_UN|GVCPCap_SN|GVCPCap_HD|GVCPCap_CAP
-		|GVCPCap_DD|GVCPCap_PR|GVCPCap_W|GVCPCap_C;
+	pGC->GVCPCapability = GVCPCap_UN|GVCPCap_SN|GVCPCap_HD|GVCPCap_LS //|GVCPCap_TD
+		|GVCPCap_ES|GVCPCap_PTP|GVCPCap_ES2|GVCPCap_SAC
+		|GVCPCap_A|GVCPCap_E|GVCPCap_PR|GVCPCap_W|GVCPCap_C;
 	pGC->HeartbeatTimeout = GVCP_HEARTBEAT_TIMEOUT;
 	pGC->TimestampTickFrequencyHigh = 0;
 	pGC->TimestampTickFrequencyLow = 0x3B9ACA00;
@@ -130,7 +131,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pGC->PhysicalLinkConfiguration = PLC_SL;
 	pGC->IEEE1588Status = 0;
 	pGC->ScheduledActionCommandQueueSize = 0;
-	pGC->ControlChannelPrivilege = (CCP_CSE|CCP_CA|CCP_EA);
+	pGC->ControlChannelPrivilege = 0;//(CCP_CSE|CCP_CA|CCP_EA);
 
 	pGC->PrimaryAddress = 0x00000000;
 	pGC->PrimaryPort = 0x0000;

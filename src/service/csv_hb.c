@@ -6,6 +6,10 @@ extern "C" {
 
 int csv_hb_close (int fd)
 {
+	if (gPdct.dis_daemon) {
+		return 0;
+	}
+
 	log_info("OK : close 'pipe' fd(%d).", fd);
 
 	return close(fd);

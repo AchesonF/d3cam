@@ -27,7 +27,7 @@ enum {
 // (#define INFO_MAX_BUFFER_SIZE 64) in CameraParams.h
 struct cam_spec_t {
 	uint8_t					opened;			///< 已打开
-	uint8_t					grabbing;		///< 正在抓图
+	uint8_t					grabbing;		///< 正在抓图。两个来源互斥：控制消息抓图/gev抓图
 	void					*pHandle;
 	char					sn[64];			///< 序列号
 	char					model[64];		///< 型号

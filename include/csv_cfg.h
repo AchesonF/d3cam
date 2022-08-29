@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define DEFAULT_GVSP_PACKETSIZE			(8164)
+#define DEFAULT_GVSP_PACKETSIZE			(1500)//(8164)
 
 struct dlp_cfg_t {
 	char				name[64];

@@ -516,13 +516,17 @@ static void csv_gev_reg_disroll (void)
 
 int csv_gvcp_sendto (struct csv_gev_t *pGEV)
 {
-	socklen_t from_len = sizeof(struct sockaddr_in);
+	if ((pGEV->fd <= 0)||(pGEV->txlen == 0)
+	  ||(0x00000000 == pGEV->from_addr.sin_addr.s_addr)
+	  ||(0x0000 == pGEV->from_addr.sin_port)) {
+		return 0;
+	}
 
 	log_hex(STREAM_UDP, pGEV->txbuf, pGEV->txlen, "gev sendto '%s:%d'",
 		inet_ntoa(pGEV->from_addr.sin_addr), htons(pGEV->from_addr.sin_port));
 
 	return sendto(pGEV->fd, pGEV->txbuf, pGEV->txlen, 0, 
-		(struct sockaddr *)&pGEV->from_addr, from_len);
+		(struct sockaddr *)&pGEV->from_addr, sizeof(struct sockaddr_in));
 }
 
 static int csv_gvcp_error_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR, uint16_t errcode)
@@ -725,6 +729,21 @@ static int csv_gvcp_readreg_ack (struct csv_gev_t *pGEV, CMD_MSG_HEADER *pHDR)
 	return csv_gvcp_sendto(pGEV);
 }
 
+static void csv_gvsp_lfsr_generator (uint8_t *data, uint32_t len)
+{
+	//uint16_t POLYNOMIAL = 0x8016;
+	//uint16_t INIT_VALUE = 0xFFFF;
+	uint16_t lfsr = 0xFFFF;
+	uint8_t *p = data;
+	uint32_t i = 0;
+
+	for (i = 0; i < len; i++) {
+		*p++ = lfsr & 0xFF;
+		lfsr = (lfsr >> 1) ^ (-(lfsr & 1)&0x8016);
+	}
+}
+
+
 static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 {
 	int ret = 0;
@@ -783,8 +802,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_ControlChannelPrivilege:
-		pGC->ControlChannelPrivilege = regData;
-		
+		// regData & 0xFFFF0000; // key
+		pGC->ControlChannelPrivilege = pGC->ControlChannelPrivilege | (regData&(CCP_CSE|CCP_CA|CCP_EA));
 		break;
 
 	case REG_PrimaryApplicationPort:
@@ -831,17 +850,30 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		if (0 == pGC->Channel[CAM_LEFT].Port) {
 			pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_STOP;
 		} else {
-			csv_gvsp_cam_grab_thread(CAM_LEFT);
+			pGEV->stream[CAM_LEFT].grab_status = GRAB_STATUS_RUNNING;
 		}
+		pthread_cond_broadcast(&pGEV->stream[CAM_LEFT].cond_gevgrab);
 		break;
 
 	case REG_StreamChannelPacketSize0:
 		if ((0 < (regData&0xFFFF))&&((regData&0xFFFF) < GVSP_PACKET_MAX_SIZE)) {
-			pGC->Channel[CAM_LEFT].Cfg_PacketSize = regData;
 			if (regData & SCPS_F) {
-				// todo test
+				// GVCPCap_TD
+				uint8_t *data = NULL;
+				uint16_t length = regData&0xFFFF;
+				data = malloc(length);
+				if (NULL == data) {
+					log_err("ERROR : malloc test packet");
+					return -1;
+				}
+				csv_gvsp_lfsr_generator(data, length);
+				csv_gvsp_packet_test(&pGEV->stream[CAM_LEFT], data, length);
+				free(data);
+
+				regData &= ~SCPS_F;
 			}
 
+			pGC->Channel[CAM_LEFT].Cfg_PacketSize = regData;
 		} else {
 			ret = -1;
 		}
@@ -870,17 +902,30 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		if (0 == pGC->Channel[CAM_RIGHT].Port) {
 			pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_STOP;
 		} else {
-			csv_gvsp_cam_grab_thread(CAM_RIGHT);
+			pGEV->stream[CAM_RIGHT].grab_status = GRAB_STATUS_RUNNING;
 		}
+		pthread_cond_broadcast(&pGEV->stream[CAM_RIGHT].cond_gevgrab);
 		break;
 
 	case REG_StreamChannelPacketSize1:
 		if ((0 < (regData&0xFFFF))&&((regData&0xFFFF) < GVSP_PACKET_MAX_SIZE)) {
-			pGC->Channel[CAM_RIGHT].Cfg_PacketSize = regData;
 			if (regData & SCPS_F) {
-				// todo test
+				// GVCPCap_TD
+				uint8_t *data = NULL;
+				uint16_t length = regData&0xFFFF;
+				data = malloc(length);
+				if (NULL == data) {
+					log_err("ERROR : malloc test packet");
+					return -1;
+				}
+				csv_gvsp_lfsr_generator(data, length);
+				csv_gvsp_packet_test(&pGEV->stream[CAM_RIGHT], data, length);
+				free(data);
+
+				regData &= ~SCPS_F;
 			}
 
+			pGC->Channel[CAM_RIGHT].Cfg_PacketSize = regData;
 		} else {
 			ret = -1;
 		}
@@ -1386,6 +1431,21 @@ static int csv_gvcp_server_close (struct csv_gev_t *pGEV)
 	return 0;
 }
 
+int csv_gvcp_message_sendto (struct gev_message_t *pMsg, uint8_t *buf, uint32_t len)
+{
+	if ((pMsg->fd <= 0)||(len == 0)
+	  ||(0x00000000 == pMsg->peer_addr.sin_addr.s_addr)
+	  ||(0x0000 == pMsg->peer_addr.sin_port)) {
+		return 0;
+	}
+
+	log_hex(STREAM_UDP, buf, len, "msg sendto '%s:%d'",
+		inet_ntoa(pMsg->peer_addr.sin_addr), htons(pMsg->peer_addr.sin_port));
+
+	return sendto(pMsg->fd, buf, len, 0, 
+		(struct sockaddr *)&pMsg->peer_addr, sizeof(struct sockaddr_in));
+}
+
 static int csv_gvcp_message_open (struct gev_message_t *pMsg)
 {
 	int ret = 0;
@@ -1492,43 +1552,29 @@ static int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream,
 	return 0;
 }
 
-static void *csv_gvsp_cam_grab_loop (void *pData)
+static int csv_gvsp_cam_grab_running (struct gvsp_stream_t *pStream, struct cam_spec_t *pCAM)
 {
-	if (NULL == pData) {
-		goto exit_thr;
-	}
-
-	struct gvsp_stream_t *pStream = (struct gvsp_stream_t *)pData;
-
-	if (pStream->idx >= TOTAL_CAMS) {
-		goto exit_thr;
-	}
-
 	int nRet = MV_OK;
-	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAM = &pMVS->Cam[pStream->idx];
 
-	if (pCAM->grabbing) {
-		goto exit_thr;
+	if ((!pCAM->opened)||(NULL == pCAM->pHandle)||pCAM->grabbing) {
+		return -1;
 	}
 
-	if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
-		goto exit_thr;
+	if (!pCAM->grabbing) {
+		nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_OFF);
+		if (MV_OK != nRet) {
+			log_warn("ERROR : SetEnumValue 'TriggerMode' errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
+		}
+
+		nRet = MV_CC_StartGrabbing(pCAM->pHandle);
+		if (MV_OK != nRet) {
+			log_warn("ERROR : StartGrabbing errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
+			return -1;
+		}
+
+		pCAM->grabbing = true;
 	}
 
-	nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_OFF);
-	if (MV_OK != nRet) {
-		log_warn("ERROR : SetEnumValue 'TriggerMode' errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
-	}
-
-	nRet = MV_CC_StartGrabbing(pCAM->pHandle);
-	if (MV_OK != nRet) {
-		log_warn("ERROR : StartGrabbing errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
-		goto exit_thr;
-	}
-
-	pCAM->grabbing = true;
-	pStream->grab_status = GRAB_STATUS_RUNNING;
 	pStream->block_id64 = 1;
 
 	while (1) {
@@ -1548,41 +1594,82 @@ static void *csv_gvsp_cam_grab_loop (void *pData)
 			pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
 		csv_gvsp_cam_grab_fetch(pStream, pCAM->imgData, pCAM->sizePayload.nCurValue, &pCAM->imgInfo);
+
 	}
 
-	nRet = MV_CC_StopGrabbing(pCAM->pHandle);
-	if (MV_OK != nRet) {
-		log_warn("ERROR : CAM '%s' StopGrabbing errcode[0x%08X]:'%s'.", 
-				pCAM->sn, nRet, strMsg(nRet));
+	if (pCAM->grabbing) {
+		nRet = MV_CC_StopGrabbing(pCAM->pHandle);
+		if (MV_OK != nRet) {
+			log_warn("ERROR : CAM '%s' StopGrabbing errcode[0x%08X]:'%s'.", 
+					pCAM->sn, nRet, strMsg(nRet));
+		}
+
+		nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_ON);
+		if (MV_OK != nRet) {
+			log_warn("ERROR : SetEnumValue 'TriggerMode' errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
+		}
+
+		pCAM->grabbing = false;
 	}
 
-	nRet = MV_CC_SetEnumValue(pCAM->pHandle, "TriggerMode", MV_TRIGGER_MODE_ON);
-	if (MV_OK != nRet) {
-		log_warn("ERROR : SetEnumValue 'TriggerMode' errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
+	return 0;
+}
+
+static void *csv_gvsp_cam_grab_loop (void *pData)
+{
+	if (NULL == pData) {
+		goto exit_thr;
+	}
+
+	struct gvsp_stream_t *pStream = (struct gvsp_stream_t *)pData;
+
+	if (pStream->idx >= TOTAL_CAMS) {
+		goto exit_thr;
+	}
+
+	int ret = 0, nRet = MV_OK;
+	struct timeval now;
+	struct timespec timeo;
+
+	while (1) {
+		gettimeofday(&now, NULL);
+		timeo.tv_sec = now.tv_sec + 5;
+		timeo.tv_nsec = now.tv_usec * 1000;
+
+		ret = pthread_cond_timedwait(&pStream->cond_gevgrab, &pStream->mutex_gevgrab, &timeo);
+		if (ret == ETIMEDOUT) {
+			// use timeo as a block and than retry.
+		}
+
+		sleep(1);	// add dealy to ignore quickly start_stop
+
+		if (GRAB_STATUS_RUNNING == pStream->grab_status) {
+			nRet = csv_gvsp_cam_grab_running(pStream, &gCSV->mvs.Cam[pStream->idx]);
+			if (nRet == -1) {
+				log_warn("ERROR : gev grab running failed.");
+				pStream->grab_status = GRAB_STATUS_NONE;
+			}
+		}
 	}
 
 exit_thr:
 
-	pCAM->grabbing = false;
-	pStream->thr_grab = 0;
-	pStream->grab_status = GRAB_STATUS_STOP;
+	pStream->thr_gevgrab = 0;
 
-	log_info("OK : exit pthread '%s'", pStream->name_egvgrab);
+	log_warn("WARN : exit pthread '%s'", pStream->name_gevgrab);
 
 	pthread_exit(NULL);
 
 	return NULL;
 }
 
-int csv_gvsp_cam_grab_thread (uint8_t idx)
+static int csv_gvsp_cam_grab_thread (struct gvsp_stream_t *pStream)
 {
 	int ret = -1;
 
-	if (idx >= TOTAL_CAMS) {
+	if (NULL == pStream) {
 		return -1;
 	}
-
-	struct gvsp_stream_t *pStream = &gCSV->gev.stream[idx];
 
 	if (GRAB_STATUS_RUNNING == pStream->grab_status) {
 		return 0;
@@ -1593,24 +1680,78 @@ int csv_gvsp_cam_grab_thread (uint8_t idx)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-	ret = pthread_create(&pStream->thr_grab, &attr, csv_gvsp_cam_grab_loop, (void *)pStream);
+    if (pthread_mutex_init(&pStream->mutex_gevgrab, NULL) != 0) {
+		log_err("ERROR : mutex '%s'.", pStream->name_gevgrab);
+        return -1;
+    }
+
+    if (pthread_cond_init(&pStream->cond_gevgrab, NULL) != 0) {
+		log_err("ERROR : cond '%s'.", pStream->name_gevgrab);
+        return -1;
+    }
+
+	ret = pthread_create(&pStream->thr_gevgrab, &attr, csv_gvsp_cam_grab_loop, (void *)pStream);
 	if (ret < 0) {
-		log_err("ERROR : create pthread '%s'.", pStream->name_egvgrab);
+		log_err("ERROR : create pthread '%s'.", pStream->name_gevgrab);
 		pStream->grab_status = GRAB_STATUS_NONE;
 		return -1;
 	} else {
-		log_info("OK : create pthread '%s' @ (%p).", pStream->name_egvgrab, pStream->thr_grab);
+		log_info("OK : create pthread '%s' @ (%p).", pStream->name_gevgrab, pStream->thr_gevgrab);
 	}
 
 	return ret;
 }
 
+static int csv_gvsp_cam_grab_thread_cancel (struct gvsp_stream_t *pStream)
+{
+	int ret = 0;
+	void *retval = NULL;
+
+	if (pStream->thr_gevgrab <= 0) {
+		return 0;
+	}
+
+	ret = pthread_cancel(pStream->thr_gevgrab);
+	if (ret != 0) {
+		log_err("ERROR : pthread_cancel '%s'.", pStream->name_gevgrab);
+	} else {
+		log_info("OK : cancel pthread '%s' (%p).", pStream->name_gevgrab, pStream->thr_gevgrab);
+	}
+
+	ret = pthread_join(pStream->thr_gevgrab, &retval);
+
+	pStream->thr_gevgrab = 0;
+	pStream->grab_status = GRAB_STATUS_NONE;
+
+	return ret;
+}
 
 int csv_gvsp_sendto (int fd, struct sockaddr_in *peer, uint8_t *txbuf, uint32_t txlen)
 {
-	socklen_t size_len = sizeof(struct sockaddr_in);
+	if ((fd <= 0)||(txlen == 0)
+	  ||(0x00000000 == peer->sin_addr.s_addr)||(0x0000 == peer->sin_port)) {
+		return 0;
+	}
 
-	return sendto(fd, txbuf, txlen, 0, (struct sockaddr *)&peer, size_len);
+//	log_hex(STREAM_UDP, txbuf, txlen, "gvsp sendto '%s:%d'",
+//		inet_ntoa(peer.sin_addr), htons(peer.sin_port));
+
+	return sendto(fd, txbuf, txlen, 0, (struct sockaddr *)&peer, sizeof(struct sockaddr_in));
+}
+
+int csv_gvsp_packet_test (struct gvsp_stream_t *pStream, 
+	uint8_t *pData, uint32_t length)
+{
+    GVSP_TEST_PACKET *pHdr = (GVSP_TEST_PACKET *)pStream->bufSend;
+    pHdr->dontcare16		= htons(0);
+	pHdr->packetid16		= htons(0);
+    pHdr->dontcare32		= htonl(0);
+
+	memcpy(pStream->bufSend+sizeof(GVSP_TEST_PACKET), pData, length);
+
+    pStream->lenSend = sizeof(GVSP_TEST_PACKET) + length;
+
+	return csv_gvsp_sendto(pStream->fd, &pStream->peer_addr, pStream->bufSend, pStream->lenSend);
 }
 
 static int csv_gvsp_packet_leader (struct gvsp_stream_t *pStream, 
@@ -1660,7 +1801,7 @@ static int csv_gvsp_packet_payload (struct gvsp_stream_t *pStream,
 	return csv_gvsp_sendto(pStream->fd, &pStream->peer_addr, pStream->bufSend, pStream->lenSend);
 }
 
-int csv_gvsp_packet_trailer (struct gvsp_stream_t *pStream, 
+static int csv_gvsp_packet_trailer (struct gvsp_stream_t *pStream, 
 	struct image_info_t *pIMG)
 {
     GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
@@ -1684,7 +1825,7 @@ int csv_gvsp_packet_trailer (struct gvsp_stream_t *pStream,
 static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream, 
 	struct image_info_t *pIMG)
 {
-	if ((NULL == pStream)||(NULL == pIMG)) {
+	if ((NULL == pStream)||(NULL == pIMG)||(pStream->idx >= TOTAL_CAMS)) {
 		return -1;
 	}
 
@@ -1697,6 +1838,10 @@ static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream,
 	ret = csv_gvsp_packet_leader(pStream, pIMG);
 
 	for (pData = pIMG->payload; pData < pIMG->payload+pIMG->length; ) {
+		if (pStream->grab_status != GRAB_STATUS_RUNNING) {
+			return -1;
+		}
+
 		pStream->packet_id32++;
 		ret = csv_gvsp_packet_payload(pStream, pData, 
 			(pData+packsize < pIMG->payload+pIMG->length) ? packsize : (pIMG->length%packsize));
@@ -1704,10 +1849,6 @@ static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream,
 
 		if (pCH->PacketDelay/1000) {
 			usleep(pCH->PacketDelay/1000);
-		}
-
-		if (pStream->grab_status != GRAB_STATUS_RUNNING) {
-			return -1;
 		}
 	}
 
@@ -1926,7 +2067,6 @@ static int csv_gvsp_client_thread_cancel (struct gvsp_stream_t *pStream)
 	return ret;
 }
 
-
 int csv_gev_init (void)
 {
 	int ret = 0, i = 0;
@@ -1947,10 +2087,10 @@ int csv_gev_init (void)
 
 	pGEV->stream[CAM_LEFT].name = "stream_"toSTR(CAM_LEFT);
 	pGEV->stream[CAM_LEFT].name_stream = "thr_"toSTR(CAM_LEFT);
-	pGEV->stream[CAM_LEFT].name_egvgrab = "grab_"toSTR(CAM_LEFT);
+	pGEV->stream[CAM_LEFT].name_gevgrab = "grab_"toSTR(CAM_LEFT);
 	pGEV->stream[CAM_RIGHT].name = "stream_"toSTR(CAM_RIGHT);
 	pGEV->stream[CAM_RIGHT].name_stream = "thr_"toSTR(CAM_RIGHT);
-	pGEV->stream[CAM_RIGHT].name_egvgrab = "grab_"toSTR(CAM_RIGHT);
+	pGEV->stream[CAM_RIGHT].name_gevgrab = "grab_"toSTR(CAM_RIGHT);
 	for (i = 0; i < TOTAL_CAMS; i++) {
 		pStream = &pGEV->stream[i];
 		pStream->idx = i;
@@ -1960,6 +2100,7 @@ int csv_gev_init (void)
 		pStream->packet_id32 = 0;
 		INIT_LIST_HEAD(&pStream->head_stream.list);
 		ret |= csv_gvsp_client_thread(pStream);
+		ret |= csv_gvsp_cam_grab_thread(pStream);
 	}
 
 	pMsg->fd = -1;
@@ -1982,6 +2123,7 @@ int csv_gev_deinit (void)
 
 	for (i = 0; i < TOTAL_CAMS; i++) {
 		pStream = &pGEV->stream[i];
+		ret |= csv_gvsp_cam_grab_thread_cancel(pStream);
 		ret |= csv_gvsp_client_thread_cancel(pStream);
 	}
 

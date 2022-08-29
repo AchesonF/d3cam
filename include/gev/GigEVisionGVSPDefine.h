@@ -290,7 +290,11 @@ typedef struct tagImageDataTrailer {
 #endif  // (GIGEVISION_MAJOR_VERSION == 2)
 
 
-
+typedef struct _GVSP_TEST_PACKET_ {
+    uint16_t			dontcare16;					// 16bits
+    uint16_t			packetid16	;				// = 0
+	uint32_t			dontcare32;					// 32
+} GVSP_TEST_PACKET;
 
 
 // GVSP packet format

@@ -86,12 +86,14 @@ struct gvsp_stream_t {
 	uint32_t				lenSend;
 
 	const char				*name_stream;	///< 流
-	pthread_t				thr_stream;		///< ID
-	pthread_mutex_t			mutex_stream;	///< 锁
-	pthread_cond_t			cond_stream;	///< 条件
+	pthread_t				thr_stream;
+	pthread_mutex_t			mutex_stream;
+	pthread_cond_t			cond_stream;
 
-	const char				*name_egvgrab;		///< 抓图
-	pthread_t				thr_grab;
+	const char				*name_gevgrab;	///< 抓图
+	pthread_t				thr_gevgrab;
+	pthread_mutex_t			mutex_gevgrab;
+	pthread_cond_t			cond_gevgrab;
 };
 
 struct gev_message_t {
@@ -126,8 +128,8 @@ extern int csv_gev_reg_value_update (uint32_t addr, uint32_t value);
 
 extern int csv_gvcp_trigger (struct csv_gev_t *pGEV);
 
-
-extern int csv_gvsp_cam_grab_thread (uint8_t idx);
+extern int csv_gvsp_packet_test (struct gvsp_stream_t *pStream, 
+	uint8_t *pData, uint32_t length);
 
 extern int csv_gev_init (void);
 
