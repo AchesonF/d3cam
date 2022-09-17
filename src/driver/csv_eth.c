@@ -298,7 +298,7 @@ int csv_eth_gateway_get (char *ifrname, char *gate)
 		ret = fscanf(fp, "%32s%x%x%X%d%d%d%x%d%d%d\n", devname, &d, &g, 
 			&flgs, &ref, &use, &metric, &m, &mtu, &win, &ir);
 		if (ret != 11) {
-			log_warn("ERROR : fscanf not match.");
+			//log_warn("ERROR : fscanf not match.");
 			err = -1;
 			goto err_exit;
 		}
@@ -591,6 +591,7 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 {
 	int fd = -1, ret = 0, i = 0;
 	uint8_t nCaddr = 0;
+	uint8_t found_ug = false;
 	struct csv_eth_t *pETHER = NULL;
 
 	// for more help : "man netdevice"
@@ -626,6 +627,7 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 		strcpy(pETHER->ifrname, pIFCFG->buf_ifc[i].ifr_name);
 		if (strcmp(pETHER->ifrname, pIFCFG->ifrname) == 0) {
 			pETHER->ether_ug = true;
+			found_ug = true;
 			if (first) {
 				log_info("default gateway '%s'", pETHER->ifrname);
 			}
@@ -716,6 +718,12 @@ static int csv_ether_caddrs_refresh (struct csv_ifcfg_t *pIFCFG, uint8_t first)
 
 		//log_debug("'%s' : IP(%s) NM(%s) BC(%s) MAC(%s)", pETHER->ifrname, 
 		//	pETHER->ip, pETHER->nm, pETHER->bc, pETHER->mac);
+	}
+
+	if (first && !found_ug) {			// 首次调用但是找不到系统默认的网关
+		if (NULL != pETHER) {
+			pETHER->ether_ug = true;	// 取最后一个网口为默认网关
+		}
 	}
 
 	close(fd);
