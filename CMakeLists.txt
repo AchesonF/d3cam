@@ -102,6 +102,7 @@ endif ()
 include_directories(
 	"include"
 	"include/mvs"
+	"include/galaxy"
 	"include/gev"
 	"include/so"
 	"include/3d"

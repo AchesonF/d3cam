@@ -50,6 +50,7 @@ target_link_libraries(${EXE_TARGET}
 #	sqlite3
 	dl
 	MvCameraControl
+	gxiapi
 	${libXML_LIBS}
 	opencv_world
 #	${OpenCV_LIBS}
