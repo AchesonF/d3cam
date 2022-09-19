@@ -22,6 +22,14 @@ if (USING_ZIP)
 	set(LIB_ZIP "zip")
 endif ()
 
+if (USING_HK_CAMS)
+	set(LIB_HK_CAMS "MvCameraControl")
+endif ()
+
+if (USING_GX_CAMS)
+	set(LIB_GX_CAMS "gxiapi")
+endif ()
+
 # add some include directories
 #include_directories()
 
@@ -49,8 +57,8 @@ target_link_libraries(${EXE_TARGET}
 	pthread
 #	sqlite3
 	dl
-	MvCameraControl
-	gxiapi
+	${LIB_HK_CAMS}
+	${LIB_GX_CAMS}
 	${libXML_LIBS}
 	opencv_world
 #	${OpenCV_LIBS}
