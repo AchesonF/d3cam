@@ -10,58 +10,25 @@
 #define GX_GALAXY_H
 
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//  Type definitions. The following types are defined in the standard C library header 
-//  stdint.h. This file is not included in the previous version of Microsoft's compilation
-//  platform VS 2010, so type definitions need to be redefined here.
-////////////////////////////////////////////////////////////////////////////////////////////
-
-#if defined(_WIN32)
-    #ifndef _STDINT_H 
-        #ifdef _MSC_VER // Microsoft compiler
-            #if _MSC_VER < 1600
-                typedef __int8            int8_t;
-                typedef __int16           int16_t;
-                typedef __int32           int32_t;
-                typedef __int64           int64_t;
-                typedef unsigned __int8   uint8_t;
-                typedef unsigned __int16  uint16_t;
-                typedef unsigned __int32  uint32_t;
-                typedef unsigned __int64  uint64_t;
-            #else
-                // In Visual Studio 2010 is stdint.h already included
-                #include <stdint.h>
-            #endif
-        #else
-            // Not a Microsoft compiler
-            #include <stdint.h>
-        #endif
-    #endif 
-#else
-    // Linux
-    #include <stdint.h>
-#endif
-
-
 //------------------------------------------------------------------------------
 //  Operating System Platform Definition
 //------------------------------------------------------------------------------
 
 #include <stddef.h>
 
-#ifdef WIN32
-    #ifndef _WIN32
-        #define _WIN32
+// remove the None #define conflicting with GenApi
+#undef None
+#if __GNUC__>=4
+    #define GX_DLLIMPORT   __attribute__((visibility("default")))
+    #define GX_DLLEXPORT   __attribute__((visibility("default")))
+
+    #if defined(__i386__)
+        #define GX_STDC __attribute__((stdcall))
+        #define GX_CDEC __attribute__((cdecl))
+    #else
+        #define GX_STDC 
+        #define GX_CDEC 
     #endif
-#endif
-
-#ifdef _WIN32
-    #include <Windows.h>
-    #define GX_DLLIMPORT   __declspec(dllimport)
-    #define GX_DLLEXPORT   __declspec(dllexport)
-
-    #define GX_STDC __stdcall
-    #define GX_CDEC __cdecl
 
     #if defined(__cplusplus)
         #define GX_EXTC extern "C"
@@ -69,28 +36,7 @@
         #define GX_EXTC
     #endif
 #else
-    // remove the None #define conflicting with GenApi
-    #undef None
-    #if __GNUC__>=4
-        #define GX_DLLIMPORT   __attribute__((visibility("default")))
-        #define GX_DLLEXPORT   __attribute__((visibility("default")))
-
-        #if defined(__i386__)
-            #define GX_STDC __attribute__((stdcall))
-            #define GX_CDEC __attribute__((cdecl))
-        #else
-            #define GX_STDC 
-            #define GX_CDEC 
-        #endif
-
-        #if defined(__cplusplus)
-            #define GX_EXTC extern "C"
-        #else
-            #define GX_EXTC
-        #endif
-    #else
-        #error Unknown compiler
-    #endif
+    #error Unknown compiler
 #endif
 
 #ifdef GX_GALAXY_DLL
@@ -2355,7 +2301,7 @@ GX_API GXExportConfigFile (GX_DEV_HANDLE hDevice, const char *pszFilePath);
             The errors that are not covered above please reference GX_STATUS_LIST.
 */
 //----------------------------------------------------------------------------------
-GX_API GXImportConfigFile (GX_DEV_HANDLE hDevice, const char *pszFilePath, bool bVerify = false);
+GX_API GXImportConfigFile (GX_DEV_HANDLE hDevice, const char *pszFilePath, bool bVerify);
 
 //----------------------------------------------------------------------------------
 /**

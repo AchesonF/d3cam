@@ -7,6 +7,15 @@ extern "C" {
 
 #define DEFAULT_GVSP_PACKETSIZE			(1500)//(8164)
 
+enum {
+	CAM_LEFT				= (0),
+	CAM_RIGHT				= (1),
+//	CAM_FRONT				= (2),
+//	CAM_BACK				= (3),
+
+	TOTAL_CAMS
+};
+
 struct dlp_cfg_t {
 	char				name[64];
 	float				rate;

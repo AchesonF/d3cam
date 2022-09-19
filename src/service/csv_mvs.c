@@ -166,7 +166,7 @@ char *strMsg (int errcode)
 	return str_err;
 }
 
-static int csv_mvs_camera_deinit (struct cam_spec_t *pCAM)
+static int csv_mvs_camera_deinit (struct cam_hk_spec_t *pCAM)
 {
 	int nRet = MV_OK;
 
@@ -214,7 +214,7 @@ static int csv_mvs_cameras_init (struct csv_mvs_t *pMVS)
 	int nRet = MV_OK, i = 0;
 	MV_CC_DEVICE_INFO_LIST *pDevList = &pMVS->stDeviceList;
 	MV_CC_DEVICE_INFO *pDevInfo = NULL;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pDevInfo = pDevList->pDeviceInfo[i];
@@ -352,7 +352,7 @@ static int csv_mvs_cameras_search (struct csv_mvs_t *pMVS)
 	int nRet = 0, i = 0;
 	MV_CC_DEVICE_INFO_LIST *pDevList = &pMVS->stDeviceList;
 	MV_CC_DEVICE_INFO *pDevInfo = NULL;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
 	pMVS->cnt_mvs = 0;
 	memset(pDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
@@ -434,7 +434,7 @@ int csv_mvs_cams_reset (struct csv_mvs_t *pMVS)
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -464,7 +464,7 @@ int csv_mvs_cams_open (struct csv_mvs_t *pMVS)
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -505,7 +505,7 @@ int csv_mvs_cams_close (struct csv_mvs_t *pMVS)
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
 	for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -537,7 +537,7 @@ int csv_mvs_cams_exposure_get (struct csv_mvs_t *pMVS)
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -570,7 +570,7 @@ int csv_mvs_cams_exposure_set (struct csv_mvs_t *pMVS, float fExposureTime)
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -610,7 +610,7 @@ int csv_mvs_cams_gain_get (struct csv_mvs_t *pMVS)
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -640,7 +640,7 @@ int csv_mvs_cams_gain_set (struct csv_mvs_t *pMVS, float fGain)
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -678,7 +678,7 @@ int csv_mvs_cams_name_set (struct csv_mvs_t *pMVS, char *camSNum, char *strValue
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -713,7 +713,7 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 {
 	int nRet = MV_OK, i = 0;
 	int errNum = 0;
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 
     for (i = 0; i < pMVS->cnt_mvs; i++) {
 		pCAM = &pMVS->Cam[i];
@@ -940,7 +940,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 	int nFrames = 23;
 	int idx = 0;
 	char img_name[256] = {0};
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
@@ -1053,7 +1053,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	int idx = 1;
 	uint8_t end_pc = 0;
 	char img_name[256] = {0};
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
@@ -1131,7 +1131,7 @@ int csv_mvs_cams_img_depth (struct csv_mvs_t *pMVS)
 	int idx = 1;
 	uint8_t end_pc = 0;
 	char img_name[256] = {0};
-	struct cam_spec_t *pCAM = NULL;
+	struct cam_hk_spec_t *pCAM = NULL;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 

@@ -47,6 +47,8 @@ static void csv_deinit (void)
 
 	csv_mvs_deinit();
 
+	csv_gx_deinit();
+
 	if (gCSV != NULL) {
 		free(gCSV);
 	}
@@ -318,6 +320,8 @@ int csv_init (void)
 	csv_uevent_init();
 
 	csv_mvs_init();
+
+	csv_gx_init();
 
 	csv_png_init();
 

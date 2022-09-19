@@ -9,15 +9,6 @@ extern "C" {
 #define NAME_THREAD_GRAB		("'thr_grab'")
 
 enum {
-	CAM_LEFT				= (0),
-	CAM_RIGHT				= (1),
-//	CAM_FRONT				= (2),
-//	CAM_BACK				= (3),
-
-	TOTAL_CAMS
-};
-
-enum {
 	GRAB_DEMARCATE			= (0),
 	GRAB_HIGHSPEED			= (1),
 
@@ -25,7 +16,7 @@ enum {
 };
 
 // (#define INFO_MAX_BUFFER_SIZE 64) in CameraParams.h
-struct cam_spec_t {
+struct cam_hk_spec_t {
 	uint8_t					opened;			///< 已打开
 	uint8_t					grabbing;		///< 正在抓图。两个来源互斥：控制消息抓图/gev抓图
 	void					*pHandle;
@@ -42,7 +33,7 @@ struct csv_mvs_t {
 	uint8_t					cnt_mvs;		///< used cams
 
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
-	struct cam_spec_t		Cam[TOTAL_CAMS];
+	struct cam_hk_spec_t	Cam[TOTAL_CAMS];
 
 	uint64_t				firstTimestamp;	///< ms
 	uint64_t				lastTimestamp;

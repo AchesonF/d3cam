@@ -1565,7 +1565,7 @@ static int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream,
 	return 0;
 }
 
-static int csv_gvsp_cam_grab_running (struct gvsp_stream_t *pStream, struct cam_spec_t *pCAM)
+static int csv_gvsp_cam_grab_running (struct gvsp_stream_t *pStream, struct cam_hk_spec_t *pCAM)
 {
 	int nRet = MV_OK;
 

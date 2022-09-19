@@ -5,7 +5,6 @@
 \version   v1.0.2010.9291 
 \date      2020-10-29
 \author    Software Department 
-<p>Copyright (c) 2012-2019 and all right reserved.</p> 
 */ 
 //--------------------------------------------------------------- 
 
@@ -16,24 +15,14 @@
 extern "C" {
 #endif
 
-#ifdef _WIN32                   
-#include "stdafx.h"
-#define DHDECL __stdcall
-
-#else                          
 #include <stdlib.h>
 #include <string.h>
 #define  DHDECL __attribute__((visibility("default")))
-#endif
 
 typedef char            VxInt8;     
 typedef short           VxInt16;     
 typedef int             VxInt32;     
-#ifdef _WIN32 
-typedef __int64         VxInt64;     
-#else
 typedef long long       VxInt64;     
-#endif
 typedef unsigned char   VxUint8;     
 typedef unsigned short  VxUint16;    
 typedef unsigned int    VxUint32;    

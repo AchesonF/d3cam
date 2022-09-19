@@ -52,10 +52,10 @@ static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int len_msg = 0;
 	char str_enums[1024] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
-	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
-	//struct cam_spec_t *pCAMFRONT = &pMVS->Cam[CAM_FRONT];
-	//struct cam_spec_t *pCAMBACK = &pMVS->Cam[CAM_BACK];
+	struct cam_hk_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_hk_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
+	//struct cam_hk_spec_t *pCAMFRONT = &pMVS->Cam[CAM_FRONT];
+	//struct cam_hk_spec_t *pCAMBACK = &pMVS->Cam[CAM_BACK];
 
 	ret = csv_mvs_cams_enum(pMVS);
 	if (ret <= 0) {
@@ -124,8 +124,8 @@ static int msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t
 	int len_msg = 0;
 	char str_expo[1024] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
-	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
+	struct cam_hk_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_hk_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	ret = csv_mvs_cams_exposure_get(pMVS);
 	if (ret < 0) {
@@ -172,8 +172,8 @@ int msg_cameras_rgb_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *p
 	int len_msg = 0;
 	char str_expo[1024] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
-	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
+	struct cam_hk_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_hk_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
 		pCAMLEFT->sn, gCSV->dlp.expoTime,
@@ -207,8 +207,8 @@ static int msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 	int len_msg = 0;
 	char str_gain[1024] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
-	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
+	struct cam_hk_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_hk_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	ret = csv_mvs_cams_gain_get(pMVS);
 	if (ret < 0) {
@@ -306,8 +306,8 @@ static int msg_cameras_rate_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 	int len_msg = 0;
 	char str_rate[1024] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
-	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
+	struct cam_hk_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_hk_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_rate, 1024, "%s:%f;%s:%f", 
 		pCAMLEFT->sn, gCSV->dlp.rate,
@@ -345,8 +345,8 @@ static int msg_cameras_brightness_get (struct msg_package_t *pMP, struct msg_ack
 	int len_msg = 0;
 	char str_bright[1024] = {0};
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
-	struct cam_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
-	struct cam_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
+	struct cam_hk_spec_t *pCAMLEFT = &pMVS->Cam[CAM_LEFT];
+	struct cam_hk_spec_t *pCAMRIGHT = &pMVS->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_bright, 1024, "%s:%f;%s:%f", 
 		pCAMLEFT->sn, gCSV->dlp.brightness,

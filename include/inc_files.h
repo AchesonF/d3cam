@@ -66,6 +66,10 @@ extern "C" {
 // for MVS
 #include "MvCameraControl.h"
 
+// for Daheng Galaxy
+#include "GxIAPI.h"
+#include "DxImageProc.h"
+
 // for GigE Vision
 #include "GigEVisionGVCPDefine.h"
 #include "GigEVisionGVCPRegisterDefine.h"
@@ -92,12 +96,13 @@ extern "C" {
 #include "csv_uevent.h"
 #include "csv_msg.h"
 #include "csv_dlp.h"
+#include "csv_cfg.h"
 #include "csv_web.h"
 #include "csv_png.h"
 #include "csv_mat.h"
 #include "csv_mvs.h"
+#include "csv_gx.h"
 #include "csv_gev.h"
-#include "csv_cfg.h"
 #include "csv_3d.h"
 #include "csv_main.h"
 
