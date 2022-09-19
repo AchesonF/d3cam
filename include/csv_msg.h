@@ -76,6 +76,15 @@ extern int csv_msg_ack_package (struct msg_package_t *pMP, struct msg_ack_t *pAC
 
 extern int csv_msg_send (struct msg_ack_t *pACK);
 
+extern void msg_command_add (csv_cmd_e cmdtype, char *cmdname, 
+	int (*func)(struct msg_package_t *pMP, struct msg_ack_t *pACK));
+
+extern void csv_general_msg_cmd_enroll (void);
+
+extern void csv_hk_msg_cmd_enroll (void);
+
+extern void csv_gx_msg_cmd_enroll (void);
+
 extern int csv_msg_check (uint8_t *buf, uint32_t len);
 
 extern int csv_msg_init (void);

@@ -72,6 +72,17 @@ link_directories(
 	${DIR_LIBS_3D}
 )
 
+option(USING_GX_CAMS "using Daheng galaxy cams" ON)
+option(USING_HK_CAMS "using Hikang cams" OFF)
+if (USING_GX_CAMS)
+	add_definitions(-DUSE_GX_CAMS)
+else ()
+	if (USING_HK_CAMS)
+		add_definitions(-DUSE_HK_CAMS)
+	endif ()
+endif ()
+
+
 option(USING_WEB_SERVER "Add web thread" OFF)
 if (USING_WEB_SERVER)
 	set(INC_WEB_SERVER 

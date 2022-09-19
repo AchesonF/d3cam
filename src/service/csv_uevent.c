@@ -58,7 +58,9 @@ static void parse_event (const char *kmsg)
 
 // hik plug in/out event
 
+#if defined(USE_HK_CAMS)
 			pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
+#endif
 		}
 	}
 

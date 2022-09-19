@@ -4,6 +4,8 @@
 extern "C" {
 #endif
 
+#if defined(USE_HK_CAMS)
+
 #define MVS_WAIT_TIMEO		(6)		// x
 #define MVS_WAIT_PERIOD		(2)		// 2s
 
@@ -1310,6 +1312,10 @@ static void *csv_mvs_loop (void *data)
 			}
 		} while ((ret < TOTAL_CAMS)&&(++timeo < MVS_WAIT_TIMEO));
 
+		if (timeo >= MVS_WAIT_TIMEO) {
+			log_warn("ERROR : waiting too long time. Should plug off/on cams or reboot system.");
+		}
+
 		timeo = 0;
 
 		if (ret > 0) {
@@ -1428,6 +1434,20 @@ int csv_mvs_deinit (void)
 
 	return ret;
 }
+
+#else
+
+int csv_mvs_init (void)
+{
+	return 0;
+}
+
+int csv_mvs_deinit (void)
+{
+	return 0;
+}
+
+#endif
 
 #ifdef __cplusplus
 }

@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #define NAME_THREAD_GX			("'thr_gx'")
-#define SIZE_CAM_STR			(32)
+#define SIZE_CAM_STR			(64)
 
 #define ACQ_BUFFER_NUM			(5)			///< Acquisition Buffer Qty.
 #define ACQ_TRANSFER_SIZE		(64 * 1024)	///< Size of data transfer block

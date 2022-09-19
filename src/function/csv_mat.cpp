@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+#if defined(USE_HK_CAMS)
 
 // 海康图像格式转换成 opencv Mat 格式
 static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo, 
@@ -319,6 +320,9 @@ int msg_cameras_grab_urandom (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 	return csv_msg_send(pACK);
 }
+
+#endif
+
 
 #ifdef __cplusplus
 }

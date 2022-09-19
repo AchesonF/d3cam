@@ -1525,7 +1525,7 @@ static int csv_gvcp_message_close (struct gev_message_t *pMsg)
 	return 0;
 }
 
-static int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream, 
+int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream, 
 	uint8_t *imgData, uint32_t imgLength, MV_FRAME_OUT_INFO_EX *imgInfo)
 {
 	struct stream_list_t *cur = NULL;
@@ -1565,7 +1565,8 @@ static int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream,
 	return 0;
 }
 
-static int csv_gvsp_cam_grab_running (struct gvsp_stream_t *pStream, struct cam_hk_spec_t *pCAM)
+#if defined(USE_HK_CAMS)
+static int csv_gvsp_hk_cam_grab_running (struct gvsp_stream_t *pStream, struct cam_hk_spec_t *pCAM)
 {
 	int nRet = MV_OK;
 
@@ -1627,7 +1628,13 @@ static int csv_gvsp_cam_grab_running (struct gvsp_stream_t *pStream, struct cam_
 
 	return 0;
 }
+#elif defined(USE_GX_CAMS)
+static int csv_gvsp_gx_cam_grab_running (struct gvsp_stream_t *pStream, struct cam_gx_spec_t *pCAM)
+{
 
+	return 0;
+}
+#endif
 static void *csv_gvsp_cam_grab_loop (void *pData)
 {
 	if (NULL == pData) {
@@ -1657,7 +1664,12 @@ static void *csv_gvsp_cam_grab_loop (void *pData)
 		sleep(1);	// add dealy to ignore quickly start_stop
 
 		if (GRAB_STATUS_RUNNING == pStream->grab_status) {
-			nRet = csv_gvsp_cam_grab_running(pStream, &gCSV->mvs.Cam[pStream->idx]);
+#if defined(USE_HK_CAMS)
+			nRet = csv_gvsp_hk_cam_grab_running(pStream, &gCSV->mvs.Cam[pStream->idx]);
+#elif defined(USE_GX_CAMS)
+			nRet = csv_gvsp_gx_cam_grab_running(pStream, &gCSV->gx.Cam[pStream->idx]);
+#endif
+
 			if (nRet == -1) {
 				log_warn("ERROR : gev grab running failed.");
 				pStream->grab_status = GRAB_STATUS_NONE;

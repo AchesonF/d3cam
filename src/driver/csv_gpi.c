@@ -53,8 +53,10 @@ int csv_gpi_trigger (struct csv_gpi_t *pGPI)
 			case GPI_IN_FORCE:
 				if (GPI_LOW == pGPI->value) {
 					pGPI->status[IDX_IN_1] = GPI_LOW;
+#if defined(USE_HK_CAMS)
 					gCSV->mvs.grab_type = GRAB_DEMARCATE;
 					pthread_cond_broadcast(&gCSV->mvs.cond_grab);	// 下降沿触发
+#endif
 				} else if (GPI_HIGH == pGPI->value) {
 					pGPI->status[IDX_IN_1] = GPI_HIGH;
 				}
@@ -63,8 +65,10 @@ int csv_gpi_trigger (struct csv_gpi_t *pGPI)
 				if (GPI_LOW == pGPI->value) {
 					// todo
 					pGPI->status[IDX_IN_2] = GPI_LOW;
+#if defined(USE_HK_CAMS)
 					gCSV->mvs.grab_type = GRAB_HIGHSPEED;
 					pthread_cond_broadcast(&gCSV->mvs.cond_grab);	// 下降沿触发
+#endif
 				} else if (GPI_HIGH == pGPI->value) {
 					// todo
 					pGPI->status[IDX_IN_2] = GPI_HIGH;

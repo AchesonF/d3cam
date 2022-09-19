@@ -55,8 +55,11 @@ struct csv_info_t {
 	struct csv_gpi_t	gpi;					///< 输入按键事件
 
 	struct csv_uevent_t	uevent;					///< 探测内核事件
+#if defined(USE_HK_CAMS)
 	struct csv_mvs_t	mvs;					///< 海康相机
+#elif defined(USE_GX_CAMS)
 	struct csv_gx_t		gx;						///< 大恒相机
+#endif
 	struct csv_gev_t	gev;					///< GigE Vision
 	struct csv_dlp_t	dlp;					///< 光机控制通道
 

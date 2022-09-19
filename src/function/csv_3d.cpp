@@ -20,7 +20,7 @@ using namespace std::chrono;
 using namespace CSV;
 using namespace cv;
 
-static void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
+void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 {
 	int i = 0;
 	char filename[512] = {0};
@@ -71,7 +71,7 @@ bool ParseDepthImage2CVMat(CsvImageSimple &depthImage, Mat& out) {
 	return true;
 }
 
-
+#if defined(USE_HK_CAMS)
 int csv_3d_calc (void)
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
@@ -153,6 +153,16 @@ int csv_3d_calc (void)
 
 	return 0;
 }
+
+#elif defined(USE_GX_CAMS)
+
+int csv_3d_calc (void)
+{
+
+	return 0;
+}
+
+#endif
 
 int csv_3d_init (void)
 {
