@@ -15,13 +15,6 @@ if (USING_SPNG)
 	set(LIB_SPNG "spng")
 endif ()
 
-if (USING_ZIP)
-	add_definitions(-DZIP_SHARED)
-	add_subdirectory(libzip)
-
-	set(LIB_ZIP "zip")
-endif ()
-
 if (USING_HK_CAMS)
 	set(LIB_HK_CAMS "MvCameraControl")
 endif ()
@@ -65,7 +58,6 @@ target_link_libraries(${EXE_TARGET}
 	${LIB_WEB_SERVER}
 	measureJetson
 	${LIB_SPNG}
-	${LIB_ZIP}
 )
 
 

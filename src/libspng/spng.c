@@ -11,20 +11,7 @@
 
 #define ZLIB_CONST
 
-#ifdef __FRAMAC__
-    #define SPNG_DISABLE_OPT
-    #include "tests/framac_stubs.h"
-#else
-    #ifdef SPNG_USE_MINIZ
-        #include <miniz.h>
-    #else
-        #include <zlib.h>
-    #endif
-#endif
-
-#ifdef SPNG_MULTITHREADING
-    #include <pthread.h>
-#endif
+#include <zlib.h>
 
 /* Not build options, edit at your own risk! */
 #define SPNG_READ_SIZE (8192)
@@ -69,11 +56,6 @@
         static uint32_t expand_palette_rgb8_neon(unsigned char *row, const unsigned char *scanline, const unsigned char *plte, uint32_t width);
         #endif
     #endif
-#endif
-
-#if defined(_MSC_VER)
-    #pragma warning(push)
-    #pragma warning(disable: 4244)
 #endif
 
 #if (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || defined(__BIG_ENDIAN__)
@@ -6137,46 +6119,8 @@ const char *spng_version_string(void)
     return SPNG_VERSION_STRING;
 }
 
-#if defined(_MSC_VER)
-    #pragma warning(pop)
-#endif
 
 /* The following SIMD optimizations are derived from libpng source code. */
-
-/*
-* PNG Reference Library License version 2
-*
-* Copyright (c) 1995-2019 The PNG Reference Library Authors.
-* Copyright (c) 2018-2019 Cosmin Truta.
-* Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson.
-* Copyright (c) 1996-1997 Andreas Dilger.
-* Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
-*
-* The software is supplied "as is", without warranty of any kind,
-* express or implied, including, without limitation, the warranties
-* of merchantability, fitness for a particular purpose, title, and
-* non-infringement.  In no event shall the Copyright owners, or
-* anyone distributing the software, be liable for any damages or
-* other liability, whether in contract, tort or otherwise, arising
-* from, out of, or in connection with the software, or the use or
-* other dealings in the software, even if advised of the possibility
-* of such damage.
-*
-* Permission is hereby granted to use, copy, modify, and distribute
-* this software, or portions hereof, for any purpose, without fee,
-* subject to the following restrictions:
-*
-*  1. The origin of this software must not be misrepresented; you
-*     must not claim that you wrote the original software.  If you
-*     use this software in a product, an acknowledgment in the product
-*     documentation would be appreciated, but is not required.
-*
-*  2. Altered source versions must be plainly marked as such, and must
-*     not be misrepresented as being the original software.
-*
-*  3. This Copyright notice may not be removed or altered from any
-*     source or altered source distribution.
-*/
 
 #if defined(SPNG_X86)
 

@@ -107,13 +107,6 @@ if (USING_SPNG)
 	)
 endif ()
 
-option(USING_ZIP "Add lib zip" ON)
-if (USING_ZIP)
-	set(INC_ZIP
-		"src/libzip"
-	)
-endif ()
-
 # add include directories here
 include_directories(
 	"include"
@@ -127,7 +120,6 @@ include_directories(
 	${libXML_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${INC_SPNG}
-	${INC_ZIP}
 )
 
 add_subdirectory(src)
