@@ -1,17 +1,12 @@
-/* SPDX-License-Identifier: (BSD-2-Clause AND libpng-2.0) */
-
-#define SPNG__BUILD
-
 #include "spng.h"
-
 #include <limits.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
 
-#define ZLIB_CONST
-
 #include <zlib.h>
+
+
 
 /* Not build options, edit at your own risk! */
 #define SPNG_READ_SIZE (8192)
@@ -56,12 +51,6 @@
         static uint32_t expand_palette_rgb8_neon(unsigned char *row, const unsigned char *scanline, const unsigned char *plte, uint32_t width);
         #endif
     #endif
-#endif
-
-#if (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || defined(__BIG_ENDIAN__)
-    #define SPNG_BIG_ENDIAN
-#else
-    #define SPNG_LITTLE_ENDIAN
 #endif
 
 enum spng_state
@@ -212,7 +201,7 @@ struct spng_ctx
     size_t bytes_read;
     size_t stream_buf_size;
     unsigned char *stream_buf;
-    const unsigned char *data;
+    unsigned char *data;
 
     /* User-defined pointers for streaming */
     spng_read_fn *read_fn;
@@ -397,11 +386,7 @@ static inline void spng__free(spng_ctx *ctx, void *ptr)
     ctx->alloc.free_fn(ptr);
 }
 
-#if defined(SPNG_USE_MINIZ)
-static void *spng__zalloc(void *opaque, size_t items, size_t size)
-#else
 static void *spng__zalloc(void *opaque, uInt items, uInt size)
-#endif
 {
     spng_ctx *ctx = opaque;
 
@@ -1173,7 +1158,7 @@ static int spng__inflate_init(spng_ctx *ctx, int window_bits)
 
     if(inflateInit2(&ctx->zstream, window_bits) != Z_OK) return SPNG_EZLIB_INIT;
 
-#if ZLIB_VERNUM >= 0x1290 && !defined(SPNG_USE_MINIZ)
+#if ZLIB_VERNUM >= 0x1290
 
     int validate = 1;
 
@@ -1223,7 +1208,7 @@ static int spng__deflate_init(spng_ctx *ctx, struct spng__zlib_options *options)
 
    Takes into account the chunk size and cache limits.
 */
-static int spng__inflate_stream(spng_ctx *ctx, char **out, size_t *len, size_t extra, const void *start_buf, size_t start_len)
+static int spng__inflate_stream(spng_ctx *ctx, char **out, size_t *len, size_t extra, void *start_buf, size_t start_len)
 {
     int ret = spng__inflate_init(ctx, 15);
     if(ret) return ret;
@@ -2775,7 +2760,7 @@ static int read_non_idat_chunks(spng_ctx *ctx)
 
                 data = ctx->data;
 
-                const unsigned char *zlib_stream = NULL;
+                unsigned char *zlib_stream = NULL;
                 const unsigned char *peek_end = data + peek_bytes;
                 const unsigned char *keyword_nul = memchr(data, 0, chunk.length > 80 ? 80 : chunk.length);
 
@@ -4465,7 +4450,7 @@ static int write_chunks_after_idat(spng_ctx *ctx)
 }
 
 /* Compress and write scanline to IDAT stream */
-static int write_idat_bytes(spng_ctx *ctx, const void *scanline, size_t len, int flush)
+static int write_idat_bytes(spng_ctx *ctx, void *scanline, size_t len, int flush)
 {
     if(ctx == NULL || scanline == NULL) return SPNG_EINTERNAL;
     if(len > UINT_MAX) return SPNG_EINTERNAL;
@@ -5026,7 +5011,7 @@ static int file_write_fn(spng_ctx *ctx, void *user, void *data, size_t n)
     return 0;
 }
 
-int spng_set_png_buffer(spng_ctx *ctx, const void *buf, size_t size)
+int spng_set_png_buffer(spng_ctx *ctx, void *buf, size_t size)
 {
     if(ctx == NULL || buf == NULL) return 1;
     if(!ctx->state) return SPNG_EBADSTATE;
@@ -6140,15 +6125,6 @@ const char *spng_version_string(void)
 
 /* SSE2 optimised filter functions
  * Derived from filter_neon_intrinsics.c
- *
- * Copyright (c) 2018 Cosmin Truta
- * Copyright (c) 2016-2017 Glenn Randers-Pehrson
- * Written by Mike Klein and Matt Sarett
- * Derived from arm/filter_neon_intrinsics.c
- *
- * This code is derived from libpng source code.
- * For conditions of distribution and use, see the disclaimer
- * and license above.
  */
 
 #include <immintrin.h>
@@ -6324,7 +6300,7 @@ static void defilter_avg4(size_t rowbytes, unsigned char *row, const unsigned ch
 }
 
 /* Returns |x| for 16-bit lanes. */
-#if (SPNG_SSE >= 3) && !defined(_MSC_VER)
+#if (SPNG_SSE >= 3)
 __attribute__((target("ssse3")))
 #endif
 static __m128i abs_i16(__m128i x)
@@ -6514,15 +6490,6 @@ static void defilter_paeth4(size_t rowbytes, unsigned char *row, const unsigned 
 
 /* NEON optimised filter functions
  * Derived from filter_neon_intrinsics.c
- *
- * Copyright (c) 2018 Cosmin Truta
- * Copyright (c) 2014,2016 Glenn Randers-Pehrson
- * Written by James Yu <james.yu at linaro.org>, October 2013.
- * Based on filter_neon.S, written by Mans Rullgard, 2011.
- *
- * This code is derived from libpng source code.
- * For conditions of distribution and use, see the disclaimer
- * and license in this file.
  */
 
 #define png_aligncast(type, value) ((void*)(value))
@@ -6545,11 +6512,9 @@ static void defilter_paeth4(size_t rowbytes, unsigned char *row, const unsigned 
    (temp_pointer = png_ptr(type,pointer), *temp_pointer)
 
 
-#if defined(_MSC_VER) && !defined(__clang__) && defined(_M_ARM64)
-    #include <arm64_neon.h>
-#else
-    #include <arm_neon.h>
-#endif
+
+#include <arm_neon.h>
+
 
 static void defilter_sub3(size_t rowbytes, unsigned char *row)
 {
@@ -6853,19 +6818,6 @@ static void defilter_paeth4(size_t rowbytes, unsigned char *row, const unsigned 
 
 /* NEON optimised palette expansion functions
  * Derived from palette_neon_intrinsics.c
- *
- * Copyright (c) 2018-2019 Cosmin Truta
- * Copyright (c) 2017-2018 Arm Holdings. All rights reserved.
- * Written by Richard Townsend <Richard.Townsend@arm.com>, February 2017.
- *
- * This code is derived from libpng source code.
- * For conditions of distribution and use, see the disclaimer
- * and license in this file.
- *
- * Related: https://developer.arm.com/documentation/101964/latest/Color-palette-expansion
- *
- * The functions were refactored to iterate forward.
- *
  */
 
 /* Expands a palettized row into RGBA8. */
@@ -6920,3 +6872,6 @@ static uint32_t expand_palette_rgb8_neon(unsigned char *row, const unsigned char
 }
 
 #endif /* SPNG_ARM */
+
+
+

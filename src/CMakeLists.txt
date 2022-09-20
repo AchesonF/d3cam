@@ -9,12 +9,6 @@ if (USING_WEB_SERVER)
 	set(LIB_WEB_SERVER "web")
 endif ()
 
-if (USING_SPNG)
-	add_subdirectory(libspng)
-
-	set(LIB_SPNG "spng")
-endif ()
-
 if (USING_HK_CAMS)
 	set(LIB_HK_CAMS "MvCameraControl")
 endif ()
@@ -49,7 +43,7 @@ target_compile_features(${EXE_TARGET} PUBLIC cxx_std_11)
 target_link_libraries(${EXE_TARGET}
 	pthread
 #	sqlite3
-	dl
+	z
 	${LIB_HK_CAMS}
 	${LIB_GX_CAMS}
 	${libXML_LIBS}
@@ -57,7 +51,6 @@ target_link_libraries(${EXE_TARGET}
 #	${OpenCV_LIBS}
 	${LIB_WEB_SERVER}
 	measureJetson
-	${LIB_SPNG}
 )
 
 

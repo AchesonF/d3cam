@@ -100,13 +100,6 @@ if (USING_WEB_SERVER)
 	)
 endif ()
 
-option(USING_SPNG "Add png maker" ON)
-if (USING_SPNG)
-	set(INC_SPNG
-		"src/libspng"
-	)
-endif ()
-
 # add include directories here
 include_directories(
 	"include"
@@ -119,7 +112,6 @@ include_directories(
 	${CMAKE_BINARY_DIR}
 	${libXML_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
-	${INC_SPNG}
 )
 
 add_subdirectory(src)
