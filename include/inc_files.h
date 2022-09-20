@@ -103,6 +103,8 @@ extern "C" {
 #include "csv_mat.h"
 #include "csv_mvs.h"
 #include "csv_gx.h"
+#include "csv_gvcp.h"
+#include "csv_gvsp.h"
 #include "csv_gev.h"
 #include "csv_3d.h"
 #include "csv_main.h"

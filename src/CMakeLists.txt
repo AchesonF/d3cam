@@ -25,6 +25,7 @@ aux_source_directory(driver DIR_DRIVER)
 aux_source_directory(device DIR_DEVICE)
 aux_source_directory(interface DIR_INTERFACE)
 aux_source_directory(function DIR_FUNCTION)
+aux_source_directory(gev DIR_GEV)
 aux_source_directory(service DIR_SERVICE)
 aux_source_directory(utility DIR_UTILITY)
 
@@ -34,6 +35,7 @@ add_executable(${EXE_TARGET}
 	${DIR_DEVICE} 
 	${DIR_INTERFACE} 
 	${DIR_FUNCTION} 
+	${DIR_GEV} 
 	${DIR_SERVICE} 
 	${DIR_UTILITY}
 )
