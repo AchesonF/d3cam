@@ -95,8 +95,23 @@ int PixelFormatConvert(PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t
 
 	// Convert RAW8 or RAW16 image to RGB24 image
 	switch (pFrameBuffer->nPixelFormat) {
-	case GX_PIXEL_FORMAT_MONO8:
+	case GX_PIXEL_FORMAT_MONO8: {
 		memcpy(ImageBuf, pFrameBuffer->pImgBuf, PayloadSize);
+#if 1
+		char rawfile[128] = {0};
+		char bmpfile[128] = {0};
+		uint64_t stamp = utility_get_millisecond();
+		memset(rawfile, 0, 128);
+		memset(bmpfile, 0, 128);
+		snprintf(rawfile, 128, "./data/%d_%d_%ld.raw", pFrameBuffer->nWidth, 
+			pFrameBuffer->nHeight, stamp);
+		snprintf(bmpfile, 128, "./data/%d_%d_%ld.bmp", pFrameBuffer->nWidth, 
+			pFrameBuffer->nHeight, stamp);
+		csv_file_write_data(rawfile, (uint8_t *)pFrameBuffer->pImgBuf, (uint32_t)PayloadSize);
+		gray_raw2bmp((uint8_t *)pFrameBuffer->pImgBuf, pFrameBuffer->nWidth, 
+			pFrameBuffer->nHeight, bmpfile);
+#endif
+		}
 		break;
 
 	case GX_PIXEL_FORMAT_MONO10:
@@ -459,30 +474,29 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 
 	int ret = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
-	PGX_FRAME_BUFFER pFrameBuffer = NULL;
 	struct cam_gx_spec_t *pCAM = &pGX->Cam[idx];
 
 	if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
 		return -1;
 	}
 
-	emStatus = GXDQBuf(pCAM->hDevice, &pFrameBuffer, 1000);
+	emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 1000);
 	if (emStatus != GX_STATUS_SUCCESS) {
 		GetErrorString(emStatus);
 		return -1;
 	}
 
-	if (GX_FRAME_STATUS_SUCCESS != pFrameBuffer->nStatus) {
-		log_warn("ERROR : Abnormal Acquisition %d", pFrameBuffer->nStatus);
+	if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+		log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
 		return -1;
 	}
 
-	ret = PixelFormatConvert(pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+	ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 	if (0 == ret) {
-		SavePPMFile(pFrameBuffer->nWidth, pFrameBuffer->nHeight);
+		SavePPMFile(pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight);
 	}
 
-	emStatus = GXQBuf(pCAM->hDevice, pFrameBuffer);
+	emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
 	if (emStatus != GX_STATUS_SUCCESS) {
 		GetErrorString(emStatus);
 		return -1;

@@ -34,6 +34,7 @@ struct cam_gx_spec_t {
 	int64_t					PayloadSize;
 	bool					ColorFilter;
 
+	PGX_FRAME_BUFFER		pFrameBuffer;
 	uint8_t					*pMonoImageBuf;
 };
 

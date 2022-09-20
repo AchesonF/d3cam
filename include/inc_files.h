@@ -99,6 +99,7 @@ extern "C" {
 #include "csv_cfg.h"
 #include "csv_web.h"
 #include "csv_png.h"
+#include "csv_bmp.h"
 #include "csv_mat.h"
 #include "csv_mvs.h"
 #include "csv_gx.h"
