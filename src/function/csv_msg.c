@@ -256,7 +256,7 @@ static void *csv_msg_loop (void *data)
 		}
 	}
 
-	log_warn("WARN : exit pthread %s", pMSG->name_msg);
+	log_alert("ALERT : exit pthread %s", pMSG->name_msg);
 
 	pMSG->thr_msg = 0;
 

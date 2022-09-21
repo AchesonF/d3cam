@@ -1225,7 +1225,7 @@ static void *csv_mvs_grab_loop (void *data)
 		ret = csv_mvs_cams_close(pMVS);
 	}
 
-	log_warn("WARN : exit pthread %s.", pMVS->name_grab);
+	log_alert("ALERT : exit pthread %s.", pMVS->name_grab);
 
 	pMVS->thr_grab = 0;
 
@@ -1337,7 +1337,7 @@ static void *csv_mvs_loop (void *data)
 
 	}
 
-	log_warn("WARN : exit pthread %s.", pMVS->name_mvs);
+	log_alert("ALERT : exit pthread %s.", pMVS->name_mvs);
 
 	pMVS->thr_mvs = 0;
 

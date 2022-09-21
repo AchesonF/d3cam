@@ -48,7 +48,7 @@ static int Convert2Mat (MV_FRAME_OUT_INFO_EX *pstImageInfo,
 }
 
 /* 左右灰度图 */
-int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+int hk_msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int len_msg = 0;
@@ -128,7 +128,7 @@ int msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 }
 
 /* RGB 原图 */
-int msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+int hk_msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int len_msg = 0;

@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #if defined(USE_HK_CAMS)
-static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = 0;
 	int len_msg = 0;
@@ -46,7 +46,7 @@ static int msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
@@ -61,7 +61,7 @@ static int msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_close (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_close (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
@@ -77,7 +77,7 @@ static int msg_cameras_close (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 }
 
 
-static int msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = 0;
 	int len_msg = 0;
@@ -102,7 +102,7 @@ static int msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ack_t
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 //	int ret = -1;
 	int result = 0;
@@ -126,7 +126,7 @@ static int msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ack_t
 	return csv_msg_send(pACK);
 }
 
-int msg_cameras_rgb_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+int hk_msg_cameras_rgb_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int len_msg = 0;
 	char str_expo[1024] = {0};
@@ -146,7 +146,7 @@ int msg_cameras_rgb_exposure_get (struct msg_package_t *pMP, struct msg_ack_t *p
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_rgb_exposure_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_rgb_exposure_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int result = -1;
 
@@ -160,7 +160,7 @@ static int msg_cameras_rgb_exposure_set (struct msg_package_t *pMP, struct msg_a
 }
 
 
-static int msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int len_msg = 0;
@@ -185,7 +185,7 @@ static int msg_cameras_gain_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_gain_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_gain_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
@@ -203,7 +203,7 @@ static int msg_cameras_gain_set (struct msg_package_t *pMP, struct msg_ack_t *pA
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_rate_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_rate_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int len_msg = 0;
 	char str_rate[1024] = {0};
@@ -222,7 +222,7 @@ static int msg_cameras_rate_get (struct msg_package_t *pMP, struct msg_ack_t *pA
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_rate_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_rate_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
@@ -242,7 +242,7 @@ static int msg_cameras_rate_set (struct msg_package_t *pMP, struct msg_ack_t *pA
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_brightness_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_brightness_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int len_msg = 0;
 	char str_bright[1024] = {0};
@@ -261,7 +261,7 @@ static int msg_cameras_brightness_get (struct msg_package_t *pMP, struct msg_ack
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_brightness_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_brightness_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
@@ -281,7 +281,7 @@ static int msg_cameras_brightness_set (struct msg_package_t *pMP, struct msg_ack
 	return csv_msg_send(pACK);
 }
 
-static int msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
@@ -306,7 +306,7 @@ static int msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t *pA
 }
 
 
-int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+int hk_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
@@ -318,7 +318,7 @@ int msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
-int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+int hk_msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
@@ -330,7 +330,7 @@ int msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
-int msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+int hk_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
@@ -343,31 +343,31 @@ int msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pAC
 
 void csv_hk_msg_cmd_enroll (void)
 {
-	msg_command_add(CAMERA_ENMU, toSTR(CAMERA_ENMU), msg_cameras_enum);
-	msg_command_add(CAMERA_CONNECT, toSTR(CAMERA_CONNECT), msg_cameras_open);
-	msg_command_add(CAMERA_DISCONNECT, toSTR(CAMERA_DISCONNECT), msg_cameras_close);
-	msg_command_add(CAMERA_GET_EXPOSURE, toSTR(CAMERA_GET_EXPOSURE), msg_cameras_exposure_get);
-	msg_command_add(CAMERA_GET_GAIN, toSTR(CAMERA_GET_GAIN), msg_cameras_gain_get);
-	msg_command_add(CAMERA_GET_RATE, toSTR(CAMERA_GET_RATE), msg_cameras_rate_get);
-	msg_command_add(CAMERA_GET_BRIGHTNESS, toSTR(CAMERA_GET_BRIGHTNESS), msg_cameras_brightness_get);
+	msg_command_add(CAMERA_ENMU, toSTR(CAMERA_ENMU), hk_msg_cameras_enum);
+	msg_command_add(CAMERA_CONNECT, toSTR(CAMERA_CONNECT), hk_msg_cameras_open);
+	msg_command_add(CAMERA_DISCONNECT, toSTR(CAMERA_DISCONNECT), hk_msg_cameras_close);
+	msg_command_add(CAMERA_GET_EXPOSURE, toSTR(CAMERA_GET_EXPOSURE), hk_msg_cameras_exposure_get);
+	msg_command_add(CAMERA_GET_GAIN, toSTR(CAMERA_GET_GAIN), hk_msg_cameras_gain_get);
+	msg_command_add(CAMERA_GET_RATE, toSTR(CAMERA_GET_RATE), hk_msg_cameras_rate_get);
+	msg_command_add(CAMERA_GET_BRIGHTNESS, toSTR(CAMERA_GET_BRIGHTNESS), hk_msg_cameras_brightness_get);
 
-	msg_command_add(CAMERA_SET_EXPOSURE, toSTR(CAMERA_SET_EXPOSURE), msg_cameras_exposure_set);
-	msg_command_add(CAMERA_SET_GAIN, toSTR(CAMERA_SET_GAIN), msg_cameras_gain_set);
-	msg_command_add(CAMERA_SET_CAMERA_NAME, toSTR(CAMERA_SET_CAMERA_NAME), msg_cameras_name_set);
-	msg_command_add(CAMERA_SET_RGB_EXPOSURE, toSTR(CAMERA_SET_RGB_EXPOSURE), msg_cameras_rgb_exposure_set);
-	msg_command_add(CAMERA_SET_RATE, toSTR(CAMERA_SET_RATE), msg_cameras_rate_set);
-	msg_command_add(CAMERA_SET_BRIGHTNESS, toSTR(CAMERA_SET_BRIGHTNESS), msg_cameras_brightness_set);
+	msg_command_add(CAMERA_SET_EXPOSURE, toSTR(CAMERA_SET_EXPOSURE), hk_msg_cameras_exposure_set);
+	msg_command_add(CAMERA_SET_GAIN, toSTR(CAMERA_SET_GAIN), hk_msg_cameras_gain_set);
+	msg_command_add(CAMERA_SET_CAMERA_NAME, toSTR(CAMERA_SET_CAMERA_NAME), hk_msg_cameras_name_set);
+	msg_command_add(CAMERA_SET_RGB_EXPOSURE, toSTR(CAMERA_SET_RGB_EXPOSURE), hk_msg_cameras_rgb_exposure_set);
+	msg_command_add(CAMERA_SET_RATE, toSTR(CAMERA_SET_RATE), hk_msg_cameras_rate_set);
+	msg_command_add(CAMERA_SET_BRIGHTNESS, toSTR(CAMERA_SET_BRIGHTNESS), hk_msg_cameras_brightness_set);
 
-	msg_command_add(CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), msg_cameras_grab_gray);
-	msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), msg_cameras_grab_img_depth);
-	//msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), msg_cameras_highspeed);
-	msg_command_add(CAMERA_GET_GRAB_LEDOFF, toSTR(CAMERA_GET_GRAB_LEDOFF), msg_cameras_grab_gray);
-	msg_command_add(CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), msg_cameras_grab_gray);
+	msg_command_add(CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), hk_msg_cameras_grab_gray);
+	msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), hk_msg_cameras_grab_img_depth);
+	//msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), hk_msg_cameras_highspeed);
+	msg_command_add(CAMERA_GET_GRAB_LEDOFF, toSTR(CAMERA_GET_GRAB_LEDOFF), hk_msg_cameras_grab_gray);
+	msg_command_add(CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), hk_msg_cameras_grab_gray);
 	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_urandom);
-	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_rgb);
-	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_demarcate);
-	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), msg_cameras_grab_rgb);
-	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), msg_cameras_grab_rgb);
+	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), hk_msg_cameras_grab_rgb);
+	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), hk_msg_cameras_demarcate);
+	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), hk_msg_cameras_grab_rgb);
+	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), hk_msg_cameras_grab_rgb);
 
 }
 

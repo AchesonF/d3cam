@@ -938,7 +938,7 @@ static void *csv_gvcp_ask_loop (void *data)
 		}
 	}
 
-	log_alert("WARN : exit pthread %s", pGVCP->name_gvcpask);
+	log_alert("ALERT : exit pthread %s", pGVCP->name_gvcpask);
 
 	pGVCP->thr_gvcpask = 0;
 

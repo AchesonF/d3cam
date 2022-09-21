@@ -87,8 +87,8 @@ static void csv_trace (int signum)
 
 	fprintf(fp, "==== received signum[%d]=%s backtrace ====\n", signum, strSIG);
 	fprintf(stderr, "==== received signum[%d]=%s backtrace ====\n", signum, strSIG);
-	fprintf(fp, "%s\n", gPdct.app_info);
-	fprintf(stderr, "%s\n", gPdct.app_info);
+	fprintf(fp, "%s @ %ld us.\n", gPdct.app_info, utility_get_microsecond());
+	fprintf(stderr, "%s @ %ld us.\n", gPdct.app_info, utility_get_microsecond());
 	for (i = 0; i < size; i++) {
 		fprintf(fp, "%d %s \n", i, strings[i]);	
 		fprintf(stderr, "%d %s \n", i, strings[i]);	
@@ -103,7 +103,7 @@ static void csv_trace (int signum)
 		free(gCSV);
 	}
 
-	log_warn("WARN : crash process pid[%d] via signum[%d]=%s.", 
+	log_alert("ALERT : crash process pid[%d] via signum[%d]=%s.", 
 		getpid(), signum, strSIG);
 	csv_hb_close(gPdct.hb.pipefd[1]);
 	utility_close();
@@ -134,7 +134,7 @@ void csv_stop (int signum)
 
 	csv_deinit();
 
-	log_warn("WARN : Stop process pid[%d] via signum[%d]=%s.", 
+	log_alert("ALERT : Stop process pid[%d] via signum[%d]=%s.", 
 		getpid(), signum, strSIG);
 	csv_hb_close(gPdct.hb.pipefd[1]);
 	utility_close();
@@ -415,7 +415,7 @@ int main (int argc, char **argv)
 		case -1:		// error must be restart ?
 			log_err("ERROR : select");
 			if (++cnt_err >= 10) {	// 1s later
-				log_warn("WARN : select failed.");
+				log_alert("ALERT : select failed.");
 				sleep(5);
 				exit(-1);
 			}

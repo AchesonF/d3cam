@@ -160,7 +160,7 @@ exit_thr:
 
 	pStream->thr_gevgrab = 0;
 
-	log_warn("WARN : exit pthread '%s'", pStream->name_gevgrab);
+	log_alert("ALERT : exit pthread '%s'", pStream->name_gevgrab);
 
 	pthread_exit(NULL);
 
@@ -500,7 +500,7 @@ static void *csv_gvsp_client_loop (void *data)
 
 exit_thr:
 
-	log_warn("WARN : exit pthread %s.", pStream->name_stream);
+	log_alert("ALERT : exit pthread %s.", pStream->name_stream);
 
 	pStream->thr_stream = 0;
 	csv_gvsp_client_close(pStream);

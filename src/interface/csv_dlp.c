@@ -223,7 +223,7 @@ static void *csv_dlp_loop (void *data)
 		}
 	}
 
-	log_warn("WARN : exit pthread %s.", pDLP->name_dlp);
+	log_alert("ALERT : exit pthread %s.", pDLP->name_dlp);
 
 	pDLP->thr_dlp = 0;
 

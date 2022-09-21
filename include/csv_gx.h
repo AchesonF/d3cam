@@ -31,8 +31,15 @@ struct cam_gx_spec_t {
 	char					model[SIZE_CAM_STR];
 	char					serial[SIZE_CAM_STR];
 	char					version[SIZE_CAM_STR];
+	char					userid[SIZE_CAM_STR];
 	int64_t					PayloadSize;
 	bool					ColorFilter;
+
+	double					expoTime;		// GX_FLOAT_EXPOSURE_TIME
+	GX_FLOAT_RANGE			expoTimeRange;
+
+	double					gain;			// GX_FLOAT_GAIN
+	GX_FLOAT_RANGE			gainRange;
 
 	PGX_FRAME_BUFFER		pFrameBuffer;
 	uint8_t					*pMonoImageBuf;
@@ -49,7 +56,7 @@ struct csv_gx_t {
 	pthread_cond_t			cond_gx;		///< 条件
 };
 
-
+extern int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state);
 
 extern int csv_gx_init (void);
 

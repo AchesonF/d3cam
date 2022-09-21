@@ -246,37 +246,19 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		}
 
 		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_VENDOR_NAME, pCAM->vendor);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			ret = -1;
-			continue;
-		}
 
 		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_MODEL_NAME, pCAM->model);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			ret = -1;
-			continue;
-		}
 
 		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_SERIAL_NUMBER, pCAM->serial);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			ret = -1;
-			continue;
-		}
 
 		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_VERSION, pCAM->version);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			ret = -1;
-			continue;
-		}
 
-		log_info("CAM[%d] : '%s' - '%s", i, pCAM->model, pCAM->serial);
+		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_USERID, pCAM->userid);
+
+		log_info("CAM[%d] : '%s' - '%s' (%s).", i, pCAM->model, pCAM->serial, pCAM->userid);
 
 		emStatus = GXIsImplemented(pCAM->hDevice, GX_ENUM_PIXEL_COLOR_FILTER, &pCAM->ColorFilter);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			GetErrorString(emStatus);
-			ret = -1;
-			continue;
-		} else {
+		if (emStatus == GX_STATUS_SUCCESS) {
 			if (pCAM->ColorFilter) {
 				log_info("CAM[%d] : ColorFilter %d is color camera, not support.", i, pCAM->ColorFilter);
 				continue;
@@ -284,11 +266,6 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		}
 
 		emStatus = GXGetInt(pCAM->hDevice, GX_INT_PAYLOAD_SIZE, &pCAM->PayloadSize);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			GetErrorString(emStatus);
-			ret = -1;
-			continue;
-		}
 
 		pCAM->pMonoImageBuf = malloc(pCAM->PayloadSize + 1);
 		if (NULL == pCAM->pMonoImageBuf) {
@@ -368,7 +345,7 @@ int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state)
 
 		if (emStatus != GX_STATUS_SUCCESS) {
 			GetErrorString(emStatus);
-			ret = -1;
+			//ret = -1;
 			continue;
 		}
 	}
@@ -390,68 +367,28 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		// Set acquisition mode
-/*		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			continue;
-		}
-*/
-		// Set trigger mode
-		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			GetErrorString(emStatus);
-			ret = -1;
-			continue;
-		}
+//		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
 
-		// Set trigger source
+		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
+
+		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
+
 		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE0);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			GetErrorString(emStatus);
-			ret = -1;
-			continue;
-		}
 
 		emStatus = GXSetAcqusitionBufferNumber(pCAM->hDevice, ACQ_BUFFER_NUM);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			GetErrorString(emStatus);
-			ret = -1;
-			continue;
-		}
 
-    
+		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TRIGGERWIDTH);
+
 		emStatus = GXIsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, &bStreamTransferSize);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			GetErrorString(emStatus);
-			ret = -1;
-			continue;
-		}
-
 		if (bStreamTransferSize) {
 			// Set size of data transfer block
 			emStatus = GXSetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, ACQ_TRANSFER_SIZE);
-			if (emStatus != GX_STATUS_SUCCESS) {
-				GetErrorString(emStatus);
-				ret = -1;
-				continue;
-			}
 		}
 
 		emStatus = GXIsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, &bStreamTransferNumberUrb);
-		if (emStatus != GX_STATUS_SUCCESS) {
-			GetErrorString(emStatus);
-			ret = -1;
-			continue;
-		}
-
 		if (bStreamTransferNumberUrb) {
 			// Set qty. of data transfer block
 			emStatus = GXSetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, ACQ_TRANSFER_NUMBER_URB);
-			if (emStatus != GX_STATUS_SUCCESS) {
-				GetErrorString(emStatus);
-				ret = -1;
-				continue;
-			}
 		}
 
 
@@ -490,6 +427,8 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 		log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
 		return -1;
 	}
+
+	log_debug("OK : Frame [%s][%d].", pCAM->serial, pCAM->pFrameBuffer->nFrameID);
 
 	ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 	if (0 == ret) {
