@@ -38,9 +38,7 @@ struct reglist_t {
 	struct list_head		list;
 };
 
-
 struct csv_gev_t {
-
 	struct reglist_t		head_reg;		///< 寄存器链表
 
 };

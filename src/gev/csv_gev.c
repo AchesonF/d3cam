@@ -520,8 +520,6 @@ static void csv_gev_reg_disroll (void)
 }
 
 
-
-
 int csv_gev_init (void)
 {
 	int ret = 0;

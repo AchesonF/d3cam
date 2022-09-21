@@ -323,6 +323,8 @@ static int csv_msg_thread_cancel (struct csv_msg_t *pMSG)
 	int ret = 0;
 	void *retval = NULL;
 
+	csv_msg_list_release(pMSG);
+
 	if (pMSG->thr_msg <= 0) {
 		return 0;
 	}
@@ -362,8 +364,6 @@ int csv_msg_deinit (void)
 {
 	int ret = 0;
 	struct csv_msg_t *pMSG = &gCSV->msg;
-
-	csv_msg_list_release(pMSG);
 
 	csv_msg_cmd_disroll();
 

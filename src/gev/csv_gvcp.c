@@ -4,62 +4,51 @@
 extern "C" {
 #endif
 
-static int csv_gvcp_sendto (struct csv_gvcp_t *pGVCP)
+static int csv_gvcp_sendto (struct gvcp_ask_t *pASK, struct gvcp_ack_t *pACK)
 {
-	if ((pGVCP->fd <= 0)||(pGVCP->txlen == 0)
-	  ||(0x00000000 == pGVCP->from_addr.sin_addr.s_addr)
-	  ||(0x0000 == pGVCP->from_addr.sin_port)) {
+	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
+
+	if ((pGVCP->fd <= 0)||(pACK->len == 0)
+	  ||(0x00000000 == pASK->from_addr.sin_addr.s_addr)
+	  ||(0x0000 == pASK->from_addr.sin_port)) {
 		return 0;
 	}
 
-	log_hex(STREAM_UDP, pGVCP->txbuf, pGVCP->txlen, "gvcp send[%d] '%s:%d'", pGVCP->txlen, 
-		inet_ntoa(pGVCP->from_addr.sin_addr), htons(pGVCP->from_addr.sin_port));
+	log_hex(STREAM_UDP, pACK->buf, pACK->len, "gvcp send[%d] '%s:%d'", pACK->len, 
+		inet_ntoa(pASK->from_addr.sin_addr), htons(pASK->from_addr.sin_port));
 
-	return sendto(pGVCP->fd, pGVCP->txbuf, pGVCP->txlen, 0, 
-		(struct sockaddr *)&pGVCP->from_addr, sizeof(struct sockaddr_in));
+	return sendto(pGVCP->fd, pACK->buf, pACK->len, 0, 
+		(struct sockaddr *)&pASK->from_addr, sizeof(struct sockaddr_in));
 }
 
-static int csv_gvcp_error_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR, uint16_t errcode)
+static int csv_gvcp_error_ack (struct gvcp_ask_t *pASK, CMD_MSG_HEADER *pHdr, 
+	struct gvcp_ack_t *pACK, uint16_t errcode)
 {
-	memset(pGVCP->txbuf, 0, GVCP_MAX_MSG_LEN);
+	memset(pACK->buf, 0, GVCP_MAX_MSG_LEN);
 
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGVCP->txbuf;
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pACK->buf;
 
 	pAckHdr->nStatus			= htons(errcode);
-	pAckHdr->nAckMsgValue		= htons(pHDR->nCommand+1);
+	pAckHdr->nAckMsgValue		= htons(pHdr->nCommand+1);
 	pAckHdr->nLength			= htons(0x0000);
-	pAckHdr->nAckId				= htons(pHDR->nReqId);
+	pAckHdr->nAckId				= htons(pHdr->nReqId);
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER);
+	pACK->len = sizeof(ACK_MSG_HEADER);
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
-int csv_gvcp_event_send (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+static int csv_gvcp_discover_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
-	CMD_MSG_HEADER *pHeader = (CMD_MSG_HEADER *)pGVCP->txbuf;
-
-	pHeader->cKeyValue = GVCP_CMD_KEY_VALUE;
-	pHeader->cFlg = GVCP_CMD_FLAG_NEED_ACK; // TODO
-	pHeader->nCommand = GEV_EVENT_CMD;
-	pHeader->nReqId = pHDR->nReqId;
-
-
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + 0;
-
-	return csv_gvcp_sendto(pGVCP);
-}
-
-static int csv_gvcp_discover_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
-{
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGVCP->txbuf;
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pACK->buf;
 
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_DISCOVERY_ACK);
 	pAckHdr->nLength			= htons(sizeof(DISCOVERY_ACK_MSG));
-	pAckHdr->nAckId				= htons(pHDR->nReqId);
+	pAckHdr->nAckId				= htons(pHdr->nReqId);
 
-	DISCOVERY_ACK_MSG *pAckMsg = (DISCOVERY_ACK_MSG *)(pGVCP->txbuf + sizeof(ACK_MSG_HEADER));
+	DISCOVERY_ACK_MSG *pAckMsg = (DISCOVERY_ACK_MSG *)(pACK->buf + sizeof(ACK_MSG_HEADER));
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
 	pAckMsg->nMajorVer			= htons(pGC->VersionMajor);
@@ -80,18 +69,19 @@ static int csv_gvcp_discover_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR
 	strncpy((char *)pAckMsg->chSerialNumber, pGC->SerialNumber, 16);
 	strncpy((char *)pAckMsg->chUserDefinedName, pGC->UserdefinedName, 16);
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + sizeof(DISCOVERY_ACK_MSG);
+	pACK->len = sizeof(ACK_MSG_HEADER) + sizeof(DISCOVERY_ACK_MSG);
 
 	// TODO ack delay "Discovery ACK Delay"
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
-static int csv_gvcp_forceip_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+static int csv_gvcp_forceip_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
 	int ret = 0, i = 0;
 	uint8_t match_mac = false;
-	FORCEIP_CMD_MSG *pFIP = (FORCEIP_CMD_MSG *)(pGVCP->rxbuf + sizeof(CMD_MSG_HEADER));
+	FORCEIP_CMD_MSG *pFIP = (FORCEIP_CMD_MSG *)(pASK->buf + sizeof(CMD_MSG_HEADER));
 
 	if (pFIP->nStaticIp == 0x00000000) {
 		// TODO special ip
@@ -114,15 +104,15 @@ static int csv_gvcp_forceip_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
 		return -1;
 	}
 
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGVCP->txbuf;
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pACK->buf;
 
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_FORCEIP_ACK);
 	pAckHdr->nLength			= htons(0x0000);
-	pAckHdr->nAckId				= htons(pHDR->nReqId);
+	pAckHdr->nAckId				= htons(pHdr->nReqId);
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + pAckHdr->nLength;
-	ret = csv_gvcp_sendto(pGVCP);
+	pACK->len = sizeof(ACK_MSG_HEADER) + pAckHdr->nLength;
+	ret = csv_gvcp_sendto(pASK, pACK);
 
 	if (NULL != pETHER) {
 		usleep(100000);
@@ -136,68 +126,70 @@ static int csv_gvcp_forceip_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
 	return ret;
 }
 
-static int csv_gvcp_packetresend_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+static int csv_gvcp_packetresend_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
 
-	//ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGVCP->txbuf;
+	//ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pACK->buf;
 
 	//pAckHdr->nStatus			= htons(MV_GEV_STATUS_SUCCESS);
 	//pAckHdr->nAckMsgValue		= htons(MV_GEV_PACKETRESEND_INVALID);
 	//pAckHdr->nLength			= htons(0x0000);
-	//pAckHdr->nAckId			= htons(pHDR->nReqId);
+	//pAckHdr->nAckId			= htons(pHdr->nReqId);
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + 0;
+	pACK->len = sizeof(ACK_MSG_HEADER) + 0;
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
 
 
-static int csv_gvcp_readreg_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+static int csv_gvcp_readreg_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
-	if (pHDR->nLength > GVCP_MAX_PAYLOAD_LEN) {
+	if (pHdr->nLength > GVCP_MAX_PAYLOAD_LEN) {
 		log_warn("ERROR : read too long reg addrs.");
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_HEADER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
-	if ((pHDR->nLength % sizeof(uint32_t) != 0)||(pGVCP->rxlen != 8+pHDR->nLength)) {
+	if ((pHdr->nLength % sizeof(uint32_t) != 0)||(pASK->len != 8+pHdr->nLength)) {
 		log_warn("ERROR : length not match.");
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_HEADER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
 	int i = 0, ret = -1;
-	uint32_t *pRegAddr = (uint32_t *)(pGVCP->rxbuf + sizeof(CMD_MSG_HEADER));
-	uint32_t *pRegData = (uint32_t *)(pGVCP->txbuf + sizeof(ACK_MSG_HEADER));
-	int nRegs = pHDR->nLength / sizeof(uint32_t); // GVCP_READ_REG_MAX_NUM
+	uint32_t *pRegAddr = (uint32_t *)(pASK->buf + sizeof(CMD_MSG_HEADER));
+	uint32_t *pRegData = (uint32_t *)(pACK->buf + sizeof(ACK_MSG_HEADER));
+	int nRegs = pHdr->nLength / sizeof(uint32_t); // GVCP_READ_REG_MAX_NUM
 	uint32_t reg_addr = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
 	uint32_t nTemp = 0;
 	char *desc = NULL;
 
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGVCP->txbuf;
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pACK->buf;
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_READREG_ACK);
-	pAckHdr->nAckId				= htons(pHDR->nReqId);
+	pAckHdr->nAckId				= htons(pHdr->nReqId);
 
 	for (i = 0; i < nRegs; i++) {
 		reg_addr = ntohl(*pRegAddr);
 
 		if (reg_addr % 4) {
-			csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+			csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 			return -1;
 		}
 
 		type = csv_gev_reg_type_get(reg_addr, &desc);
 		if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_MEM == type)) {
-			csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+			csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 			return -1;
 		}
 
 		ret = csv_gev_reg_value_get(reg_addr, &nTemp);
 		if (ret < 0) {
-			csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+			csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 			return -1;
 		}
 
@@ -214,9 +206,9 @@ static int csv_gvcp_readreg_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
 	}
 	pAckHdr->nLength			= htons(i*4);
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + i*4;
+	pACK->len = sizeof(ACK_MSG_HEADER) + i*4;
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
 static void csv_gvsp_lfsr_generator (uint8_t *data, uint32_t len)
@@ -474,30 +466,31 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 	return ret;
 }
 
-static int csv_gvcp_writereg_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+static int csv_gvcp_writereg_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
 	int i = 0, ret = -1;
 
 
-	if (pHDR->nLength > GVCP_MAX_PAYLOAD_LEN) {
+	if (pHdr->nLength > GVCP_MAX_PAYLOAD_LEN) {
 		log_warn("ERROR : too long regs.");
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_HEADER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
-	if ((pHDR->nLength % sizeof(WRITEREG_CMD_MSG) != 0)||(pGVCP->rxlen != 8+pHDR->nLength)) {
+	if ((pHdr->nLength % sizeof(WRITEREG_CMD_MSG) != 0)||(pASK->len != 8+pHdr->nLength)) {
 		log_warn("ERROR : length not match.");
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_HEADER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
-	int nRegs = pHDR->nLength/sizeof(WRITEREG_CMD_MSG);
+	int nRegs = pHdr->nLength/sizeof(WRITEREG_CMD_MSG);
 
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGVCP->txbuf;
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pACK->buf;
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_WRITEREG_ACK);
 	pAckHdr->nLength			= htons(sizeof(WRITEREG_ACK_MSG));
-	pAckHdr->nAckId				= htons(pHDR->nReqId);
+	pAckHdr->nAckId				= htons(pHdr->nReqId);
 
 	uint32_t reg_addr = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
@@ -505,19 +498,19 @@ static int csv_gvcp_writereg_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR
 	uint32_t reg_data = 0;
 	char *desc = NULL;
 
-	WRITEREG_CMD_MSG *pRegMsg = (WRITEREG_CMD_MSG *)(pGVCP->rxbuf + sizeof(CMD_MSG_HEADER));
+	WRITEREG_CMD_MSG *pRegMsg = (WRITEREG_CMD_MSG *)(pASK->buf + sizeof(CMD_MSG_HEADER));
 	for (i = 0; i < nRegs; i++) {
 		reg_addr = ntohl(pRegMsg->nRegAddress);
 		reg_data = ntohl(pRegMsg->nRegData);
 
 		if (reg_addr % 4) {
-			csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+			csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 			return -1;
 		}
 
 		type = csv_gev_reg_type_get(reg_addr, &desc);
 		if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_MEM == type)) {
-			csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+			csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 			return -1;
 		}
 
@@ -536,14 +529,14 @@ static int csv_gvcp_writereg_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR
 			nIndex = i;
 			break;
 		} else if (ret == -2) {
-			csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_WRITE_PROTECT);
+			csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_WRITE_PROTECT);
 			return -1;
 		}
 
 		pRegMsg++;
 	}
 
-	WRITEREG_ACK_MSG *pAckMsg = (WRITEREG_ACK_MSG *)(pGVCP->txbuf + sizeof(ACK_MSG_HEADER));
+	WRITEREG_ACK_MSG *pAckMsg = (WRITEREG_ACK_MSG *)(pACK->buf + sizeof(ACK_MSG_HEADER));
 	pAckMsg->nReserved			= htons(0x0000);
 	pAckMsg->nIndex				= htons(nIndex);
 
@@ -551,22 +544,23 @@ static int csv_gvcp_writereg_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR
 		// TODO 1 save to xml file
 	}
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + sizeof(WRITEREG_ACK_MSG);
+	pACK->len = sizeof(ACK_MSG_HEADER) + sizeof(WRITEREG_ACK_MSG);
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
-static int csv_gvcp_readmem_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+static int csv_gvcp_readmem_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
-	if (pHDR->nLength != sizeof(READMEM_CMD_MSG)) {
+	if (pHdr->nLength != sizeof(READMEM_CMD_MSG)) {
 		log_warn("ERROR : readmem param length.");
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_PARAMETER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
 
-	if (pGVCP->rxlen != 8+pHDR->nLength) {
+	if (pASK->len != 8+pHdr->nLength) {
 		log_warn("ERROR : length not match.");
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_HEADER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
@@ -574,28 +568,28 @@ static int csv_gvcp_readmem_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
 	char *info = NULL;
 	uint16_t len_info = 0;
 	uint8_t type = GEV_REG_TYPE_NONE;
-	READMEM_CMD_MSG *pReadMem = (READMEM_CMD_MSG *)(pGVCP->rxbuf + sizeof(CMD_MSG_HEADER));
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGVCP->txbuf;
-	READMEM_ACK_MSG *pMemAck = (READMEM_ACK_MSG *)(pGVCP->txbuf + sizeof(ACK_MSG_HEADER));
+	READMEM_CMD_MSG *pReadMem = (READMEM_CMD_MSG *)(pASK->buf + sizeof(CMD_MSG_HEADER));
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pACK->buf;
+	READMEM_ACK_MSG *pMemAck = (READMEM_ACK_MSG *)(pACK->buf + sizeof(ACK_MSG_HEADER));
 	uint32_t mem_addr = ntohl(pReadMem->nMemAddress);
 	uint16_t mem_len = ntohs(pReadMem->nMemLen);
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 	char *desc = NULL;
 
 	if (mem_addr % 4) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
 	}
 
 	if ((mem_len % 4)||(mem_len > GVCP_READ_MEM_MAX_LEN)) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_PARAMETER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
 
 	// branch 1 读取 xml 文件
 	if ((mem_addr >= REG_StartOfXmlFile)&&(mem_addr < REG_StartOfXmlFile+GEV_XML_FILE_MAX_SIZE)) {
 		if (NULL == pGC->xmlData) {
-			csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_ACCESS_DENIED);
+			csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_ACCESS_DENIED);
 			return -1;
 		}
 
@@ -607,17 +601,17 @@ static int csv_gvcp_readmem_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
 		pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 		pAckHdr->nAckMsgValue		= htons(GEV_READMEM_ACK);
 		pAckHdr->nLength			= htons(sizeof(uint32_t) + mem_len);
-		pAckHdr->nAckId				= htons(pHDR->nReqId);
+		pAckHdr->nAckId				= htons(pHdr->nReqId);
 
-		pGVCP->txlen = sizeof(ACK_MSG_HEADER) + sizeof(uint32_t) + mem_len;
+		pACK->len = sizeof(ACK_MSG_HEADER) + sizeof(uint32_t) + mem_len;
 
-		return csv_gvcp_sendto(pGVCP);
+		return csv_gvcp_sendto(pASK, pACK);
 	}
 
 	// branch 2 读取常规 mem
 	type = csv_gev_reg_type_get(mem_addr, &desc);
 	if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_REG == type)) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
 	}
 
@@ -627,16 +621,16 @@ static int csv_gvcp_readmem_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
 
 	ret = csv_gev_mem_info_get(mem_addr, &info);
 	if (ret == -1) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_PACKET_REMOVED_FROM_MEMORY);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_PACKET_REMOVED_FROM_MEMORY);
 		return -1;
 	} else if (ret == -2) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
 	}
 
 	len_info = csv_gev_mem_info_get_length(mem_addr);
 	if (mem_len > len_info) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_BAD_ALIGNMENT);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_BAD_ALIGNMENT);
 		return -1;
 	}
 
@@ -653,49 +647,50 @@ static int csv_gvcp_readmem_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_READMEM_ACK);
 	pAckHdr->nLength			= htons(sizeof(uint32_t) + mem_len);
-	pAckHdr->nAckId				= htons(pHDR->nReqId);
+	pAckHdr->nAckId				= htons(pHdr->nReqId);
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + sizeof(uint32_t) + mem_len;
+	pACK->len = sizeof(ACK_MSG_HEADER) + sizeof(uint32_t) + mem_len;
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
-static int csv_gvcp_writemem_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+static int csv_gvcp_writemem_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
-	if ((pHDR->nLength == 0)||(pHDR->nLength % 4)
-	  ||(pHDR->nLength <= 4)||(pHDR->nLength > GVCP_MAX_PAYLOAD_LEN+4)) {
+	if ((pHdr->nLength == 0)||(pHdr->nLength % 4)
+	  ||(pHdr->nLength <= 4)||(pHdr->nLength > GVCP_MAX_PAYLOAD_LEN+4)) {
 		log_warn("ERROR : writemem param length.");
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_PARAMETER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
 
-	if (pGVCP->rxlen != 8+pHDR->nLength) {
+	if (pASK->len != 8+pHdr->nLength) {
 		log_warn("ERROR : length not match.");
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_HEADER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_HEADER);
 		return -1;
 	}
 
 	int ret = -1;
 	uint8_t type = GEV_REG_TYPE_NONE;
-	WRITEMEM_CMD_MSG *pWriteMem = (WRITEMEM_CMD_MSG *)(pGVCP->rxbuf + sizeof(CMD_MSG_HEADER));
+	WRITEMEM_CMD_MSG *pWriteMem = (WRITEMEM_CMD_MSG *)(pASK->buf + sizeof(CMD_MSG_HEADER));
 	uint32_t mem_addr = ntohl(pWriteMem->nMemAddress);
 	uint16_t len_info = 0;
 	char *info = (char *)pWriteMem->chWriteMemData;
 	char *desc = NULL;
 
 	if (mem_addr % 4) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
 	}
 
 	if (strlen(info) > GVCP_WRITE_MEM_MAX_LEN) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_PARAMETER);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
 	}
 
 	type = csv_gev_reg_type_get(mem_addr, &desc);
 	if ((GEV_REG_TYPE_NONE == type)||(GEV_REG_TYPE_REG == type)) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_INVALID_ADDRESS);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_ADDRESS);
 		return -1;
 	}
 
@@ -705,145 +700,142 @@ static int csv_gvcp_writemem_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR
 
 	ret = csv_gev_mem_info_set(mem_addr, info);
 	if (ret < 0) {
-		csv_gvcp_error_ack(pGVCP, pHDR, GEV_STATUS_WRITE_PROTECT);
+		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_WRITE_PROTECT);
 		return -1;
 	} else if (ret == 0) {
-		len_info = pHDR->nLength - 4;
+		len_info = pHdr->nLength - 4;
 	} else {
 		len_info = ret;
 	}
 
-	WRITEMEM_ACK_MSG *pMemAck = (WRITEMEM_ACK_MSG *)(pGVCP->txbuf + sizeof(ACK_MSG_HEADER));
+	WRITEMEM_ACK_MSG *pMemAck = (WRITEMEM_ACK_MSG *)(pACK->buf + sizeof(ACK_MSG_HEADER));
 	pMemAck->nReserved = htons(0);
 	pMemAck->nIndex = htons(len_info);
 
-	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pGVCP->txbuf;
+	ACK_MSG_HEADER *pAckHdr = (ACK_MSG_HEADER *)pACK->buf;
 	pAckHdr->nStatus			= htons(GEV_STATUS_SUCCESS);
 	pAckHdr->nAckMsgValue		= htons(GEV_WRITEMEM_ACK);
 	pAckHdr->nLength			= htons(sizeof(WRITEMEM_ACK_MSG));
-	pAckHdr->nAckId				= htons(pHDR->nReqId);
+	pAckHdr->nAckId				= htons(pHdr->nReqId);
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + sizeof(WRITEMEM_ACK_MSG);
+	pACK->len = sizeof(ACK_MSG_HEADER) + sizeof(WRITEMEM_ACK_MSG);
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
-int csv_gvcp_eventdata_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+int csv_gvcp_eventdata_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
 
 
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + 0;
+	pACK->len = sizeof(ACK_MSG_HEADER) + 0;
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
-static int csv_gvcp_action_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHDR)
+static int csv_gvcp_action_ack (struct gvcp_ask_t *pASK, 
+	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
 
 
 
-	pGVCP->txlen = sizeof(ACK_MSG_HEADER) + 0;
+	pACK->len = sizeof(ACK_MSG_HEADER) + 0;
 
-	return csv_gvcp_sendto(pGVCP);
+	return csv_gvcp_sendto(pASK, pACK);
 }
 
-static int csv_gvcp_msg_ack (struct csv_gvcp_t *pGVCP, CMD_MSG_HEADER *pHdr)
+static int csv_gvcp_msg_ack (struct gvcp_ask_t *pASK, CMD_MSG_HEADER *pHdr)
 {
 	int ret = -1;
+	struct gvcp_ack_t *pACK = &gCSV->gvcp.gvcp_ack;
 
-	memset(pGVCP->txbuf, 0, GVCP_MAX_MSG_LEN);
+	memset(pACK->buf, 0, GVCP_MAX_MSG_LEN);
 
 	// TODO check where data from "from_addr.s_addr"
 
 	switch (pHdr->nCommand) {
 	case GEV_DISCOVERY_CMD:
 		log_debug("%s", toSTR(GEV_DISCOVERY_CMD));
-		ret = csv_gvcp_discover_ack(pGVCP, pHdr);
+		ret = csv_gvcp_discover_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_FORCEIP_CMD:
 		log_debug("%s", toSTR(GEV_FORCEIP_CMD));
-		ret = csv_gvcp_forceip_ack(pGVCP, pHdr);
+		ret = csv_gvcp_forceip_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_PACKETRESEND_CMD:
 		log_debug("%s", toSTR(GEV_PACKETRESEND_CMD));
-		ret = csv_gvcp_packetresend_ack(pGVCP, pHdr);
+		ret = csv_gvcp_packetresend_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_READREG_CMD:
 		log_debug("%s", toSTR(GEV_READREG_CMD));
-		ret = csv_gvcp_readreg_ack(pGVCP, pHdr);
+		ret = csv_gvcp_readreg_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_WRITEREG_CMD:
 		log_debug("%s", toSTR(GEV_WRITEREG_CMD));
-		ret = csv_gvcp_writereg_ack(pGVCP, pHdr);
+		ret = csv_gvcp_writereg_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_READMEM_CMD:
 		log_debug("%s", toSTR(GEV_READMEM_CMD));
-		ret = csv_gvcp_readmem_ack(pGVCP, pHdr);
+		ret = csv_gvcp_readmem_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_WRITEMEM_CMD:
 		log_debug("%s", toSTR(GEV_WRITEMEM_CMD));
-		ret = csv_gvcp_writemem_ack(pGVCP, pHdr);
+		ret = csv_gvcp_writemem_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_EVENT_ACK:
-		//ret = csv_gvcp_event_ack(pGVCP, pHdr);
+		//ret = csv_gvcp_event_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_EVENTDATA_ACK:
-		//ret = csv_gvcp_eventdata_ack(pGVCP, pHdr);
+		//ret = csv_gvcp_eventdata_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_ACTION_CMD:
 		log_debug("%s", toSTR(GEV_ACTION_CMD));
-		ret = csv_gvcp_action_ack(pGVCP, pHdr);
+		ret = csv_gvcp_action_ack(pASK, pHdr, pACK);
 		break;
 
 	default:
 		log_debug("WARN : not support cmd 0x%04X.", pHdr->nCommand);
-		ret = csv_gvcp_error_ack(pGVCP, pHdr, GEV_STATUS_NOT_IMPLEMENTED);
+		ret = csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_NOT_IMPLEMENTED);
 		break;
 	}
-
-	memset(pGVCP->rxbuf, 0, GVCP_MAX_MSG_LEN);
 
 	return ret;
 }
 
-int csv_gvcp_trigger (struct csv_gvcp_t *pGVCP)
+int csv_gvcp_ask_deal (struct gvcp_ask_t *pASK)
 {
 	int i = 0;
 	struct csv_ifcfg_t *pIFCFG = &gCSV->ifcfg;
 	struct csv_eth_t *pETHER = NULL;
-	socklen_t from_len = sizeof(struct sockaddr_in);
-
-	pGVCP->rxlen = recvfrom(pGVCP->fd, pGVCP->rxbuf, GVCP_MAX_MSG_LEN, 0, 
-		(struct sockaddr *)&pGVCP->from_addr, &from_len);
 
 	for (i = 0; i < pIFCFG->cnt_ifc; i++) {
 		pETHER = &pIFCFG->ether[i];
-		if (pGVCP->from_addr.sin_addr.s_addr == pETHER->ipaddress) {
+		if (pASK->from_addr.sin_addr.s_addr == pETHER->ipaddress) {
 			//log_debug("gvcp msg from myself.");
 			return 0;
 		}
 	}
 
-	if (pGVCP->rxlen < sizeof(CMD_MSG_HEADER)) {
-		log_hex(STREAM_UDP, pGVCP->rxbuf, pGVCP->rxlen, "Wrong gev head length. '%s:%d'", 
-			inet_ntoa(pGVCP->from_addr.sin_addr), htons(pGVCP->from_addr.sin_port));
+	if (pASK->len < sizeof(CMD_MSG_HEADER)) {
+		log_hex(STREAM_UDP, pASK->buf, pASK->len, "Wrong gev head length. '%s:%d'", 
+			inet_ntoa(pASK->from_addr.sin_addr), htons(pASK->from_addr.sin_port));
 		return -1;
 	}
 
-	log_hex(STREAM_UDP, pGVCP->rxbuf, pGVCP->rxlen, "gvcp recv[%d] '%s:%d'", pGVCP->rxlen, 
-		inet_ntoa(pGVCP->from_addr.sin_addr), htons(pGVCP->from_addr.sin_port));
+	log_hex(STREAM_UDP, pASK->buf, pASK->len, "gvcp recv[%d] '%s:%d'", pASK->len, 
+		inet_ntoa(pASK->from_addr.sin_addr), htons(pASK->from_addr.sin_port));
 
-	CMD_MSG_HEADER *pHeader = (CMD_MSG_HEADER *)pGVCP->rxbuf;
+	CMD_MSG_HEADER *pHeader = (CMD_MSG_HEADER *)pASK->buf;
 	CMD_MSG_HEADER Cmdheader;
 
 	Cmdheader.cKeyValue = pHeader->cKeyValue;
@@ -861,8 +853,172 @@ int csv_gvcp_trigger (struct csv_gvcp_t *pGVCP)
 		return -1;
 	}
 
-	return csv_gvcp_msg_ack(pGVCP, &Cmdheader);
+	return csv_gvcp_msg_ack(pASK, &Cmdheader);
 }
+
+int csv_gvcp_ask_push (struct csv_gvcp_t *pGVCP)
+{
+	struct gvcp_ask_list_t *cur = NULL;
+	struct gvcp_ask_t *pASK = NULL;
+
+	cur = (struct gvcp_ask_list_t *)malloc(sizeof(struct gvcp_ask_list_t));
+	if (cur == NULL) {
+		log_err("ERROR : malloc gvcp_ask_list_t.");
+		return -1;
+	}
+	memset(cur, 0, sizeof(struct gvcp_ask_list_t));
+	pASK = &cur->ask;
+
+	pASK->len = pGVCP->rxlen;
+	memcpy(pASK->buf, pGVCP->rxbuf, pGVCP->rxlen);
+	memcpy(&pASK->from_addr, &pGVCP->from_addr, sizeof(struct sockaddr_in));
+
+	pthread_mutex_lock(&pGVCP->mutex_gvcpask);
+	list_add_tail(&cur->list, &pGVCP->head_gvcpask.list);
+	pthread_mutex_unlock(&pGVCP->mutex_gvcpask);
+
+	pthread_cond_broadcast(&pGVCP->cond_gvcpask);
+
+	return 0;
+}
+
+int csv_gvcp_recv_trigger (struct csv_gvcp_t *pGVCP)
+{
+	int nRecv = 0;
+	socklen_t from_len = sizeof(struct sockaddr_in);
+
+	nRecv = recvfrom(pGVCP->fd, pGVCP->rxbuf, GVCP_MAX_MSG_LEN, 0, 
+		(struct sockaddr *)&pGVCP->from_addr, &from_len);
+	if (nRecv < 0) {
+		log_err("ERROR : recvfrom %s", pGVCP->name);
+		return -1;
+	} else if (nRecv == 0) {
+		return 0;
+	}
+	pGVCP->rxlen = nRecv;
+
+	return csv_gvcp_ask_push(pGVCP);
+}
+
+static void *csv_gvcp_ask_loop (void *data)
+{
+	if (NULL == data) {
+		return NULL;
+	}
+
+	struct csv_gvcp_t *pGVCP = (struct csv_gvcp_t *)data;
+
+	int ret = 0;
+	struct list_head *pos = NULL, *n = NULL;
+	struct gvcp_ask_list_t *task = NULL;
+	struct timeval now;
+	struct timespec timeo;
+
+	while (1) {
+		list_for_each_safe(pos, n, &pGVCP->head_gvcpask.list) {
+			task = list_entry(pos, struct gvcp_ask_list_t, list);
+			if (task == NULL) {
+				break;
+			}
+
+			csv_gvcp_ask_deal(&task->ask);
+
+			list_del(&task->list);
+			free(task);
+			task = NULL;
+		}
+
+		gettimeofday(&now, NULL);
+		timeo.tv_sec = now.tv_sec + 2;
+		timeo.tv_nsec = now.tv_usec * 1000;
+
+		ret = pthread_cond_timedwait(&pGVCP->cond_gvcpask, &pGVCP->mutex_gvcpask, &timeo);
+		if (ret == ETIMEDOUT) {
+			// use timeo as a block and than retry.
+		}
+	}
+
+	log_alert("WARN : exit pthread %s", pGVCP->name_gvcpask);
+
+	pGVCP->thr_gvcpask = 0;
+
+	pthread_exit(NULL);
+
+	return NULL;
+}
+
+static int csv_gvcp_ask_thread (struct csv_gvcp_t *pGVCP)
+{
+	int ret = -1;
+
+	pthread_attr_t attr;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    if (pthread_mutex_init(&pGVCP->mutex_gvcpask, NULL) != 0) {
+		log_err("ERROR : mutex %s.", pGVCP->name_gvcpask);
+        return -1;
+    }
+
+    if (pthread_cond_init(&pGVCP->cond_gvcpask, NULL) != 0) {
+		log_err("ERROR : cond %s.", pGVCP->name_gvcpask);
+        return -1;
+    }
+
+	ret = pthread_create(&pGVCP->thr_gvcpask, &attr, csv_gvcp_ask_loop, (void *)pGVCP);
+	if (ret < 0) {
+		log_err("ERROR : create pthread %s.", pGVCP->name_gvcpask);
+		return -1;
+	} else {
+		log_info("OK : create pthread %s @ (%p).", pGVCP->name_gvcpask, pGVCP->thr_gvcpask);
+	}
+
+	return ret;
+}
+
+static void csv_gvcp_ask_list_release (struct csv_gvcp_t *pGVCP)
+{
+	struct list_head *pos = NULL, *n = NULL;
+	struct gvcp_ask_list_t *task = NULL;
+
+	list_for_each_safe(pos, n, &pGVCP->head_gvcpask.list) {
+		task = list_entry(pos, struct gvcp_ask_list_t, list);
+		if (task == NULL) {
+			break;
+		}
+
+		list_del(&task->list);
+		free(task);
+		task = NULL;
+	}
+}
+
+static int csv_gvcp_ask_thread_cancel (struct csv_gvcp_t *pGVCP)
+{
+	int ret = 0;
+	void *retval = NULL;
+
+	csv_gvcp_ask_list_release(pGVCP);
+
+	if (pGVCP->thr_gvcpask <= 0) {
+		return 0;
+	}
+
+	ret = pthread_cancel(pGVCP->thr_gvcpask);
+	if (ret != 0) {
+		log_err("ERROR : pthread_cancel %s.", pGVCP->name_gvcpask);
+	} else {
+		log_info("OK : cancel pthread %s (%p).", pGVCP->name_gvcpask, pGVCP->thr_gvcpask);
+	}
+
+	ret = pthread_join(pGVCP->thr_gvcpask, &retval);
+
+	pGVCP->thr_gvcpask = 0;
+
+	return ret;
+}
+
 
 static int csv_gvcp_server_open (struct csv_gvcp_t *pGVCP)
 {
@@ -935,9 +1091,12 @@ int csv_gvcp_init (void)
 	pGVCP->port = GVCP_PUBLIC_PORT;
 	pGVCP->ReqId = GVCP_REQ_ID_INIT;
 	pGVCP->rxlen = 0;
-	pGVCP->txlen = 0;
+
+	pGVCP->name_gvcpask = NAME_THREAD_GVCP_ASK;
+	INIT_LIST_HEAD(&pGVCP->head_gvcpask.list);
 
 	ret = csv_gvcp_server_open(pGVCP);
+	ret |= csv_gvcp_ask_thread(pGVCP);
 
 	return ret;
 }
@@ -947,7 +1106,8 @@ int csv_gvcp_deinit (void)
 	int ret = 0;
 	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
 
-	ret = csv_gvcp_server_close(pGVCP);
+	ret = csv_gvcp_ask_thread_cancel(pGVCP);
+	ret |= csv_gvcp_server_close(pGVCP);
 
 	return ret;
 }

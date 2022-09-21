@@ -431,7 +431,7 @@ int main (int argc, char **argv)
 		}
 
 		if ((pGVCP->fd > 0)&&(FD_ISSET(pGVCP->fd, &readset))) {
-			csv_gvcp_trigger(pGVCP);
+			csv_gvcp_recv_trigger(pGVCP);
 		}
 
 		if ((pUE->fd > 0)&&(FD_ISSET(pUE->fd, &readset))) {
