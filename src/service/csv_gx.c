@@ -6,6 +6,8 @@ extern "C" {
 
 #if defined(USE_GX_CAMS)
 
+bool libInit = false;
+
 #define GX_WAIT_TIMEO		(6)		// x
 #define GX_WAIT_PERIOD		(2)		// 2s
 
@@ -14,6 +16,10 @@ static void GetErrorString (GX_STATUS emErrorStatus)
 	char *error_info = NULL;
 	size_t size = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (!libInit) {
+		return;
+	}
 
 	// Get length of error description
 	emStatus = GXGetLastError(&emErrorStatus, NULL, &size);
@@ -48,41 +54,440 @@ static void GetErrorString (GX_STATUS emErrorStatus)
 	}
 }
 
-static GX_STATUS GxGetString (GX_DEV_HANDLE hDevice, GX_FEATURE_ID id, char *dst)
+static GX_STATUS GetFeatureName (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, 
+	char *pszName, size_t *pnSize)
 {
-	size_t nSize = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 
-	if ((NULL == dst)||(NULL == hDevice)) {
-		return -1;
+	if (libInit) {
+		emStatus = GXGetFeatureName(hDevice, emFeatureID, pszName, pnSize);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			log_info("ERROR : GXGetFeatureName '%s' errcode[%d].",pszName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
 	}
 
-    emStatus = GXGetStringLength(hDevice, id, &nSize);
-	if (emStatus != GX_STATUS_SUCCESS) {
-		GetErrorString(emStatus);
-		return emStatus;
+	return emStatus;
+}
+
+static GX_STATUS IsImplemented (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, bool *pbIsImplemented)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXIsImplemented(hDevice, emFeatureID, pbIsImplemented);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXIsImplemented '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
 	}
 
-	char *str = malloc(nSize);
-	if (NULL == str) {
-		log_err("ERROR : malloc str");
-		return -1;
+	return emStatus;
+}
+
+GX_STATUS GetIntRange (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, GX_INT_RANGE *pIntRange)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetIntRange(hDevice, emFeatureID, pIntRange);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetIntRange '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
 	}
 
-	emStatus = GXGetString(hDevice, id, str, &nSize);
-	if (emStatus != GX_STATUS_SUCCESS) {
-		GetErrorString(emStatus);
-		goto out;
+	return emStatus;
+}
+
+GX_STATUS GetInt (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, int64_t *pnValue)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetInt(hDevice, emFeatureID, pnValue);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetInt '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
 	}
 
-	memset(dst, 0, strlen(dst));
-	strncpy(dst, str, strlen(dst));
+	return emStatus;
+}
 
-out:
+GX_STATUS SetInt (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, int64_t pnValue)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 
-	if (NULL != str) {
-		free(str);
-		str = NULL;
+	if (libInit) {
+		emStatus = GXSetInt(hDevice, emFeatureID, pnValue);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXSetInt '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetFloatRange (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, GX_FLOAT_RANGE *pFloatRange)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetFloatRange(hDevice, emFeatureID, pFloatRange);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetFloatRange '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetFloat (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, double *pdValue)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetFloat(hDevice, emFeatureID, pdValue);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetFloat '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS SetFloat (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, double pdValue)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXSetFloat(hDevice, emFeatureID, pdValue);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXSetFloat '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetEnumEntryNums (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, uint32_t *pnEntryNums)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetEnumEntryNums(hDevice, emFeatureID, pnEntryNums);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetEnumEntryNums '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetEnumDescription (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, 
+	GX_ENUM_DESCRIPTION *pEnumDescription, size_t *pBufferSize)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetEnumDescription(hDevice, emFeatureID, pEnumDescription, pBufferSize);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetEnumDescription '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetEnum (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, int64_t *pnValue)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetEnum(hDevice, emFeatureID, pnValue);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetEnum '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS SetEnum (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, int64_t pnValue)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXSetEnum(hDevice, emFeatureID, pnValue);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXSetEnum '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetBool (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, bool *pbValue)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetBool(hDevice, emFeatureID, pbValue);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetBool '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS SetBool (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, bool pbValue)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXSetBool(hDevice, emFeatureID, pbValue);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXSetBool '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetStringLength (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, size_t *pnSize)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetStringLength(hDevice, emFeatureID, pnSize);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetStringLength '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetString (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, char *pszContent, size_t *pnSize)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetString(hDevice, emFeatureID, pszContent, pnSize);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetString '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS SetString (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, char *pszContent)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXSetString(hDevice, emFeatureID, pszContent);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXSetString '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetBufferLength (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, size_t *pnSize)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetBufferLength(hDevice, emFeatureID, pnSize);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetBufferLength '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS GetBuffer (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, uint8_t *pBuffer, size_t *pnSize)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXGetBuffer(hDevice, emFeatureID, pBuffer, pnSize);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXGetBuffer '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS SetBuffer (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, uint8_t *pBuffer, size_t nSize)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXSetBuffer(hDevice, emFeatureID, pBuffer, nSize);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXSetBuffer '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
+	}
+
+	return emStatus;
+}
+
+GX_STATUS SendCommand (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID)
+{
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if (libInit) {
+		emStatus = GXSendCommand(hDevice, emFeatureID);
+		if (emStatus != GX_STATUS_SUCCESS) {
+			char chFeatureName[64] = {0};
+			size_t nSize = 64;
+			GetFeatureName(hDevice, emFeatureID, chFeatureName, &nSize);
+
+			log_info("ERROR : GXSendCommand '%s' errcode[%d].", chFeatureName, emStatus);
+			GetErrorString(emStatus);
+		}
+	} else {
+		emStatus = GX_STATUS_NOT_INIT_API;
 	}
 
 	return emStatus;
@@ -164,12 +569,18 @@ static int csv_gx_lib (uint8_t action)
 
 	if (GX_LIB_OPEN == action) {
 		emStatus = GXInitLib();
+		if (GX_STATUS_SUCCESS == emStatus) {
+			libInit = true;
+		}
 		log_info("Galaxy library version : %s", GXGetLibVersion());
 	} else if (GX_LIB_CLOSE == action) {
 		emStatus = GXCloseLib();
+		if (GX_STATUS_SUCCESS == emStatus) {
+			libInit = false;
+		}
 	}
 
-	if(emStatus != GX_STATUS_SUCCESS) {
+	if(GX_STATUS_SUCCESS != emStatus) {
 		GetErrorString(emStatus);
 		return -1;
 	}
@@ -182,11 +593,15 @@ static int csv_gx_search (struct csv_gx_t *pGX)
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	uint32_t ui32DeviceNum = 0;
 
+	if (!libInit) {
+		return -1;
+	}
+
 	pGX->cnt_gx = 0;
 
 	//Get device enumerated number
 	emStatus = GXUpdateDeviceList(&ui32DeviceNum, 1000);
-	if (emStatus != GX_STATUS_SUCCESS) {
+	if (GX_STATUS_SUCCESS != emStatus) {
 		GetErrorString(emStatus);
 		return 0;
 	}
@@ -211,8 +626,13 @@ static int csv_gx_search (struct csv_gx_t *pGX)
 static int csv_gx_open (struct csv_gx_t *pGX)
 {
 	int i = 0, ret = 0;
+	size_t nSize = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
 
 	for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
@@ -233,7 +653,7 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 			emStatus = GXOpenDeviceByIndex(i+1, &pCAM->hDevice);
 		}
 
-		if (emStatus != GX_STATUS_SUCCESS) {
+		if (GX_STATUS_SUCCESS != emStatus) {
 			GetErrorString(emStatus);
 			ret = -1;
 			continue;
@@ -245,36 +665,62 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_VENDOR_NAME, pCAM->vendor);
+		pCAM->expoTime = 10000.0f;
+		pCAM->gain = 0.0f;
+		pCAM->PayloadSize = 0;
+		pCAM->ColorFilter = false;
+		pCAM->pMonoImageBuf = NULL;
+		memset(pCAM->vendor, 0, SIZE_CAM_STR);
+		memset(pCAM->model, 0, SIZE_CAM_STR);
+		memset(pCAM->serial, 0, SIZE_CAM_STR);
+		memset(pCAM->version, 0, SIZE_CAM_STR);
+		memset(pCAM->userid, 0, SIZE_CAM_STR);
 
-		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_MODEL_NAME, pCAM->model);
+		emStatus = GetStringLength(pCAM->hDevice, GX_STRING_DEVICE_VENDOR_NAME, &nSize);
+		if ((GX_STATUS_SUCCESS == emStatus)&&(nSize > 0)) {
+			GetString(pCAM->hDevice, GX_STRING_DEVICE_VENDOR_NAME, pCAM->vendor, &nSize);
+		}
 
-		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_SERIAL_NUMBER, pCAM->serial);
+		emStatus = GetStringLength(pCAM->hDevice, GX_STRING_DEVICE_MODEL_NAME, &nSize);
+		if ((GX_STATUS_SUCCESS == emStatus)&&(nSize > 0)) {
+			GetString(pCAM->hDevice, GX_STRING_DEVICE_MODEL_NAME, pCAM->model, &nSize);
+		}
 
-		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_VERSION, pCAM->version);
+		emStatus = GetStringLength(pCAM->hDevice, GX_STRING_DEVICE_SERIAL_NUMBER, &nSize);
+		if ((GX_STATUS_SUCCESS == emStatus)&&(nSize > 0)) {
+			GetString(pCAM->hDevice, GX_STRING_DEVICE_SERIAL_NUMBER, pCAM->serial, &nSize);
+		}
 
-		emStatus = GxGetString(pCAM->hDevice, GX_STRING_DEVICE_USERID, pCAM->userid);
+		emStatus = GetStringLength(pCAM->hDevice, GX_STRING_DEVICE_VERSION, &nSize);
+		if ((GX_STATUS_SUCCESS == emStatus)&&(nSize > 0)) {
+			GetString(pCAM->hDevice, GX_STRING_DEVICE_VERSION, pCAM->version, &nSize);
+		}
+
+		emStatus = GetStringLength(pCAM->hDevice, GX_STRING_DEVICE_USERID, &nSize);
+		if ((GX_STATUS_SUCCESS == emStatus)&&(nSize > 0)) {
+			GetString(pCAM->hDevice, GX_STRING_DEVICE_USERID, pCAM->userid, &nSize);
+		}
 
 		log_info("CAM[%d] : '%s' - '%s' (%s).", i, pCAM->model, pCAM->serial, pCAM->userid);
 
-		emStatus = GXIsImplemented(pCAM->hDevice, GX_ENUM_PIXEL_COLOR_FILTER, &pCAM->ColorFilter);
-		if (emStatus == GX_STATUS_SUCCESS) {
+		emStatus = IsImplemented(pCAM->hDevice, GX_ENUM_PIXEL_COLOR_FILTER, &pCAM->ColorFilter);
+		if (GX_STATUS_SUCCESS == emStatus) {
 			if (pCAM->ColorFilter) {
-				log_info("CAM[%d] : ColorFilter %d is color camera, not support.", i, pCAM->ColorFilter);
-				continue;
+				log_info("CAM[%d] : ColorFilter is color camera.", i);
 			}
 		}
 
-		emStatus = GXGetInt(pCAM->hDevice, GX_INT_PAYLOAD_SIZE, &pCAM->PayloadSize);
+		emStatus = GetInt(pCAM->hDevice, GX_INT_PAYLOAD_SIZE, &pCAM->PayloadSize);
+		if ((GX_STATUS_SUCCESS == emStatus)&&(pCAM->PayloadSize > 0)) {
+			pCAM->pMonoImageBuf = malloc(pCAM->PayloadSize + 1);
+			if (NULL == pCAM->pMonoImageBuf) {
+				log_err("ERROR : malloc MonoImageBuf");
+				ret = -1;
+				continue;
+			}
 
-		pCAM->pMonoImageBuf = malloc(pCAM->PayloadSize + 1);
-		if (NULL == pCAM->pMonoImageBuf) {
-			log_err("ERROR : malloc MonoImageBuf");
-			ret = -1;
-			continue;
+			memset(pCAM->pMonoImageBuf, 0, pCAM->PayloadSize + 1);
 		}
-
-		memset(pCAM->pMonoImageBuf, 0, pCAM->PayloadSize + 1);
 
 		pCAM->opened = true;
 	}
@@ -294,6 +740,10 @@ static int csv_gx_close (struct csv_gx_t *pGX)
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = NULL;
 
+	if (!libInit) {
+		return -1;
+	}
+
 	for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
 		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
@@ -301,7 +751,7 @@ static int csv_gx_close (struct csv_gx_t *pGX)
 		}
 
 		emStatus = GXCloseDevice(pCAM->hDevice);
-		if (emStatus != GX_STATUS_SUCCESS) {
+		if (GX_STATUS_SUCCESS != emStatus) {
 			GetErrorString(emStatus);
 			ret = -1;
 			continue;
@@ -320,6 +770,7 @@ static int csv_gx_close (struct csv_gx_t *pGX)
 		memset(pCAM->model, 0, SIZE_CAM_STR);
 		memset(pCAM->serial, 0, SIZE_CAM_STR);
 		memset(pCAM->version, 0, SIZE_CAM_STR);
+		memset(pCAM->userid, 0, SIZE_CAM_STR);
 	}
 
 	return ret;
@@ -330,6 +781,10 @@ int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state)
 	int i = 0, ret = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
 
 	for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
@@ -343,7 +798,7 @@ int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state)
 			emStatus = GXStreamOff(pCAM->hDevice);
 		}
 
-		if (emStatus != GX_STATUS_SUCCESS) {
+		if (GX_STATUS_SUCCESS != emStatus) {
 			GetErrorString(emStatus);
 			//ret = -1;
 			continue;
@@ -356,10 +811,14 @@ int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state)
 static int csv_gx_cams_init (struct csv_gx_t *pGX)
 {
 	int i = 0, ret = 0;
-	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+	//GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = NULL;
 	bool bStreamTransferSize = false;
 	bool bStreamTransferNumberUrb = false;
+
+	if (!libInit) {
+		return -1;
+	}
 
 	for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
@@ -367,28 +826,31 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			continue;
 		}
 
-//		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
+//		GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
+		GXSetAcqusitionBufferNumber(pCAM->hDevice, ACQ_BUFFER_NUM);
 
-		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE0);
 
-		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
+		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TIMED);
+		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_OFF);
+		SetFloat(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, pCAM->expoTime);
 
-		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE0);
+		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_OFF);
+		SetFloat(pCAM->hDevice, GX_FLOAT_GAIN, pCAM->gain);
 
-		emStatus = GXSetAcqusitionBufferNumber(pCAM->hDevice, ACQ_BUFFER_NUM);
 
-		emStatus = GXSetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TRIGGERWIDTH);
-
-		emStatus = GXIsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, &bStreamTransferSize);
+		IsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, &bStreamTransferSize);
 		if (bStreamTransferSize) {
 			// Set size of data transfer block
-			emStatus = GXSetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, ACQ_TRANSFER_SIZE);
+			SetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, ACQ_TRANSFER_SIZE);
 		}
 
-		emStatus = GXIsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, &bStreamTransferNumberUrb);
+		IsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, &bStreamTransferNumberUrb);
 		if (bStreamTransferNumberUrb) {
 			// Set qty. of data transfer block
-			emStatus = GXSetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, ACQ_TRANSFER_NUMBER_URB);
+			SetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, ACQ_TRANSFER_NUMBER_URB);
 		}
 
 
@@ -409,6 +871,10 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 		return -1;
 	}
 
+	if (!libInit) {
+		return -1;
+	}
+
 	int ret = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = &pGX->Cam[idx];
@@ -418,7 +884,7 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 	}
 
 	emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 1000);
-	if (emStatus != GX_STATUS_SUCCESS) {
+	if (GX_STATUS_SUCCESS != emStatus) {
 		GetErrorString(emStatus);
 		return -1;
 	}
@@ -436,7 +902,7 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 	}
 
 	emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
-	if (emStatus != GX_STATUS_SUCCESS) {
+	if (GX_STATUS_SUCCESS != emStatus) {
 		GetErrorString(emStatus);
 		return -1;
 	}
@@ -562,6 +1028,7 @@ int csv_gx_init (void)
 	int ret = 0;
 	struct csv_gx_t *pGX = &gCSV->gx;
 
+	libInit = false;
 	pGX->cnt_gx = 0;
 	pGX->name_gx = NAME_THREAD_GX;
 
@@ -576,6 +1043,7 @@ int csv_gx_deinit (void)
 	int ret = 0;
 	struct csv_gx_t *pGX = &gCSV->gx;
 
+	libInit = false;
 	ret = csv_gx_thread_cancel(pGX);
 
 	return ret;
