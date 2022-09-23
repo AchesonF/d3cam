@@ -33,18 +33,20 @@ static void GetErrorString (GX_STATUS emErrorStatus)
 	}
 
 	// Alloc error resources
-	error_info = malloc(size);
+	error_info = malloc(size+1);
 	if (NULL == error_info) {
 		log_err("ERROR : malloc errorinfo");
 		return ;
 	}
+
+	memset(error_info, 0, size+1);
 
 	// Get error description
 	emStatus = GXGetLastError(&emErrorStatus, error_info, &size);
 	if (emStatus != GX_STATUS_SUCCESS) {
 		log_info("ERROR : GXGetLastError");
 	} else {
-		log_info("%s", error_info);
+		log_info("[%d]'%s'.", emErrorStatus, error_info);
 	}
 
 	// Realease error resources
@@ -492,13 +494,65 @@ GX_STATUS SendCommand (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID)
 
 	return emStatus;
 }
+/*
+void PixelConvert (uint8_t *pImageBuf, uint8_t *pImageRGBBuf, uint32_t nImageWidth, 
+	uint32_t nImageHeight, uint32_t nPixelFormat, DX_PIXEL_COLOR_FILTER PixelColorFilter)
+{
+	switch (nPixelFormat) {
+	case GX_PIXEL_FORMAT_BAYER_GR12:
+	case GX_PIXEL_FORMAT_BAYER_RG12:
+	case GX_PIXEL_FORMAT_BAYER_GB12:
+	case GX_PIXEL_FORMAT_BAYER_BG12:
+		DxRaw16toRaw8(pImageBuf, m_pImgRaw8Buffer, nImageWidth, nImageHeight, DX_BIT_4_11);	
+		DxRaw8toRGB24(m_pImgRaw8Buffer, pImageRGBBuf, nImageWidth, nImageHeight, 
+			RAW2RGB_NEIGHBOUR, PixelColorFilter, true);
+		break;
+
+	case GX_PIXEL_FORMAT_BAYER_GR10:
+	case GX_PIXEL_FORMAT_BAYER_RG10:
+	case GX_PIXEL_FORMAT_BAYER_GB10:
+	case GX_PIXEL_FORMAT_BAYER_BG10:
+		DxRaw16toRaw8(pImageBuf, m_pImgRaw8Buffer, nImageWidth, nImageHeight, DX_BIT_2_9);
+		DxRaw8toRGB24(m_pImgRaw8Buffer, pImageRGBBuf, nImageWidth, nImageHeight, 
+			RAW2RGB_NEIGHBOUR, PixelColorFilter, TRUE);	
+		break;
+
+	case GX_PIXEL_FORMAT_BAYER_GR8:
+	case GX_PIXEL_FORMAT_BAYER_RG8:
+	case GX_PIXEL_FORMAT_BAYER_GB8:
+	case GX_PIXEL_FORMAT_BAYER_BG8:
+		DxRaw8toRGB24(pImageBuf,pImageRGBBuf, nImageWidth, nImageHeight, 
+			RAW2RGB_NEIGHBOUR, PixelColorFilter, TRUE);	
+		break;
+
+	case GX_PIXEL_FORMAT_MONO12:
+		DxRaw16toRaw8(pImageBuf, m_pImgRaw8Buffer, nImageWidth, nImageHeight, DX_BIT_4_11);	
+		DxRaw8toRGB24(m_pImgRaw8Buffer, pImageRGBBuf, nImageWidth, nImageHeight, 
+			RAW2RGB_NEIGHBOUR, NONE, TRUE);
+		break;
+
+	case GX_PIXEL_FORMAT_MONO10:
+		DxRaw16toRaw8(pImageBuf, m_pImgRaw8Buffer, nImageWidth, nImageHeight, DX_BIT_4_11);	
+		DxRaw8toRGB24(m_pImgRaw8Buffer, pImageRGBBuf, nImageWidth, nImageHeight,
+			RAW2RGB_NEIGHBOUR, NONE, TRUE);
+		break;
+
+	case GX_PIXEL_FORMAT_MONO8:
+		DxRaw8toRGB24(pImageBuf, pImageRGBBuf, nImageWidth, nImageHeight,
+			RAW2RGB_NEIGHBOUR, NONE, TRUE);
+
+	default:
+		break;
+	}
+}
+*/
 
 // Convert frame date to suitable pixel format
-int PixelFormatConvert(PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t PayloadSize)
+//int PixelFormatConvert(PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t PayloadSize)
+int PixelFormatConvert(GX_FRAME_DATA *pFrameBuffer, uint8_t *ImageBuf, int64_t PayloadSize)
 {
 	VxInt32 emDXStatus = DX_OK;
 
-	// Convert RAW8 or RAW16 image to RGB24 image
 	switch (pFrameBuffer->nPixelFormat) {
 	case GX_PIXEL_FORMAT_MONO8: {
 		memcpy(ImageBuf, pFrameBuffer->pImgBuf, PayloadSize);
@@ -521,7 +575,6 @@ int PixelFormatConvert(PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t
 
 	case GX_PIXEL_FORMAT_MONO10:
 	case GX_PIXEL_FORMAT_MONO12:
-		// Convert to the Raw8 image
 		emDXStatus = DxRaw16toRaw8((uint8_t *)pFrameBuffer->pImgBuf, 
 			ImageBuf, pFrameBuffer->nWidth, pFrameBuffer->nHeight, DX_BIT_2_9);
 		if (emDXStatus != DX_OK) {
@@ -560,6 +613,13 @@ int SavePPMFile (uint32_t ui32Width, uint32_t ui32Height)
 		printf("Save %s succeed\n", szName);
     }
 */
+	return 0;
+}
+
+int SaveBMP ()
+{
+
+
 	return 0;
 }
 
@@ -668,7 +728,7 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		pCAM->expoTime = 10000.0f;
 		pCAM->gain = 0.0f;
 		pCAM->PayloadSize = 0;
-		pCAM->ColorFilter = false;
+		pCAM->PixelColorFilter = false;
 		pCAM->pMonoImageBuf = NULL;
 		memset(pCAM->vendor, 0, SIZE_CAM_STR);
 		memset(pCAM->model, 0, SIZE_CAM_STR);
@@ -703,10 +763,10 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 
 		log_info("CAM[%d] : '%s' - '%s' (%s).", i, pCAM->model, pCAM->serial, pCAM->userid);
 
-		emStatus = IsImplemented(pCAM->hDevice, GX_ENUM_PIXEL_COLOR_FILTER, &pCAM->ColorFilter);
+		emStatus = IsImplemented(pCAM->hDevice, GX_ENUM_PIXEL_COLOR_FILTER, &pCAM->PixelColorFilter);
 		if (GX_STATUS_SUCCESS == emStatus) {
-			if (pCAM->ColorFilter) {
-				log_info("CAM[%d] : ColorFilter is color camera.", i);
+			if (pCAM->PixelColorFilter) {
+				log_info("CAM[%d] : PixelColorFilter is color camera.", i);
 			}
 		}
 
@@ -765,7 +825,7 @@ static int csv_gx_close (struct csv_gx_t *pGX)
 		pCAM->hDevice = NULL;
 		pCAM->opened = false;
 		pCAM->PayloadSize = 0;
-		pCAM->ColorFilter = false;
+		pCAM->PixelColorFilter = false;
 		memset(pCAM->vendor, 0, SIZE_CAM_STR);
 		memset(pCAM->model, 0, SIZE_CAM_STR);
 		memset(pCAM->serial, 0, SIZE_CAM_STR);
@@ -813,8 +873,6 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 	int i = 0, ret = 0;
 	//GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = NULL;
-	bool bStreamTransferSize = false;
-	bool bStreamTransferNumberUrb = false;
 
 	if (!libInit) {
 		return -1;
@@ -826,8 +884,8 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			continue;
 		}
 
-//		GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
-		GXSetAcqusitionBufferNumber(pCAM->hDevice, ACQ_BUFFER_NUM);
+		GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
+//		GXSetAcqusitionBufferNumber(pCAM->hDevice, ACQ_BUFFER_NUM);
 
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
@@ -840,6 +898,9 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_OFF);
 		SetFloat(pCAM->hDevice, GX_FLOAT_GAIN, pCAM->gain);
 
+/*
+		bool bStreamTransferSize = false;
+		bool bStreamTransferNumberUrb = false;
 
 		IsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, &bStreamTransferSize);
 		if (bStreamTransferSize) {
@@ -852,7 +913,7 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			// Set qty. of data transfer block
 			SetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, ACQ_TRANSFER_NUMBER_URB);
 		}
-
+*/
 
 	}
 
@@ -875,7 +936,7 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 		return -1;
 	}
 
-	int ret = 0;
+
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = &pGX->Cam[idx];
 
@@ -883,7 +944,19 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 		return -1;
 	}
 
-	emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 1000);
+#if 1
+	emStatus = GXGetImage(pCAM->hDevice, &pCAM->FrameData, 2000);
+	if (GX_STATUS_SUCCESS != emStatus) {
+		GetErrorString(emStatus);
+		return -1;
+	}
+
+	PixelFormatConvert(&pCAM->FrameData, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+
+#else
+
+	int ret = 0;
+	emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 	if (GX_STATUS_SUCCESS != emStatus) {
 		GetErrorString(emStatus);
 		return -1;
@@ -906,10 +979,50 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 		GetErrorString(emStatus);
 		return -1;
 	}
+#endif
 
 	return 0;
 }
 
+int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
+{
+	int ret = -1, i = 0;
+	int errNum = 0;
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+	struct cam_gx_spec_t *pCAM = NULL;
+
+    for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+			errNum++;
+			continue;
+		}
+
+		memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
+
+		emStatus = GXGetImage(pCAM->hDevice, &pCAM->FrameData, 2000);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			GetErrorString(emStatus);
+			errNum++;
+			continue;
+		}
+
+		PixelFormatConvert(&pCAM->FrameData, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+	}
+
+	if (0 == errNum) {
+		ret = 0;
+	}
+
+	if ((2 == pGX->cnt_gx)&&(0 == ret)) {
+		log_info("OK : GetFrame L[%s][%lld] R[%s][%lld].", 
+			pGX->Cam[CAM_LEFT].serial, pGX->Cam[CAM_LEFT].FrameData.nFrameID,
+			pGX->Cam[CAM_RIGHT].serial, pGX->Cam[CAM_RIGHT].FrameData.nFrameID);
+	}
+
+	return ret;
+}
 
 static void *csv_gx_loop (void *data)
 {

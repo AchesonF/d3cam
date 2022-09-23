@@ -194,6 +194,36 @@ static int gx_msg_cameras_brightness_set (struct msg_package_t *pMP, struct msg_
 	return csv_msg_send(pACK);
 }
 
+static int gx_msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int ret = -1;
+	int result = -1;
+	char str_sn[32] = {0}, str_name[32]= {0};
+
+	if (pMP->hdr.length > 10) {	// string like: "${sn}:${name}"
+		if (strstr((char *)pMP->payload, ":")) {
+			int nget = 0;
+			nget = sscanf((char *)pMP->payload, "%[^:]:%[^:]", str_sn, str_name);
+			if (2 == nget) {
+				//SetString(pCAM->hDevice, GX_STRING_DEVICE_USERID, str_name);
+				if (ret == 0) {
+					result = 0;
+				}
+			}
+		}
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+
+	return csv_msg_send(pACK);
+}
+
+int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
+
+	return csv_msg_send(pACK);
+}
 
 void csv_gx_msg_cmd_enroll (void)
 {
@@ -208,21 +238,16 @@ void csv_gx_msg_cmd_enroll (void)
 	msg_command_add(CAMERA_SET_RATE, toSTR(CAMERA_SET_RATE), gx_msg_cameras_rate_set);
 	msg_command_add(CAMERA_GET_BRIGHTNESS, toSTR(CAMERA_GET_BRIGHTNESS), gx_msg_cameras_brightness_get);
 	msg_command_add(CAMERA_SET_BRIGHTNESS, toSTR(CAMERA_SET_BRIGHTNESS), gx_msg_cameras_brightness_set);
+	msg_command_add(CAMERA_SET_CAMERA_NAME, toSTR(CAMERA_SET_CAMERA_NAME), gx_msg_cameras_name_set);
 
-/*
-	msg_command_add(CAMERA_SET_CAMERA_NAME, toSTR(CAMERA_SET_CAMERA_NAME), msg_gx_cameras_name_set);
-	msg_command_add(CAMERA_SET_RGB_EXPOSURE, toSTR(CAMERA_SET_RGB_EXPOSURE), msg_gx_cameras_rgb_exposure_set);
-	msg_command_add(CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), msg_gx_cameras_grab_gray);
-	msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), msg_gx_cameras_grab_img_depth);
-	//msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), msg_gx_cameras_highspeed);
-	msg_command_add(CAMERA_GET_GRAB_LEDOFF, toSTR(CAMERA_GET_GRAB_LEDOFF), msg_gx_cameras_grab_gray);
-	msg_command_add(CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), msg_gx_cameras_grab_gray);
-	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_gx_cameras_grab_urandom);
-	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_gx_cameras_grab_rgb);
-	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_gx_cameras_demarcate);
-	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), msg_gx_cameras_grab_rgb);
-	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), msg_gx_cameras_grab_rgb);
-*/
+	msg_command_add(CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), gx_msg_cameras_grab_gray);
+	msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), gx_msg_cameras_grab_img_depth);
+	msg_command_add(CAMERA_GET_GRAB_LEDOFF, toSTR(CAMERA_GET_GRAB_LEDOFF), gx_msg_cameras_grab_gray);
+	msg_command_add(CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), gx_msg_cameras_grab_gray);
+	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), gx_msg_cameras_grab_rgb);
+	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), gx_msg_cameras_grab_rgb);
+	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), gx_msg_cameras_grab_rgb);
+
 }
 
 #else
