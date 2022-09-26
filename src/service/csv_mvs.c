@@ -755,43 +755,6 @@ int csv_mvs_cams_grab_both (struct csv_mvs_t *pMVS)
 	return nRet;
 }
 
-/* *path : 路径
-group : 次数
-idx : 编号
-lr : 左右
-suffix : 后缀类型
-*img_file : 生成名
-*/
-static int generate_image_filename (char *path, uint16_t group, 
-	int idx, int lr, uint8_t suffix, char *img_file)
-{
-	switch (suffix) {
-	case SUFFIX_PNG:
-		gCSV->cfg.devicecfg.strSuffix = ".png";
-		break;
-	case SUFFIX_JPG:
-		gCSV->cfg.devicecfg.strSuffix = ".jpg";
-		break;
-	case SUFFIX_BMP:
-	default:
-		gCSV->cfg.devicecfg.strSuffix = ".bmp";
-		break;
-	}
-
-	if (idx == 0) {
-		snprintf(img_file, 128, "%s/CSV_%03dC%d%s", 
-			path, group, lr+1, gCSV->cfg.devicecfg.strSuffix);
-	} else {
-		snprintf(img_file, 128, "%s/CSV_%03dC%dS00P%03d%s", 
-			path, group, lr+1, idx, gCSV->cfg.devicecfg.strSuffix);
-	}
-
-	log_debug("img : '%s'", img_file);
-
-	return 0;
-}
-
-
 static int save_image_to_bmp (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
 	uint8_t *pData, char *img_name)
 {

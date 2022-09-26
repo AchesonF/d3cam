@@ -60,6 +60,10 @@ extern int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state);
 
 extern int csv_gx_cams_grab_both (struct csv_gx_t *pGX);
 
+extern int csv_gx_cams_demarcate (struct csv_gx_t *pGX);
+
+extern int csv_gx_cams_highspeed (struct csv_gx_t *pGX);
+
 extern int csv_gx_init (void);
 
 extern int csv_gx_deinit (void);

@@ -615,13 +615,6 @@ int SavePPMFile (uint32_t ui32Width, uint32_t ui32Height)
 	return 0;
 }
 
-int SaveBMP ()
-{
-
-
-	return 0;
-}
-
 static int csv_gx_lib (uint8_t action)
 {
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
@@ -852,9 +845,11 @@ int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state)
 		}
 
 		if (GX_ACQUISITION_START == state) {
-			emStatus = GXStreamOn(pCAM->hDevice);
+			//emStatus = GXStreamOn(pCAM->hDevice);
+			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_START);
 		} else if (GX_ACQUISITION_STOP == state) {
-			emStatus = GXStreamOff(pCAM->hDevice);
+			//emStatus = GXStreamOff(pCAM->hDevice);
+			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_STOP);
 		}
 
 		if (GX_STATUS_SUCCESS != emStatus) {
@@ -883,7 +878,7 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
+		GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
 //		GXSetAcqusitionBufferNumber(pCAM->hDevice, ACQ_BUFFER_NUM);
 
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
@@ -981,6 +976,8 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 		return -1;
 	}
 
+	emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_START);
+
     for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
 
@@ -1018,6 +1015,8 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 
 	}
 
+	emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_STOP);
+
 	if (0 == errNum) {
 		ret = 0;
 	}
@@ -1027,6 +1026,203 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 			pGX->Cam[CAM_LEFT].serial, pGX->Cam[CAM_LEFT].pFrameBuffer->nFrameID,
 			pGX->Cam[CAM_RIGHT].serial, pGX->Cam[CAM_RIGHT].pFrameBuffer->nFrameID);
 	}
+
+	return ret;
+}
+
+int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
+{
+	int ret = 0, i = 0;
+	int nFrames = 23;
+	int idx = 0;
+	char img_name[256] = {0};
+	struct cam_gx_spec_t *pCAM = NULL;
+	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
+	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
+	int errNum = 0;
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if ((NULL == pCALIB->path)
+		||(!csv_file_isExist(pCALIB->path))) {
+		log_warn("ERROR : cali img path null.");
+		return -1;
+	}
+
+	emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_START);
+
+	// 1 亮光
+	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+			errNum++;
+			continue;
+		}
+
+		memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
+
+		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			GetErrorString(emStatus);
+			errNum++;
+			continue;
+		}
+
+		if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+			log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+			errNum++;
+			continue;
+		}
+
+		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+		if (0 == ret) {
+			memset(img_name, 0, 256);
+			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
+				pDevC->SaveImageFormat, img_name);
+			gray_raw2bmp(pCAM->pMonoImageBuf, pCAM->pFrameBuffer->nWidth, 
+				pCAM->pFrameBuffer->nHeight, img_name);
+		}
+
+		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			GetErrorString(emStatus);
+			errNum++;
+			continue;
+		}
+
+	}
+
+	idx++;
+
+	// 22 标定
+	ret = csv_dlp_just_write(DLP_CMD_DEMARCATE);
+
+	while (idx < nFrames) {
+		for (i = 0; i < pGX->cnt_gx; i++) {
+			pCAM = &pGX->Cam[i];
+
+			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+				errNum++;
+				continue;
+			}
+
+			memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
+
+			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				GetErrorString(emStatus);
+				errNum++;
+				continue;
+			}
+
+			if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+				log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+				errNum++;
+				continue;
+			}
+
+			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+			if (0 == ret) {
+				memset(img_name, 0, 256);
+				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
+					pDevC->SaveImageFormat, img_name);
+				gray_raw2bmp(pCAM->pMonoImageBuf, pCAM->pFrameBuffer->nWidth, 
+					pCAM->pFrameBuffer->nHeight, img_name);
+			}
+
+			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				GetErrorString(emStatus);
+				errNum++;
+				continue;
+			}
+		}
+
+		idx++;
+	}
+
+	emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_STOP);
+
+	if (0 != errNum) {
+		return -1;
+	}
+
+	pCALIB->groupDemarcate++;
+	csv_xml_write_CalibParameters();
+
+	return ret;
+}
+
+int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
+{
+	int ret = 0, i = 0;
+	int nFrames = 13;
+	int idx = 1;
+	char img_name[256] = {0};
+	struct cam_gx_spec_t *pCAM = NULL;
+	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
+	int errNum = 0;
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_START);
+
+	// 13 高速光
+	ret = csv_dlp_just_write(DLP_CMD_HIGHSPEED);
+
+	while (idx <= nFrames) {
+		for (i = 0; i < pGX->cnt_gx; i++) {
+			pCAM = &pGX->Cam[i];
+
+			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+				errNum++;
+				continue;
+			}
+
+			memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
+
+			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				GetErrorString(emStatus);
+				errNum++;
+				continue;
+			}
+
+			if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+				log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+				errNum++;
+				continue;
+			}
+
+			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+			if (0 == ret) {
+				memset(img_name, 0, 256);
+				generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, 
+					pDevC->SaveImageFormat, img_name);
+				gray_raw2bmp(pCAM->pMonoImageBuf, pCAM->pFrameBuffer->nWidth, 
+					pCAM->pFrameBuffer->nHeight, img_name);
+			}
+
+			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				GetErrorString(emStatus);
+				errNum++;
+				continue;
+			}
+		}
+
+		idx++;
+	}
+
+	emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_STOP);
+
+	if (1 != errNum) {
+		return -1;
+	}
+
+	pPC->groupPointCloud++;
 
 	return ret;
 }

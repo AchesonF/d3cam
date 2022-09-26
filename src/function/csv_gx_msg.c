@@ -34,11 +34,13 @@ static int gx_msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pAC
 
 static int gx_msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
-	int ret = -1;
 	int result = -1;
 
-	ret = csv_gx_acquisition(&gCSV->gx, GX_ACQUISITION_START);
-	if (ret == 0) {
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAMLEFT = &pGX->Cam[CAM_LEFT];
+	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
+
+	if (pCAMLEFT->opened && pCAMRIGHT->opened) {
 		result = 0;
 	}
 
@@ -49,15 +51,7 @@ static int gx_msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pAC
 
 static int gx_msg_cameras_close (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
-	int ret = -1;
-	int result = -1;
-
-	ret = csv_gx_acquisition(&gCSV->gx, GX_ACQUISITION_STOP);
-	if (ret == 0) {
-		result = 0;
-	}
-
-	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
 
 	return csv_msg_send(pACK);
 }
@@ -218,6 +212,39 @@ static int gx_msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t 
 	return csv_msg_send(pACK);
 }
 
+
+static int gx_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int ret = -1;
+	int result = -1;
+
+	ret = csv_gx_cams_demarcate(&gCSV->gx);
+
+	if (ret == 0) {
+		result = 0;
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+
+	return csv_msg_send(pACK);
+}
+
+static int gx_msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int ret = -1;
+	int result = -1;
+
+	ret = csv_gx_cams_highspeed(&gCSV->gx);
+
+	if (ret == 0) {
+		result = 0;
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+
+	return csv_msg_send(pACK);
+}
+
 int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
@@ -247,6 +274,8 @@ void csv_gx_msg_cmd_enroll (void)
 	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), gx_msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), gx_msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), gx_msg_cameras_grab_rgb);
+	msg_command_add(0x00005009, toSTR(demarcate), gx_msg_cameras_demarcate);
+	msg_command_add(0x0000500A, toSTR(highspeed), gx_msg_cameras_highspeed);
 
 }
 

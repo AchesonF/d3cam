@@ -49,8 +49,8 @@ target_link_libraries(${EXE_TARGET}
 	${LIB_HK_CAMS}
 	${LIB_GX_CAMS}
 	${libXML_LIBS}
-	opencv_world
-#	${OpenCV_LIBS}
+#	opencv_world
+	${OpenCV_LIBS}
 	${LIB_WEB_SERVER}
 	measureJetson
 )

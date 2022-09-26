@@ -306,7 +306,7 @@ static int hk_msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t 
 }
 
 
-int hk_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
@@ -318,7 +318,7 @@ int hk_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
-int hk_msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
@@ -334,7 +334,7 @@ int hk_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
-	csv_mvs_cams_img_depth(pMVS);
+	//csv_mvs_cams_img_depth(pMVS);
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
 
@@ -360,14 +360,14 @@ void csv_hk_msg_cmd_enroll (void)
 
 	msg_command_add(CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), hk_msg_cameras_grab_gray);
 	msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), hk_msg_cameras_grab_img_depth);
-	//msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), hk_msg_cameras_highspeed);
 	msg_command_add(CAMERA_GET_GRAB_LEDOFF, toSTR(CAMERA_GET_GRAB_LEDOFF), hk_msg_cameras_grab_gray);
 	msg_command_add(CAMERA_GET_GRAB_LEDON, toSTR(CAMERA_GET_GRAB_LEDON), hk_msg_cameras_grab_gray);
 	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), msg_cameras_grab_urandom);
 	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), hk_msg_cameras_grab_rgb);
-	//msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), hk_msg_cameras_demarcate);
 	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), hk_msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), hk_msg_cameras_grab_rgb);
+	msg_command_add(0x00005009, toSTR(demarcate), hk_msg_cameras_demarcate);
+	msg_command_add(0x0000500A, toSTR(highspeed), hk_msg_cameras_highspeed);
 
 }
 
