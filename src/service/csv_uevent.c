@@ -51,17 +51,25 @@ static void parse_event (const char *kmsg)
 	log_info("Action(%s) : subsystem(%s) devpath(%s) devname(%s) devtype(%s) product(%s) major(%d) minor(%d)", 
 		kuevent.action, kuevent.subsystem, kuevent.devpath, kuevent.devname, 
 		kuevent.devtype, kuevent.product, kuevent.major, kuevent.minor);
-	if ((strncasecmp(kuevent.devtype, "usb_device", 10) == 0)
-		&&(strncasecmp(kuevent.product, "2bdf", 4) == 0)) { // hik
-		if ((strncasecmp(kuevent.action, "add", 3) == 0)
-		  ||(strncasecmp(kuevent.action, "remove", 6) == 0)) {
 
-// hik plug in/out event
-
+	if (strncasecmp(kuevent.devtype, "usb_device", 10) == 0) {
 #if defined(USE_HK_CAMS)
-			pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
-#endif
+		if (strncasecmp(kuevent.product, "2bdf", 4) == 0) { // hik
+			if ((strncasecmp(kuevent.action, "add", 3) == 0)
+				||(strncasecmp(kuevent.action, "remove", 6) == 0)) {
+				pthread_cond_broadcast(&gCSV->mvs.cond_mvs);
+			}
 		}
+#endif
+
+#if defined(USE_GX_CAMS)
+		if (strncasecmp(kuevent.product, "2ba2", 4) == 0) { // gx
+			if ((strncasecmp(kuevent.action, "add", 3) == 0)
+				||(strncasecmp(kuevent.action, "remove", 6) == 0)) {
+				pthread_cond_broadcast(&gCSV->gx.cond_gx);
+			}
+		}
+#endif
 	}
 
 }

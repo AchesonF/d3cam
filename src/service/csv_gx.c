@@ -46,7 +46,7 @@ static void GetErrorString (GX_STATUS emErrorStatus)
 	if (emStatus != GX_STATUS_SUCCESS) {
 		log_info("ERROR : GXGetLastError");
 	} else {
-		log_info("[%d]'%s'.", emErrorStatus, error_info);
+		log_info("\"%s\".", error_info);
 	}
 
 	// Realease error resources
@@ -889,7 +889,7 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
-		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE0);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);
 
 		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TIMED);
 		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_OFF);
@@ -990,6 +990,10 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 	int errNum = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (pGX->cnt_gx < 2) {
+		return -1;
+	}
 
     for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
