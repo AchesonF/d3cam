@@ -548,8 +548,7 @@ void PixelConvert (uint8_t *pImageBuf, uint8_t *pImageRGBBuf, uint32_t nImageWid
 */
 
 // Convert frame date to suitable pixel format
-//int PixelFormatConvert(PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t PayloadSize)
-int PixelFormatConvert(GX_FRAME_DATA *pFrameBuffer, uint8_t *ImageBuf, int64_t PayloadSize)
+int PixelFormatConvert(PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t PayloadSize)
 {
 	VxInt32 emDXStatus = DX_OK;
 
@@ -936,7 +935,7 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 		return -1;
 	}
 
-
+	int ret = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = &pGX->Cam[idx];
 
@@ -944,18 +943,6 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 		return -1;
 	}
 
-#if 1
-	emStatus = GXGetImage(pCAM->hDevice, &pCAM->FrameData, 2000);
-	if (GX_STATUS_SUCCESS != emStatus) {
-		GetErrorString(emStatus);
-		return -1;
-	}
-
-	PixelFormatConvert(&pCAM->FrameData, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-
-#else
-
-	int ret = 0;
 	emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 	if (GX_STATUS_SUCCESS != emStatus) {
 		GetErrorString(emStatus);
@@ -979,7 +966,6 @@ int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
 		GetErrorString(emStatus);
 		return -1;
 	}
-#endif
 
 	return 0;
 }
@@ -1005,14 +991,31 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 
 		memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
 
-		emStatus = GXGetImage(pCAM->hDevice, &pCAM->FrameData, 2000);
+		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 		if (GX_STATUS_SUCCESS != emStatus) {
 			GetErrorString(emStatus);
 			errNum++;
 			continue;
 		}
 
-		PixelFormatConvert(&pCAM->FrameData, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+		if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+			log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+			errNum++;
+			continue;
+		}
+
+		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+		if (0 == ret) {
+			SavePPMFile(pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight);
+		}
+
+		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			GetErrorString(emStatus);
+			errNum++;
+			continue;
+		}
+
 	}
 
 	if (0 == errNum) {
@@ -1021,8 +1024,8 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 
 	if ((2 == pGX->cnt_gx)&&(0 == ret)) {
 		log_info("OK : GetFrame L[%s][%lld] R[%s][%lld].", 
-			pGX->Cam[CAM_LEFT].serial, pGX->Cam[CAM_LEFT].FrameData.nFrameID,
-			pGX->Cam[CAM_RIGHT].serial, pGX->Cam[CAM_RIGHT].FrameData.nFrameID);
+			pGX->Cam[CAM_LEFT].serial, pGX->Cam[CAM_LEFT].pFrameBuffer->nFrameID,
+			pGX->Cam[CAM_RIGHT].serial, pGX->Cam[CAM_RIGHT].pFrameBuffer->nFrameID);
 	}
 
 	return ret;

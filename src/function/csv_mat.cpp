@@ -256,14 +256,14 @@ int gx_msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
     char str_err[128] = {0};
     int len_err = 0;
     struct csv_gx_t *pGX = &gCSV->gx;
-    GX_FRAME_DATA *pFrameL = NULL, *pFrameR = NULL;
-	
+	PGX_FRAME_BUFFER  pFrameL = NULL, pFrameR = NULL;
+
 	csv_dlp_just_write(DLP_CMD_BRIGHT);
 
 	ret = csv_gx_cams_grab_both(pGX);
 	if (ret == 0) {
-		pFrameL = &pGX->Cam[CAM_LEFT].FrameData;
-		pFrameR = &pGX->Cam[CAM_RIGHT].FrameData;
+		pFrameL = pGX->Cam[CAM_LEFT].pFrameBuffer;
+		pFrameR = pGX->Cam[CAM_RIGHT].pFrameBuffer;
 
 		ret = Convert2Mat(pFrameL->nPixelFormat, pFrameL->nWidth, pFrameL->nHeight, pGX->Cam[CAM_LEFT].pMonoImageBuf, left, false);
 		ret |= Convert2Mat(pFrameR->nPixelFormat, pFrameR->nWidth, pFrameR->nHeight, pGX->Cam[CAM_LEFT].pMonoImageBuf, right, false);
@@ -339,14 +339,14 @@ int gx_msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
     char str_err[128] = {0};
     int len_err = 0;
     struct csv_gx_t *pGX = &gCSV->gx;
-    GX_FRAME_DATA *pFrameL = NULL, *pFrameR = NULL;
+    PGX_FRAME_BUFFER pFrameL = NULL, pFrameR = NULL;
 
 	csv_dlp_just_write(DLP_CMD_BRIGHT);
 
 	ret = csv_gx_cams_grab_both(pGX);
 	if (ret == 0) {
-		pFrameL = &pGX->Cam[CAM_LEFT].FrameData;
-		pFrameR = &pGX->Cam[CAM_RIGHT].FrameData;
+		pFrameL = pGX->Cam[CAM_LEFT].pFrameBuffer;
+		pFrameR = pGX->Cam[CAM_RIGHT].pFrameBuffer;
 
 		ret = Convert2Mat(pFrameL->nPixelFormat, pFrameL->nWidth, pFrameL->nHeight, pGX->Cam[CAM_LEFT].pMonoImageBuf, left, true);
 		ret |= Convert2Mat(pFrameR->nPixelFormat, pFrameR->nWidth, pFrameR->nHeight, pGX->Cam[CAM_LEFT].pMonoImageBuf, right, true);

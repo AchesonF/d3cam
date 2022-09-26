@@ -41,7 +41,6 @@ struct cam_gx_spec_t {
 	double					gain;			// GX_FLOAT_GAIN
 	GX_FLOAT_RANGE			gainRange;
 
-	GX_FRAME_DATA			FrameData;
 	PGX_FRAME_BUFFER		pFrameBuffer;
 	uint8_t					*pMonoImageBuf;
 };
