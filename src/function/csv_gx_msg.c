@@ -34,14 +34,17 @@ static int gx_msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pAC
 
 static int gx_msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
-	int result = -1;
+	int ret = -1, result = -1;
 
 	struct csv_gx_t *pGX = &gCSV->gx;
 	struct cam_gx_spec_t *pCAMLEFT = &pGX->Cam[CAM_LEFT];
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	if (pCAMLEFT->opened && pCAMRIGHT->opened) {
-		result = 0;
+		ret = csv_gx_acquisition(GX_ACQUISITION_START);
+		if (0 == ret) {
+			result = 0;
+		}
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
@@ -51,7 +54,14 @@ static int gx_msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pAC
 
 static int gx_msg_cameras_close (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
-	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
+	int ret = -1, result = -1;
+
+	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
+	if (0 == ret) {
+		result = 0;
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
 
 	return csv_msg_send(pACK);
 }

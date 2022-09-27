@@ -43,9 +43,11 @@ static void csv_deinit (void)
 
 	csv_tick_deinit();
 
+#if defined(USE_HK_CAMS)
 	csv_mvs_deinit();
-
+#elif defined(USE_GX_CAMS)
 	csv_gx_deinit();
+#endif
 
 	if (gCSV != NULL) {
 		free(gCSV);
@@ -317,9 +319,11 @@ int csv_init (void)
 
 	csv_uevent_init();
 
+#if defined(USE_HK_CAMS)
 	csv_mvs_init();
-
+#elif defined(USE_GX_CAMS)
 	csv_gx_init();
+#endif
 
 	csv_stat_init();
 

@@ -69,7 +69,7 @@ int csv_dlp_just_write (uint8_t idx)
 #if defined(USE_HK_CAMS)
 	csv_mvs_cams_exposure_set(&gCSV->mvs, pDlpcfg->expoTime);
 #elif defined(USE_GX_CAMS)
-	//csv_gx_cams_exposure_set(&gCSV->gx, pDlpcfg->expoTime);
+	csv_gx_cams_exposure_set(pDlpcfg->expoTime);
 #endif
 
 	pDLP->expoTime = pDlpcfg->expoTime;

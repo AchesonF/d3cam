@@ -74,7 +74,7 @@ static GX_STATUS GetFeatureName (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureI
 	return emStatus;
 }
 
-static GX_STATUS IsImplemented (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, bool *pbIsImplemented)
+GX_STATUS IsImplemented (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, bool *pbIsImplemented)
 {
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 
@@ -548,28 +548,13 @@ void PixelConvert (uint8_t *pImageBuf, uint8_t *pImageRGBBuf, uint32_t nImageWid
 */
 
 // Convert frame date to suitable pixel format
-int PixelFormatConvert(PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t PayloadSize)
+static int PixelFormatConvert (PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t PayloadSize)
 {
 	VxInt32 emDXStatus = DX_OK;
 
 	switch (pFrameBuffer->nPixelFormat) {
-	case GX_PIXEL_FORMAT_MONO8: {
+	case GX_PIXEL_FORMAT_MONO8:
 		memcpy(ImageBuf, pFrameBuffer->pImgBuf, PayloadSize);
-#if 0
-		char rawfile[128] = {0};
-		char bmpfile[128] = {0};
-		uint64_t stamp = utility_get_millisecond();
-		memset(rawfile, 0, 128);
-		memset(bmpfile, 0, 128);
-		snprintf(rawfile, 128, "./data/%d_%d_%ld.raw", pFrameBuffer->nWidth, 
-			pFrameBuffer->nHeight, stamp);
-		snprintf(bmpfile, 128, "./data/%d_%d_%ld.bmp", pFrameBuffer->nWidth, 
-			pFrameBuffer->nHeight, stamp);
-		csv_file_write_data(rawfile, (uint8_t *)pFrameBuffer->pImgBuf, (uint32_t)PayloadSize);
-		gray_raw2bmp((uint8_t *)pFrameBuffer->pImgBuf, pFrameBuffer->nWidth, 
-			pFrameBuffer->nHeight, bmpfile);
-#endif
-		}
 		break;
 
 	case GX_PIXEL_FORMAT_MONO10:
@@ -583,35 +568,10 @@ int PixelFormatConvert(PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf, int64_t
 		break;
 
 	default:
-		log_debug("ERROR : PixelFormat [%d] not supported.", pFrameBuffer->nPixelFormat);
+		log_debug("ERROR : PixelFormat [0x%08X] not supported.", pFrameBuffer->nPixelFormat);
 		return -1;
     }
 
-	return 0;
-}
-
-// Save PPM image
-int SavePPMFile (uint32_t ui32Width, uint32_t ui32Height)
-{
-/*
-	char szName[64] = {0};
-	static int nRawFileIndex = 0;
-
-	if (g_pMonoImageBuf != NULL) {
-		FILE* phImageFile = NULL;
-		snprintf(szName, 64, "Frame_%d.ppm", nRawFileIndex++);
-		phImageFile = fopen(szName, "wb");
-		if (phImageFile == NULL) {
-		    printf("Create or Open %s failed!\n", szName);
-		    return;
-		}
-		fprintf(phImageFile, "P5\n%u %u 255\n", ui32Width, ui32Height);
-		fwrite(g_pMonoImageBuf, 1, g_nPayloadSize, phImageFile);
-		fclose(phImageFile);
-		phImageFile = NULL;
-		printf("Save %s succeed\n", szName);
-    }
-*/
 	return 0;
 }
 
@@ -632,7 +592,7 @@ static int csv_gx_lib (uint8_t action)
 		}
 	}
 
-	if(GX_STATUS_SUCCESS != emStatus) {
+	if (GX_STATUS_SUCCESS != emStatus) {
 		GetErrorString(emStatus);
 		return -1;
 	}
@@ -720,7 +680,7 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		pCAM->expoTime = 30000.0f;
 		pCAM->gain = 0.0f;
 		pCAM->PayloadSize = 0;
-		pCAM->PixelColorFilter = false;
+		pCAM->PixelColorFilter = GX_COLOR_FILTER_NONE;
 		pCAM->pMonoImageBuf = NULL;
 		memset(pCAM->vendor, 0, SIZE_CAM_STR);
 		memset(pCAM->model, 0, SIZE_CAM_STR);
@@ -755,12 +715,8 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 
 		log_info("CAM[%d] : '%s' - '%s' (%s).", i, pCAM->model, pCAM->serial, pCAM->userid);
 
-		emStatus = IsImplemented(pCAM->hDevice, GX_ENUM_PIXEL_COLOR_FILTER, &pCAM->PixelColorFilter);
-		if (GX_STATUS_SUCCESS == emStatus) {
-			if (pCAM->PixelColorFilter) {
-				log_info("CAM[%d] : PixelColorFilter is color camera.", i);
-			}
-		}
+		//  GX_PIXEL_COLOR_FILTER_ENTRY
+		emStatus = GetEnum(pCAM->hDevice, GX_ENUM_PIXEL_COLOR_FILTER, &pCAM->PixelColorFilter);
 
 		emStatus = GetInt(pCAM->hDevice, GX_INT_PAYLOAD_SIZE, &pCAM->PayloadSize);
 		if ((GX_STATUS_SUCCESS == emStatus)&&(pCAM->PayloadSize > 0)) {
@@ -777,7 +733,7 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		pCAM->opened = true;
 	}
 
-	if ((pGX->cnt_gx != TOTAL_CAMS)||(pGX->Cam[CAM_LEFT].PayloadSize != pGX->Cam[CAM_RIGHT].PayloadSize)) {
+	if ((TOTAL_CAMS != pGX->cnt_gx)||(pGX->Cam[CAM_LEFT].PayloadSize != pGX->Cam[CAM_RIGHT].PayloadSize)) {
 		log_warn("ERROR : CAMs not coupled. PayloadSize : %d vs %d.", 
 			pGX->Cam[CAM_LEFT].PayloadSize, pGX->Cam[CAM_RIGHT].PayloadSize);
 		return -1;
@@ -817,7 +773,7 @@ static int csv_gx_close (struct csv_gx_t *pGX)
 		pCAM->hDevice = NULL;
 		pCAM->opened = false;
 		pCAM->PayloadSize = 0;
-		pCAM->PixelColorFilter = false;
+		pCAM->PixelColorFilter = GX_COLOR_FILTER_NONE;
 		memset(pCAM->vendor, 0, SIZE_CAM_STR);
 		memset(pCAM->model, 0, SIZE_CAM_STR);
 		memset(pCAM->serial, 0, SIZE_CAM_STR);
@@ -828,10 +784,11 @@ static int csv_gx_close (struct csv_gx_t *pGX)
 	return ret;
 }
 
-int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state)
+int csv_gx_acquisition (uint8_t state)
 {
 	int i = 0, ret = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+	struct csv_gx_t *pGX = &gCSV->gx;
 	struct cam_gx_spec_t *pCAM = NULL;
 
 	if (!libInit) {
@@ -878,40 +835,33 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		GXSetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
-//		GXSetAcqusitionBufferNumber(pCAM->hDevice, ACQ_BUFFER_NUM);
+		// GX_ACQUISITION_MODE_ENTRY
+		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
 
+		// GX_TRIGGER_MODE_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
+		// GX_TRIGGER_ACTIVATION_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
+		// GX_TRIGGER_SOURCE_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);
 
-		GXSetEnum(pCAM->hDevice, GX_ENUM_SENSOR_SHUTTER_MODE, GX_SENSOR_SHUTTER_MODE_GLOBAL);
+		// GX_SENSOR_SHUTTER_MODE_ENTRY
+		SetEnum(pCAM->hDevice, GX_ENUM_SENSOR_SHUTTER_MODE, GX_SENSOR_SHUTTER_MODE_GLOBAL);
+
+		// GX_EXPOSURE_MODE_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TIMED);
+		// GX_EXPOSURE_AUTO_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_OFF);
+		GetFloatRange(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, &pCAM->expoTimeRange);
 		SetFloat(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, pCAM->expoTime);
 
+		// GX_GAIN_AUTO_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_OFF);
+		GetFloatRange(pCAM->hDevice, GX_FLOAT_GAIN, &pCAM->gainRange);
 		SetFloat(pCAM->hDevice, GX_FLOAT_GAIN, pCAM->gain);
 
 		SetBool(pCAM->hDevice, GX_BOOL_CHUNKMODE_ACTIVE, false);
 		SetBool(pCAM->hDevice, GX_BOOL_CHUNK_ENABLE, false);
-
-/*
-		bool bStreamTransferSize = false;
-		bool bStreamTransferNumberUrb = false;
-
-		IsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, &bStreamTransferSize);
-		if (bStreamTransferSize) {
-			// Set size of data transfer block
-			SetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, ACQ_TRANSFER_SIZE);
-		}
-
-		IsImplemented(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, &bStreamTransferNumberUrb);
-		if (bStreamTransferNumberUrb) {
-			// Set qty. of data transfer block
-			SetInt(pCAM->hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, ACQ_TRANSFER_NUMBER_URB);
-		}
-*/
 
 	}
 
@@ -924,50 +874,39 @@ static int csv_gx_cams_deinit (struct csv_gx_t *pGX)
 	return 0;
 }
 
-int csv_gx_get_frame (struct csv_gx_t *pGX, uint8_t idx)
+int csv_gx_cams_exposure_set (float fExposureTime)
 {
-	if (idx >= TOTAL_CAMS) {
-		return -1;
-	}
-
-	if (!libInit) {
-		return -1;
-	}
-
-	int ret = 0;
+	int ret = -1, i = 0;
+	int errNum = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
-	struct cam_gx_spec_t *pCAM = &pGX->Cam[idx];
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAM = NULL;
 
-	if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
+	if ((!libInit)||(pGX->cnt_gx < 2)) {
 		return -1;
 	}
 
-	emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
-	if (GX_STATUS_SUCCESS != emStatus) {
-		GetErrorString(emStatus);
-		return -1;
+    for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+			errNum++;
+			continue;
+		}
+
+		emStatus = SetFloat(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, (double)fExposureTime);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			errNum++;
+		}
 	}
 
-	if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
-		log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
-		return -1;
+	if (0 == errNum) {
+		ret = 0;
 	}
 
-	log_debug("OK : Frame [%s][%d].", pCAM->serial, pCAM->pFrameBuffer->nFrameID);
-
-	ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-	if (0 == ret) {
-		SavePPMFile(pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight);
-	}
-
-	emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
-	if (GX_STATUS_SUCCESS != emStatus) {
-		GetErrorString(emStatus);
-		return -1;
-	}
-
-	return 0;
+	return ret;
 }
+
 
 int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 {
@@ -980,8 +919,6 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	ret = csv_gx_acquisition(pGX, GX_ACQUISITION_START);
-
     for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
 
@@ -992,7 +929,7 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 
 		memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
 
-		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
 		if (GX_STATUS_SUCCESS != emStatus) {
 			GetErrorString(emStatus);
 			errNum++;
@@ -1005,10 +942,7 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-		if (0 == ret) {
-			SavePPMFile(pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight);
-		}
+		PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
 		if (GX_STATUS_SUCCESS != emStatus) {
@@ -1018,8 +952,6 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 		}
 
 	}
-
-	ret = csv_gx_acquisition(pGX, GX_ACQUISITION_STOP);
 
 	if (0 == errNum) {
 		ret = 0;
@@ -1056,7 +988,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	ret = csv_gx_acquisition(pGX, GX_ACQUISITION_START);
+	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	// 1 亮光
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1071,7 +1003,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 
 		memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
 
-		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
 		if (GX_STATUS_SUCCESS != emStatus) {
 			GetErrorString(emStatus);
 			errNum++;
@@ -1117,7 +1049,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 
 			memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
 
-			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
 			if (GX_STATUS_SUCCESS != emStatus) {
 				GetErrorString(emStatus);
 				errNum++;
@@ -1149,7 +1081,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 		idx++;
 	}
 
-	ret = csv_gx_acquisition(pGX, GX_ACQUISITION_STOP);
+	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
 
 	if (0 != errNum) {
 		return -1;
@@ -1179,7 +1111,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	ret = csv_gx_acquisition(pGX, GX_ACQUISITION_START);
+	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	// 13 高速光
 	ret = csv_dlp_just_write(DLP_CMD_HIGHSPEED);
@@ -1195,7 +1127,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 
 			memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
 
-			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
 			if (GX_STATUS_SUCCESS != emStatus) {
 				GetErrorString(emStatus);
 				errNum++;
@@ -1227,7 +1159,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 		idx++;
 	}
 
-	ret = csv_gx_acquisition(pGX, GX_ACQUISITION_STOP);
+	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
 
 	if (1 != errNum) {
 		return -1;
@@ -1372,22 +1304,9 @@ int csv_gx_deinit (void)
 	int ret = 0;
 	struct csv_gx_t *pGX = &gCSV->gx;
 
-	libInit = false;
 	ret = csv_gx_thread_cancel(pGX);
 
 	return ret;
-}
-
-#else
-
-int csv_gx_init (void)
-{
-	return 0;
-}
-
-int csv_gx_deinit (void)
-{
-	return 0;
 }
 
 #endif

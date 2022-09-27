@@ -100,8 +100,11 @@ extern "C" {
 #include "csv_web.h"
 #include "csv_bmp.h"
 #include "csv_mat.h"
-#include "csv_mvs.h"
-#include "csv_gx.h"
+#if defined(USE_HK_CAMS)
+  #include "csv_mvs.h"
+#elif defined(USE_GX_CAMS)
+  #include "csv_gx.h"
+#endif
 #include "csv_gvcp.h"
 #include "csv_gvsp.h"
 #include "csv_gev.h"

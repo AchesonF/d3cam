@@ -1237,18 +1237,6 @@ int csv_mvs_deinit (void)
 	return ret;
 }
 
-#else
-
-int csv_mvs_init (void)
-{
-	return 0;
-}
-
-int csv_mvs_deinit (void)
-{
-	return 0;
-}
-
 #endif
 
 #ifdef __cplusplus

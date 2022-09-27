@@ -33,7 +33,7 @@ struct cam_gx_spec_t {
 	char					version[SIZE_CAM_STR];
 	char					userid[SIZE_CAM_STR];
 	int64_t					PayloadSize;
-	bool					PixelColorFilter;
+	int64_t					PixelColorFilter;
 
 	double					expoTime;		// GX_FLOAT_EXPOSURE_TIME
 	GX_FLOAT_RANGE			expoTimeRange;
@@ -56,7 +56,9 @@ struct csv_gx_t {
 	pthread_cond_t			cond_gx;		///< 条件
 };
 
-extern int csv_gx_acquisition (struct csv_gx_t *pGX, uint8_t state);
+extern int csv_gx_acquisition (uint8_t state);
+
+extern int csv_gx_cams_exposure_set (float fExposureTime);
 
 extern int csv_gx_cams_grab_both (struct csv_gx_t *pGX);
 
