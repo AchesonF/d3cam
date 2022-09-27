@@ -82,7 +82,7 @@ int csv_tick_timer_trigger (struct csv_tick_t *pTICK)
 		pPdct->app_runtime++;
 
 		csv_hb_write();
-		csv_ether_refresh(false);
+		//csv_ether_refresh(false);
 	}
 
 	if (pTICK->cnt%(5*TICKS_PER_SECOND) == 0) {

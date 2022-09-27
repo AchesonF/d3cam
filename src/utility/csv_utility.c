@@ -324,7 +324,7 @@ int utility_calibrate_clock (void)
 	time_t now = time(NULL);
 	tm = localtime(&now);
 	if (strftime(timebuf, sizeof(timebuf), "%F %X", tm) != 0) {
-		log_info("Boot time : %s ", timebuf);
+		log_info("Boot time @ '%s'", timebuf);
 	}
 
 	struct timeval tv;

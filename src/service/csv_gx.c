@@ -587,7 +587,7 @@ static int csv_gx_lib (uint8_t action)
 		if (GX_STATUS_SUCCESS == emStatus) {
 			libInit = true;
 		}
-		log_info("Galaxy library version : %s", GXGetLibVersion());
+		log_info("Galaxy library version : '%s'", GXGetLibVersion());
 	} else if (GX_LIB_CLOSE == action) {
 		emStatus = GXCloseLib();
 		if (GX_STATUS_SUCCESS == emStatus) {

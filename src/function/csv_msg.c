@@ -82,6 +82,7 @@ static void csv_msg_cmd_enroll (void)
 	csv_hk_msg_cmd_enroll();
 	csv_gx_msg_cmd_enroll();
 
+	log_info("OK : 'enroll' message commands.");
 }
 
 static void csv_msg_cmd_disroll (void)
@@ -101,7 +102,7 @@ static void csv_msg_cmd_disroll (void)
 		task = NULL;
 	}
 
-	log_info("OK : disroll message commands.");
+	log_info("OK : 'disroll' message commands.");
 }
 
 static int csv_msg_push (struct csv_msg_t *pMSG, uint8_t *buf, uint32_t len)

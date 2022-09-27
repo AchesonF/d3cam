@@ -54,6 +54,8 @@ static int csv_tcp_local_open (void)
 	if (ret < 0) {
 		log_err("ERROR : bind %s.", pTCPL->name_listen);
 		close(fd);
+		sleep(5);
+		exit(EXIT_FAILURE);
 		return ret;
 	}
 

@@ -27,7 +27,7 @@ static void csv_deinit (void)
 {
 	csv_cfg_deinit();
 
-	csv_gev_deinit();
+//	csv_gev_deinit();
 
 	csv_gpi_deinit();
 
@@ -291,8 +291,8 @@ static void startup_opts (int argc, char **argv)
 
 	utility_calibrate_clock();
 
-	log_info("%s via GCC/GXX %s", pPdct->app_info, pPdct->compiler_version);
-	log_info("%s (%s)", pPdct->kernel_version, pPdct->kernel_buildtime);
+	log_info("'%s via GCC/GXX %s'", pPdct->app_info, pPdct->compiler_version);
+	log_info("'%s (%s)'", pPdct->kernel_version, pPdct->kernel_buildtime);
 
 	if (!pPdct->dis_daemon) {
 		csv_hb_init(argc, argv);
@@ -305,13 +305,13 @@ int csv_init (void)
 
 	csv_xml_init();
 
-	csv_ether_init();
+//	csv_ether_init();
 
 	csv_gpi_init();
 
 	csv_dlp_init();
 
-	csv_gev_init();
+//	csv_gev_init();
 
 	csv_tcp_init();
 
