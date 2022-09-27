@@ -6,6 +6,8 @@
 extern "C" {
 #endif
 
+#pragma pack(push, 1)
+
 
 struct bitmap_file_header_t {
 	uint16_t		bfType;
@@ -35,6 +37,8 @@ struct rgbquad_t {
 	uint8_t			rgbRed;
 	uint8_t			rgbReserved;
 };
+
+#pragma pack(pop)
 
 extern int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, char *pBmpName);
 

@@ -27,8 +27,7 @@ struct device_cfg_t {
 	int					DeviceType;				///< 设备类型 0:2cams
 	uint8_t				SwitchCams;				///< 左右相机互换 1:互换
 	uint8_t				CamImageType;			///< 图像类型 0:灰度图 1:RGB图
-	uint8_t				SaveImageFormat;		///< 图像存储格式 SUFFIX_BMP
-	char				*strSuffix;
+	uint8_t				SaveBmpFile;			///< 保存图像为 bmp
 
 	struct dlp_cfg_t	dlpcfg[TOTAL_DLP_CMDS];
 };

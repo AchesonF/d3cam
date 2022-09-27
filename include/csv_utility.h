@@ -52,7 +52,7 @@ extern uint32_t utility_read_value (const char *buffer, const char *prefix);
 extern void utility_read_values (const char *buffer, const char *prefix, uint32_t *values, int count);
 
 extern int generate_image_filename (char *path, uint16_t group, 
-	int idx, int lr, uint8_t suffix, char *img_file);
+	int idx, int lr, char *img_file);
 
 #ifdef __cplusplus
 }

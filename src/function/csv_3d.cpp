@@ -30,8 +30,7 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 	vector<Mat> src1list;
 	for (i = 0; i < 13; i++) {
 		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C1S00P000.bmp
-		snprintf(filename, 512, "CSV_%03dC1S00P%03d%s", pPC->groupPointCloud, 
-			i+1, gCSV->cfg.devicecfg.strSuffix);
+		snprintf(filename, 512, "CSV_%03dC1S00P%03d.bmp", pPC->groupPointCloud, i+1);
 
 		string path = pathRoot + "/" + filename;
 
@@ -47,8 +46,7 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 	vector<Mat> src2list;
 	for (i = 0; i < 13; i++) {
 		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C2S00P000.bmp
-		snprintf(filename, 512, "CSV_%03dC2S00P%03d%s", pPC->groupPointCloud, 
-			i+1, gCSV->cfg.devicecfg.strSuffix);
+		snprintf(filename, 512, "CSV_%03dC2S00P%03d.bmp", pPC->groupPointCloud, i+1);
 
 		string path = pathRoot + "/" + filename;
 

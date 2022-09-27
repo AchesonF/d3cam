@@ -517,8 +517,8 @@ static int csv_xml_DeviceConfiguration (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
-	xml_strlcpy(key_pair[nums].key, "SaveImageFormat", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->SaveImageFormat;
+	xml_strlcpy(key_pair[nums].key, "SaveBmpFile", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDevC->SaveBmpFile;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;

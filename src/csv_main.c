@@ -35,8 +35,6 @@ static void csv_deinit (void)
 
 	csv_msg_deinit();
 
-	csv_png_deinit();
-
 	csv_tcp_deinit();
 
 	csv_uevent_deinit();
@@ -322,8 +320,6 @@ int csv_init (void)
 	csv_mvs_init();
 
 	csv_gx_init();
-
-	csv_png_init();
 
 	csv_stat_init();
 

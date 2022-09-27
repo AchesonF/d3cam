@@ -98,7 +98,6 @@ extern "C" {
 #include "csv_dlp.h"
 #include "csv_cfg.h"
 #include "csv_web.h"
-#include "csv_png.h"
 #include "csv_bmp.h"
 #include "csv_mat.h"
 #include "csv_mvs.h"

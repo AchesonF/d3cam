@@ -11,8 +11,7 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 	pDevC->DeviceType = 0;
 	pDevC->SwitchCams = 0;
 	pDevC->CamImageType = 0;
-	pDevC->SaveImageFormat = SUFFIX_BMP;
-	pDevC->strSuffix = ".bmp";
+	pDevC->SaveBmpFile = 0;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_NORMAL];
 	strcpy(pDlpcfg->name, "normal");

@@ -816,88 +816,6 @@ exit:
 	return ret;
 }
 
-static int save_image_to_jpeg (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
-	uint8_t *pData, uint32_t nData, char *img_name)
-{
-	int nRet = MV_OK;
-	int ret = 0;
-	uint8_t *pDataForSaveImage = NULL;
-
-	if ((NULL == img_name)&&(!isprint(img_name[0]))) {
-		log_warn("ERROR : img name error.");
-		return -1;
-	}
-
-	if ((NULL == stImageInfo)||(NULL == handle)||(NULL == pData)) {
-		log_warn("ERROR : null point.");
-		return -1;
-	}
-
-	pDataForSaveImage = (uint8_t*)malloc(nData);
-	if (NULL == pDataForSaveImage) {
-		log_err("ERROR : malloc DataForSaveImage.");
-		return -1;
-	}
-
-	// 填充存图参数
-	// fill in the parameters of save image
-	MV_SAVE_IMAGE_PARAM_EX stSaveParam;
-	memset(&stSaveParam, 0, sizeof(MV_SAVE_IMAGE_PARAM_EX));
-	// 从上到下依次是：输出图片格式，输入数据的像素格式，提供的输出缓冲区大小，图像宽，
-	// 图像高，输入数据缓存，输出图片缓存，JPG编码质量
-	// Top to bottom are：
-	stSaveParam.enImageType = MV_Image_Jpeg; 
-	stSaveParam.enPixelType = stImageInfo->enPixelType; 
-	stSaveParam.nBufferSize = nData;
-	stSaveParam.nWidth      = stImageInfo->nWidth; 
-	stSaveParam.nHeight     = stImageInfo->nHeight; 
-	stSaveParam.pData       = pData;
-	stSaveParam.nDataLen    = stImageInfo->nFrameLen;
-	stSaveParam.pImageBuffer = pDataForSaveImage;
-	stSaveParam.nJpgQuality = 90;
-
-	nRet = MV_CC_SaveImageEx2(handle, &stSaveParam);
-	if (MV_OK != nRet) {
-		log_warn("ERROR : SaveImageEx2 errcode[0x%08X]:'%s'.", nRet, strMsg(nRet));
-		ret = -1;
-		goto exit;
-	}
-
-	ret = csv_file_write_data(img_name, pDataForSaveImage, stSaveParam.nImageLen);
-	if (ret < 0) {
-		log_warn("ERROR : write file '%s'.", img_name);
-	}
-
-exit:
-
-	if (NULL != pDataForSaveImage) {
-		free(pDataForSaveImage);
-	}
-
-	return ret;
-}
-
-static int save_image_to_file (MV_FRAME_OUT_INFO_EX *stImageInfo, void *handle,
-	uint8_t *pData, uint32_t nData, uint8_t suffix, char *img_name, uint8_t end)
-{
-	int ret = 0;
-
-	switch (suffix) {
-	case SUFFIX_JPG:
-		ret = save_image_to_jpeg(stImageInfo, handle, pData, nData, img_name);
-		break;
-	case SUFFIX_PNG:
-		csv_png_push(img_name, pData, nData, stImageInfo->nWidth, stImageInfo->nHeight, end);
-		break;
-	case SUFFIX_BMP:
-	default:
-		ret = save_image_to_bmp(stImageInfo, handle, pData, img_name);
-		break;
-	}
-
-	return ret;
-}
-
 static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 {
 	int ret = 0, i = 0;
@@ -937,11 +855,11 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
 				pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-			memset(img_name, 0, 256);
-			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
-				pDevC->SaveImageFormat, img_name);
-			ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, 
-				pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->SaveImageFormat, img_name, 0);
+			if (pDevC->SaveBmpFile) {
+				memset(img_name, 0, 256);
+				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
+				save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
+			}
 		} else {
 			log_warn("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
 				pCAM->sn, idx, i, nRet, strMsg(nRet));
@@ -980,11 +898,11 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
 					pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-				memset(img_name, 0, 256);
-				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, 
-					pDevC->SaveImageFormat, img_name);
-				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, 
-					pCAM->imgData, pCAM->sizePayload.nCurValue, pDevC->SaveImageFormat, img_name, 0);
+				if (pDevC->SaveBmpFile) {
+					memset(img_name, 0, 256);
+					generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
+					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
+				}
 			} else {
 				log_warn("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
 					pCAM->sn, idx, i, nRet, strMsg(nRet));
@@ -1000,12 +918,10 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 		idx++;
 	}
 
-	if (SUFFIX_PNG == pDevC->SaveImageFormat) {
-		pthread_cond_broadcast(&gCSV->png.cond_png);
+	if (pDevC->SaveBmpFile) {
+		pCALIB->groupDemarcate++;
+		csv_xml_write_CalibParameters();
 	}
-
-	pCALIB->groupDemarcate++;
-	csv_xml_write_CalibParameters();
 
 	return ret;
 }
@@ -1016,7 +932,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	int nRet = MV_OK;
 	int nFrames = 13;
 	int idx = 1;
-	uint8_t end_pc = 0;
+
 	char img_name[256] = {0};
 	struct cam_hk_spec_t *pCAM = NULL;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
@@ -1048,14 +964,11 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
 					pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-				if ((idx == nFrames)&&(i == 1)) {
-					end_pc = 1;
+				if (pDevC->SaveBmpFile) {
+					memset(img_name, 0, 256);
+					generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
+					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
 				}
-				memset(img_name, 0, 256);
-				generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, 
-					pDevC->SaveImageFormat, img_name);
-				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, 
-					pCAM->sizePayload.nCurValue, pDevC->SaveImageFormat, img_name, end_pc);
 			} else {
 				log_warn("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
 					pCAM->sn, idx, i, nRet, strMsg(nRet));
@@ -1075,83 +988,9 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	pMVS->lastTimestamp = utility_get_microsecond();
 	log_debug("highspeed 13 take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
 
-	if (SUFFIX_PNG == pDevC->SaveImageFormat) {
-		pthread_cond_broadcast(&gCSV->png.cond_png);
-	} else {
-		if (pPC->enable) {
-			ret = csv_3d_calc();
-		} else {
-			pPC->groupPointCloud++;
-		}
+	if (pDevC->SaveBmpFile) {
+		pPC->groupPointCloud++;
 	}
-
-	return ret;
-}
-
-int csv_mvs_cams_img_depth (struct csv_mvs_t *pMVS)
-{
-	int ret = 0, i = 0, errNum = 0;
-	int nRet = MV_OK;
-	int nFrames = 13;
-	int idx = 1;
-	uint8_t end_pc = 0;
-	char img_name[256] = {0};
-	struct cam_hk_spec_t *pCAM = NULL;
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
-
-	// 13 高速光
-	ret = csv_dlp_just_write(DLP_CMD_HIGHSPEED);
-
-	pMVS->firstTimestamp = utility_get_microsecond();
-
-	while (idx <= nFrames) {
-		for (i = 0; i < pMVS->cnt_mvs; i++) {
-			pCAM = &pMVS->Cam[i];
-
-			if ((!pCAM->opened)||(NULL == pCAM->pHandle)) {
-				errNum++;
-				continue;
-			}
-
-			memset(&pCAM->imgInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
-			nRet = MV_CC_GetOneFrameTimeout(pCAM->pHandle, pCAM->imgData, 
-				pCAM->sizePayload.nCurValue, &pCAM->imgInfo, 3000);
-			if (nRet == MV_OK) {
-				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
-					pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
-
-				if ((idx == nFrames)&&(i == 1)) {
-					end_pc = 1;
-				}
-				memset(img_name, 0, 256);
-				generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, 
-					pDevC->SaveImageFormat, img_name);
-				ret = save_image_to_file(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, 
-					pCAM->sizePayload.nCurValue, pDevC->SaveImageFormat, img_name, end_pc);
-			} else {
-				log_warn("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
-					pCAM->sn, idx, i, nRet, strMsg(nRet));
-				errNum++;
-				break;
-			}
-		}
-
-		if (errNum > 0) {
-			break;
-		}
-
-		idx++;
-	}
-
-	pMVS->lastTimestamp = utility_get_microsecond();
-	log_debug("highspeed 13 take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
-
-	if (errNum > 0) {
-		return -1;
-	}
-
-	ret = csv_3d_calc();
 
 	return ret;
 }
