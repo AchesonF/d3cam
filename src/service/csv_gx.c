@@ -56,6 +56,9 @@ static void GetErrorString (GX_STATUS emErrorStatus)
 	}
 }
 
+#define GxErrStr(emErrorStatus) do {log_info("errcode[%d]", emErrorStatus); \
+	GetErrorString(emErrorStatus);} while(0)
+
 static GX_STATUS GetFeatureName (GX_DEV_HANDLE hDevice, GX_FEATURE_ID emFeatureID, 
 	char *pszName, size_t *pnSize)
 {
@@ -593,7 +596,7 @@ static int csv_gx_lib (uint8_t action)
 	}
 
 	if (GX_STATUS_SUCCESS != emStatus) {
-		GetErrorString(emStatus);
+		GxErrStr(emStatus);
 		return -1;
 	}
 
@@ -614,7 +617,7 @@ static int csv_gx_search (struct csv_gx_t *pGX)
 	//Get device enumerated number
 	emStatus = GXUpdateDeviceList(&ui32DeviceNum, 1000);
 	if (GX_STATUS_SUCCESS != emStatus) {
-		GetErrorString(emStatus);
+		GxErrStr(emStatus);
 		return 0;
 	}
 
@@ -666,7 +669,7 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		}
 
 		if (GX_STATUS_SUCCESS != emStatus) {
-			GetErrorString(emStatus);
+			GxErrStr(emStatus);
 			ret = -1;
 			continue;
 		}
@@ -760,7 +763,7 @@ static int csv_gx_close (struct csv_gx_t *pGX)
 
 		emStatus = GXCloseDevice(pCAM->hDevice);
 		if (GX_STATUS_SUCCESS != emStatus) {
-			GetErrorString(emStatus);
+			GxErrStr(emStatus);
 			ret = -1;
 			continue;
 		}
@@ -810,7 +813,7 @@ int csv_gx_acquisition (uint8_t state)
 		}
 
 		if (GX_STATUS_SUCCESS != emStatus) {
-			GetErrorString(emStatus);
+			GxErrStr(emStatus);
 			//ret = -1;
 			continue;
 		}
@@ -931,7 +934,7 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 
 		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
 		if (GX_STATUS_SUCCESS != emStatus) {
-			GetErrorString(emStatus);
+			GxErrStr(emStatus);
 			errNum++;
 			continue;
 		}
@@ -946,7 +949,7 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
 		if (GX_STATUS_SUCCESS != emStatus) {
-			GetErrorString(emStatus);
+			GxErrStr(emStatus);
 			errNum++;
 			continue;
 		}
@@ -1005,7 +1008,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 
 		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
 		if (GX_STATUS_SUCCESS != emStatus) {
-			GetErrorString(emStatus);
+			GxErrStr(emStatus);
 			errNum++;
 			continue;
 		}
@@ -1026,7 +1029,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
 		if (GX_STATUS_SUCCESS != emStatus) {
-			GetErrorString(emStatus);
+			GxErrStr(emStatus);
 			errNum++;
 			continue;
 		}
@@ -1051,7 +1054,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 
 			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
 			if (GX_STATUS_SUCCESS != emStatus) {
-				GetErrorString(emStatus);
+				GxErrStr(emStatus);
 				errNum++;
 				continue;
 			}
@@ -1072,7 +1075,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
 			if (GX_STATUS_SUCCESS != emStatus) {
-				GetErrorString(emStatus);
+				GxErrStr(emStatus);
 				errNum++;
 				continue;
 			}
@@ -1129,7 +1132,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 
 			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
 			if (GX_STATUS_SUCCESS != emStatus) {
-				GetErrorString(emStatus);
+				GxErrStr(emStatus);
 				errNum++;
 				continue;
 			}
@@ -1150,7 +1153,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
 			if (GX_STATUS_SUCCESS != emStatus) {
-				GetErrorString(emStatus);
+				GxErrStr(emStatus);
 				errNum++;
 				continue;
 			}
