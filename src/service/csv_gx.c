@@ -686,6 +686,7 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		pCAM->PayloadSize = 0;
 		pCAM->PixelColorFilter = GX_COLOR_FILTER_NONE;
 		pCAM->LinkThroughputLimit = 200000000ll;
+		pCAM->FrameRate = 60.0f;
 		pCAM->pMonoImageBuf = NULL;
 		memset(pCAM->vendor, 0, SIZE_CAM_STR);
 		memset(pCAM->model, 0, SIZE_CAM_STR);
@@ -733,6 +734,11 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		}
 
 		pCAM->opened = true;
+
+
+		GetFloatRange(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, &pCAM->expoTimeRange);
+		GetFloatRange(pCAM->hDevice, GX_FLOAT_GAIN, &pCAM->gainRange);
+		GetEnum(pCAM->hDevice, GX_ENUM_PIXEL_FORMAT, &pCAM->PixelFormat);
 
 #if 1
 		memset(cfg_name, 0, 256);
@@ -863,12 +869,10 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TIMED);
 		// GX_EXPOSURE_AUTO_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_OFF);
-		GetFloatRange(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, &pCAM->expoTimeRange);
 		SetFloat(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, pCAM->expoTime);
 
 		// GX_GAIN_AUTO_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_OFF);
-		GetFloatRange(pCAM->hDevice, GX_FLOAT_GAIN, &pCAM->gainRange);
 		SetFloat(pCAM->hDevice, GX_FLOAT_GAIN, pCAM->gain);
 
 		SetBool(pCAM->hDevice, GX_BOOL_CHUNKMODE_ACTIVE, false);
@@ -879,18 +883,10 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 		//GetInt(pCAM->hDevice, GX_INT_DEVICE_LINK_CURRENT_THROUGHPUT, &nLinkThroughputVal);
 		SetInt(pCAM->hDevice, GX_INT_DEVICE_LINK_THROUGHPUT_LIMIT, pCAM->LinkThroughputLimit);
 
-/*		// 传输控制模式为用户控制模式
-		SetEnum(pCAM->hDevice, GX_ENUM_TRANSFER_CONTROL_MODE, GX_ENUM_TRANSFER_CONTROL_MODE_USERCONTROLED);
-		// 传输操作模式为指定发送帧数
-		SetEnum(pCAM->hDevice, GX_ENUM_TRANSFER_OPERATION_MODE, GX_ENUM_TRANSFER_OPERATION_MODE_MULTIBLOCK);
-		// 每次命令输出帧数帧
-		SetInt(pCAM->hDevice, GX_INT_TRANSFER_BLOCK_COUNT, 1);
-*/
-
 		// 使能采集帧率调节模式
 		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_FRAME_RATE_MODE, GX_ACQUISITION_FRAME_RATE_MODE_ON);
 		// 设置采集帧率
-		SetFloat(pCAM->hDevice, GX_FLOAT_ACQUISITION_FRAME_RATE, 60.0);
+		SetFloat(pCAM->hDevice, GX_FLOAT_ACQUISITION_FRAME_RATE, pCAM->FrameRate);
 	}
 
 	return ret;
@@ -1016,10 +1012,10 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_START);
-
 	// 1 亮光
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
+
+	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
@@ -1139,22 +1135,11 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_START);
-
 	// 13 高速光
 	ret = csv_dlp_just_write(DLP_CMD_NORMAL);//(DLP_CMD_HIGHSPEED);
 	usleep(1000);// 1ms
 
-//开采之后发送软触发信号（或者外触发）
-//emStatus = GXSendCommand(hDevice, GX_COMMAND_ACQUISITION_START);
-//触发出图之后发送传输命令
-//emStatus = GXSendCommand(hDevice, GX_COMMAND_TRANSFER_START);
-/*
-在触发模式下，通过设置传输控制模式为“用户控制”，当相机接到软触发命令或者硬触发信号并完成图
-像采集以后，将图像保存在相机内部的帧存中，等待主机端发送“开始传输”命令以后，相机将采集到的图像
-传输到主机端。传输延迟时间由主机端决定。在多个相机同时触发的时候，可以为每台相机设置不同的传输
-延迟时间，以避免交换机的瞬时带宽过大。
-*/
+	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	while (idx <= nFrames) {
 		for (i = 0; i < pGX->cnt_gx; i++) {
@@ -1166,12 +1151,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 			}
 
 			memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
-/*			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_TRANSFER_START);
-			if (GX_STATUS_SUCCESS != emStatus) {
-				GxErrStr(emStatus);
-				errNum++;
-			}
-*/
+
 			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 			if (GX_STATUS_SUCCESS != emStatus) {
 				GxErrStr(emStatus);
@@ -1211,7 +1191,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 	}
 
 	if (pDevC->SaveBmpFile) {
-		pPC->groupPointCloud++;
+		csv_3d_calc();
 	}
 
 	return ret;
@@ -1226,6 +1206,8 @@ static void *csv_gx_loop (void *data)
 
 	int ret = 0, timeo = 0;
 	struct csv_gx_t *pGX = (struct csv_gx_t *)data;
+
+	csv_3d_init();
 
 	csv_gx_lib(GX_LIB_OPEN);
 

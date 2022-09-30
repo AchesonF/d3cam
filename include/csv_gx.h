@@ -35,6 +35,8 @@ struct cam_gx_spec_t {
 	int64_t					PayloadSize;
 	int64_t					PixelColorFilter;
 	int64_t					LinkThroughputLimit;
+	int64_t					PixelFormat;
+	double					FrameRate;
 
 	double					expoTime;		// GX_FLOAT_EXPOSURE_TIME
 	GX_FLOAT_RANGE			expoTimeRange;

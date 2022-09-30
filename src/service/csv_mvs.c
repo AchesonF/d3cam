@@ -933,6 +933,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	int nFrames = 13;
 	int idx = 1;
 
+	uint64_t f_timestamp = 0;
 	char img_name[256] = {0};
 	struct cam_hk_spec_t *pCAM = NULL;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
@@ -941,7 +942,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	// 13 高速光
 	ret = csv_dlp_just_write(DLP_CMD_HIGHSPEED);
 
-	pMVS->firstTimestamp = utility_get_microsecond();
+	f_timestamp = utility_get_microsecond();
 
 	while (idx <= nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
@@ -985,11 +986,9 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 		idx++;
 	}
 
-	pMVS->lastTimestamp = utility_get_microsecond();
-	log_debug("highspeed 13 take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
+	log_debug("highspeed 13 take %ld us.", utility_get_microsecond() - f_timestamp);
 
 	if (pDevC->SaveBmpFile) {
-		pPC->groupPointCloud++;
 	}
 
 	return ret;
@@ -1213,8 +1212,6 @@ int csv_mvs_init (void)
 	pMVS->cnt_mvs = 0;
 	pMVS->name_mvs = NAME_THREAD_MVS;
 	pMVS->name_grab = NAME_THREAD_GRAB;
-	pMVS->firstTimestamp = 0;
-	pMVS->lastTimestamp = 0;
 
 	ret = csv_mvs_thread(pMVS);
 	ret |= csv_mvs_grab_thread(pMVS);

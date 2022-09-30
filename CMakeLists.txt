@@ -65,25 +65,28 @@ else (OpenCV_FOUND)
 endif ()
 
 set(libXML_INCLUDE_DIRS "/usr/include/libxml2")
-set(libXML_LIBS "xml2")
+set(LIB_XML2 "xml2")
 
 link_directories(
 	${DIR_LIBS_MVS}
 	${DIR_LIBS_3D}
 )
 
-option(USING_GX_CAMS "using Daheng galaxy cams" ON)
-option(USING_HK_CAMS "using Hikang cams" OFF)
-if (USING_GX_CAMS)
+option(USING_CAMS_GX "using Daheng galaxy cams" ON)
+option(USING_CAMS_HK "using Hikang cams" OFF)
+if (USING_CAMS_GX)
 	add_definitions(-DUSE_GX_CAMS)
-	set(USING_HK_CAMS OFF CACHE BOOL "No hk cams" FORCE)
+	set(LIB_GX_CAMS "gxiapi")
+	set(USING_CAMS_HK OFF CACHE BOOL "No hk cams" FORCE)
 else ()
-	if (USING_HK_CAMS)
+	if (USING_CAMS_HK)
 		add_definitions(-DUSE_HK_CAMS)
-		set(USING_GX_CAMS OFF CACHE BOOL "No gx cams" FORCE)
+		set(LIB_HK_CAMS "MvCameraControl")
+		set(USING_CAMS_GX OFF CACHE BOOL "No gx cams" FORCE)
 	else ()
 		add_definitions(-DUSE_GX_CAMS)
-		set(USING_GX_CAMS ON CACHE BOOL "Use gx cams" FORCE)
+		set(LIB_GX_CAMS "gxiapi")
+		set(USING_CAMS_GX ON CACHE BOOL "Use gx cams" FORCE)
 	endif ()
 endif ()
 

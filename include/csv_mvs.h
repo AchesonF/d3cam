@@ -35,9 +35,6 @@ struct csv_mvs_t {
 	MV_CC_DEVICE_INFO_LIST	stDeviceList;
 	struct cam_hk_spec_t	Cam[TOTAL_CAMS];
 
-	uint64_t				firstTimestamp;	///< ms
-	uint64_t				lastTimestamp;
-
 	const char				*name_mvs;		///< 消息
 	pthread_t				thr_mvs;		///< ID
 	pthread_mutex_t			mutex_mvs;		///< 锁

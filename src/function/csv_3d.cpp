@@ -34,7 +34,7 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 
 		string path = pathRoot + "/" + filename;
 
-		cout << "Read Image : " << path << endl;
+		log_debug("Read Image : %s", path.c_str());
 
 		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src1list.emplace_back(im);
@@ -50,7 +50,7 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 
 		string path = pathRoot + "/" + filename;
 
-		cout << "Read Image : " << path << endl;
+		log_debug("Read Image : %s", path.c_str());
 
 		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src2list.emplace_back(im);
@@ -69,10 +69,35 @@ bool ParseDepthImage2CVMat(CsvImageSimple &depthImage, Mat& out) {
 	return true;
 }
 
-#if defined(USE_HK_CAMS)
+int csv_save_pointXYZ (Mat& out, vector<float> *point3D)
+{
+	if (point3D != NULL) {
+		vector<float> &vecPoint3D = *point3D;
+
+		Mat out2 = Mat(out.rows, out.cols, CV_32FC3, vecPoint3D.data());
+		ofstream outfile(gCSV->cfg.pointcloudcfg.outFileXYZ);
+
+		for (int i = 0; i < out2.rows; i++) {
+			Vec3f *p0 = out2.ptr<Vec3f>(i);
+			for (int j = 0; j < out2.cols; j++) {
+				Vec3f p = p0[j];
+				if (isnan(p[0]) || isnan(p[1]) || isnan(p[2])) {
+					continue;
+				}
+				outfile << p[0] << " " << p[1] << " " << p[2] << " " << "\n";
+			}
+		}
+		outfile.close();
+
+		return 0;
+	}
+
+	return -1;
+}
+
 int csv_3d_calc (void)
 {
-	struct csv_mvs_t *pMVS = &gCSV->mvs;
+	uint64_t f_timestamp = 0;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	if ((NULL == pPC->calibFile)
@@ -109,72 +134,51 @@ int csv_3d_calc (void)
 		imageGroups.emplace_back(imgs);
 	}
 
-	pMVS->firstTimestamp = utility_get_microsecond();
-	log_debug("create 3d @ %ld us.", pMVS->firstTimestamp);
+	f_timestamp = utility_get_microsecond();
+	log_debug("create 3d @ %ld us.", f_timestamp);
 
 	CsvCreatePoint3D(imageGroups, depthImage, &point3D);
 
-	pMVS->lastTimestamp = utility_get_microsecond();
-	log_debug("create3d take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
+	log_debug("create3d take %ld us.", utility_get_microsecond() - f_timestamp);
 
-	pMVS->firstTimestamp = utility_get_microsecond();
-	string outfilepng = string(pPC->outDepthImage);
+	f_timestamp = utility_get_microsecond();
+
 	Mat out1;
 	ParseDepthImage2CVMat(depthImage, out1);
 
-	Mat vdisp;
-	normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
-	imwrite(outfilepng, vdisp);
-	pMVS->lastTimestamp = utility_get_microsecond();
-	log_debug("depthimage take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
+	log_debug("depthimage take %ld us.", utility_get_microsecond() - f_timestamp);
 
-#if 1
-	pMVS->firstTimestamp = utility_get_microsecond();
-	Mat out2 = Mat(out1.rows, out1.cols, CV_32FC3, point3D.data());
-	std::ofstream outfile(pPC->outFileXYZ);
-	for (int i = 0; i < out2.rows; i++) {
-		Vec3f *p0 = out2.ptr<Vec3f>(i);
-		for (int j = 0; j < out2.cols; j++) {
-			Vec3f p = p0[j];
-			if (std::isnan(p[0]) || std::isnan(p[1]) || std::isnan(p[2])) {
-				continue;
-			}
-			outfile << p[0] << " " << p[1] << " " << p[2] << " " << "\n";
-		}
+	if (pPC->saveDepthImage) {
+		Mat vdisp;
+		string outfilepng = string(pPC->outDepthImage);
+		normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
+		imwrite(outfilepng, vdisp);
 	}
-	outfile.close();
-	pMVS->lastTimestamp = utility_get_microsecond();
-	log_debug("save pointcloud take %ld us.", pMVS->lastTimestamp - pMVS->firstTimestamp);
-#endif
+
+	if (pPC->saveXYZ) {
+		f_timestamp = utility_get_microsecond();
+
+		csv_save_pointXYZ(out1, &point3D);
+
+		log_debug("save pointcloud take %ld us.", utility_get_microsecond() - f_timestamp);
+	}
 
 	pPC->groupPointCloud++;
 
 	return 0;
 }
 
-#elif defined(USE_GX_CAMS)
-
-int csv_3d_calc (void)
-{
-
-	return 0;
-}
-
-#endif
-
 int csv_3d_init (void)
 {
 	bool ret = false;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
-	if ((NULL == pPC->calibFile)
-		||(!csv_file_isExist(pPC->calibFile))) {
+	if ((NULL == pPC->calibFile)||(!csv_file_isExist(pPC->calibFile))) {
 		log_warn("ERROR : calibFile null.");
 		return -1;
 	}
 
-	if ((NULL == pPC->ImageSaveRoot)
-		||(!csv_file_isExist(pPC->ImageSaveRoot))) {
+	if ((NULL == pPC->ImageSaveRoot)||(!csv_file_isExist(pPC->ImageSaveRoot))) {
 		log_warn("ERROR : ImageSaveRoot null.");
 		return -1;
 	}
@@ -186,12 +190,13 @@ int csv_3d_init (void)
 
 	if (!pPC->initialized) {
 		pPC->initialized = 1;
-		cout << "Create LUT Begin ..." << endl;
-		ret = CsvCreateLUT(param);
-		cout << "Create LUT Over" << endl;
 
+		ret = CsvCreateLUT(param);
 		if (ret) {
+			log_info("OK : Create LUT done.");
 			csv_xml_write_PointCloudParameters();
+		} else {
+			log_info("ERROR : Create LUT failed.");
 		}
 	}
 
@@ -199,9 +204,7 @@ int csv_3d_init (void)
 
 	CsvCreatePoint3DParam param0;
 	CsvGetCreatePoint3DParam(param0);
-	cout << "Calib XML : " << param0.calibXml << endl;
-	cout << "Model Path Root : " << param0.modelPathFolder << endl;
-	cout << param0.type << endl;
+	log_info("calib xml : %s", param0.calibXml.c_str());
 
 	return 0;
 }
