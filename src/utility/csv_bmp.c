@@ -54,7 +54,7 @@ int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, char *pB
         fwrite((char*)&info_h, 1, sizeof(info_h), fp);
         fwrite((char*)rgbPal, 1, sizeof(rgbPal), fp);
 
-#if 0
+#if 1
 		// 上下颠倒
         lCount = dwRawSize;
         for (lCount -= (long)info_h.biWidth; lCount >= 0; lCount -= (long)info_h.biWidth) {

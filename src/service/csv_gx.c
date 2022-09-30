@@ -1012,10 +1012,10 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 		return -1;
 	}
 
+	ret = csv_gx_acquisition(GX_ACQUISITION_START);
+
 	// 1 亮光
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
-
-	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
@@ -1134,12 +1134,10 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 	if ((!libInit)||(pGX->cnt_gx < 2)) {
 		return -1;
 	}
+	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	// 13 高速光
 	ret = csv_dlp_just_write(DLP_CMD_NORMAL);//(DLP_CMD_HIGHSPEED);
-	usleep(1000);// 1ms
-
-	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	while (idx <= nFrames) {
 		for (i = 0; i < pGX->cnt_gx; i++) {
@@ -1191,7 +1189,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 	}
 
 	if (pDevC->SaveBmpFile) {
-		csv_3d_calc();
+//		csv_3d_calc();
 	}
 
 	return ret;

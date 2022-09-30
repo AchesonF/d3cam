@@ -191,7 +191,7 @@ int csv_3d_init (void)
 	if (!pPC->initialized) {
 		pPC->initialized = 1;
 
-		ret = CsvCreateLUT(param);
+//		ret = CsvCreateLUT(param);
 		if (ret) {
 			log_info("OK : Create LUT done.");
 			csv_xml_write_PointCloudParameters();
