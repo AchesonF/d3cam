@@ -685,7 +685,7 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		pCAM->gain = 0.0f;
 		pCAM->PayloadSize = 0;
 		pCAM->PixelColorFilter = GX_COLOR_FILTER_NONE;
-		pCAM->LinkThroughputLimit = 2000000000ll;
+		pCAM->LinkThroughputLimit = 200000000ll;
 		pCAM->pMonoImageBuf = NULL;
 		memset(pCAM->vendor, 0, SIZE_CAM_STR);
 		memset(pCAM->model, 0, SIZE_CAM_STR);

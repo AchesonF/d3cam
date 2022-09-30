@@ -17,14 +17,14 @@ extern const char Hex2Ascii[17];
 
 /*
 * @param[in]	priority	日志级别
-*		LOG_EMERG		system is unusable\n
-*		LOG_ALERT		action must be taken immediately\n
-*		LOG_CRIT		critical conditions\n
-*		LOG_ERR			error conditions\n
-*		LOG_WARNING		warning conditions\n
-*		LOG_NOTICE		normal, but significant, condition\n
-*		LOG_INFO		informational message\n
-*		LOG_DEBUG		debug-level message\n
+*		LOG_EMERG		system is unusable (系统无法使用)
+*		LOG_ALERT		action must be taken immediately (操作必须立即执行)
+*		LOG_CRIT		critical conditions (紧急条件)
+*		LOG_ERR			error conditions (错误条件)
+*		LOG_WARNING		warning conditions (警告条件)
+*		LOG_NOTICE		normal, but significant, condition (正常但重要的条件)
+*		LOG_INFO		informational message (信息)
+*		LOG_DEBUG		debug-level message (调试级别的消息)
 */
 
 extern int hex_printf (const uint8_t *buff, int count);
