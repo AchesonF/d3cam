@@ -879,13 +879,13 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 		//GetInt(pCAM->hDevice, GX_INT_DEVICE_LINK_CURRENT_THROUGHPUT, &nLinkThroughputVal);
 		SetInt(pCAM->hDevice, GX_INT_DEVICE_LINK_THROUGHPUT_LIMIT, pCAM->LinkThroughputLimit);
 
-		// 传输控制模式为用户控制模式
+/*		// 传输控制模式为用户控制模式
 		SetEnum(pCAM->hDevice, GX_ENUM_TRANSFER_CONTROL_MODE, GX_ENUM_TRANSFER_CONTROL_MODE_USERCONTROLED);
 		// 传输操作模式为指定发送帧数
 		SetEnum(pCAM->hDevice, GX_ENUM_TRANSFER_OPERATION_MODE, GX_ENUM_TRANSFER_OPERATION_MODE_MULTIBLOCK);
 		// 每次命令输出帧数帧
 		SetInt(pCAM->hDevice, GX_INT_TRANSFER_BLOCK_COUNT, 1);
-
+*/
 
 		// 使能采集帧率调节模式
 		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_FRAME_RATE_MODE, GX_ACQUISITION_FRAME_RATE_MODE_ON);
@@ -1109,7 +1109,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 		idx++;
 	}
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
+//	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
 
 	if (0 != errNum) {
 		return -1;
@@ -1166,12 +1166,12 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 			}
 
 			memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
-			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_TRANSFER_START);
+/*			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_TRANSFER_START);
 			if (GX_STATUS_SUCCESS != emStatus) {
 				GxErrStr(emStatus);
 				errNum++;
 			}
-
+*/
 			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 			if (GX_STATUS_SUCCESS != emStatus) {
 				GxErrStr(emStatus);
@@ -1204,7 +1204,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 		idx++;
 	}
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
+//	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
 
 	if (1 != errNum) {
 		return -1;
