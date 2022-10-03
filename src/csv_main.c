@@ -29,6 +29,8 @@ static void csv_deinit (void)
 
 //	csv_gev_deinit();
 
+	csv_bmp_deinit();
+
 	csv_gpi_deinit();
 
 	csv_dlp_deinit();
@@ -328,6 +330,8 @@ int csv_init (void)
 	csv_stat_init();
 
 	csv_web_init();
+
+	csv_bmp_init();
 
 	csv_tick_init();
 

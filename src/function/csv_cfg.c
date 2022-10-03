@@ -17,25 +17,25 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 	strcpy(pDlpcfg->name, "normal");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
-	pDlpcfg->expoTime = 30000.0f;
+	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_DEMARCATE];
 	strcpy(pDlpcfg->name, "demarcate");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
-	pDlpcfg->expoTime = 30000.0f;
+	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_BRIGHT];
 	strcpy(pDlpcfg->name, "bright");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
-	pDlpcfg->expoTime = 30000.0f;
+	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_HIGHSPEED];
 	strcpy(pDlpcfg->name, "highspeed");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
-	pDlpcfg->expoTime = 30000.0f;
+	pDlpcfg->expoTime = 10000.0f;
 
 	return 0;
 }
