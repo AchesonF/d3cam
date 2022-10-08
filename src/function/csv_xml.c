@@ -496,7 +496,7 @@ static int csv_xml_DeviceConfiguration (
 {
 	int ret = 0;
 	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[8];
+	struct key_value_pair_t key_pair[10];
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	xml_strlcpy(key_pair[nums].key, "DeviceType", MAX_KEY_SIZE);
@@ -525,6 +525,18 @@ static int csv_xml_DeviceConfiguration (
 
 	xml_strlcpy(key_pair[nums].key, "SaveImageFormat", MAX_KEY_SIZE);
 	key_pair[nums].value = &pDevC->SaveImageFormat;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "FlipLeftCam", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDevC->flip_left;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "FlipRightCam", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDevC->flip_right;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;

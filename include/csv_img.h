@@ -75,13 +75,6 @@ extern int csv_img_push (char *filename, uint8_t *pRawData,
 	uint32_t length, uint32_t nWidth, uint32_t nHeight, uint8_t pos);
 
 
-extern int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, 
-	uint32_t nHeight, char *pBmpName);
-
-extern int gray_raw2png(void *image, size_t length, uint32_t width, 
-	uint32_t height, int bit_depth, char *out_file);
-
-
 extern int csv_img_init (void);
 
 extern int csv_img_deinit (void);

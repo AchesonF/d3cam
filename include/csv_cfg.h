@@ -37,6 +37,8 @@ struct device_cfg_t {
 	uint8_t				CamImageType;			///< 图像类型 0:灰度图 1:RGB图
 	uint8_t				SaveImageFile;			///< 保存图像
 	uint8_t				SaveImageFormat;		///< 图像存储格式 SUFFIX_BMP
+	uint8_t				flip_left;				///< 左机 上下翻转
+	uint8_t				flip_right;				///< 右机 上下翻转
 	char				*strSuffix;
 
 	struct dlp_cfg_t	dlpcfg[TOTAL_DLP_CMDS];

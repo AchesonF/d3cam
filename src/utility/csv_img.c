@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, char *pBmpName)
+static int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, uint8_t flip, char *pBmpName)
 {
 	struct bitmap_file_header_t file_h;
 	struct bitmap_info_header_t info_h;
@@ -54,17 +54,17 @@ int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, char *pB
         fwrite((char*)&info_h, 1, sizeof(info_h), fp);
         fwrite((char*)rgbPal, 1, sizeof(rgbPal), fp);
 
-#if 1
-		// 上下颠倒
-        lCount = dwRawSize;
-        for (lCount -= (long)info_h.biWidth; lCount >= 0; lCount -= (long)info_h.biWidth) {
-			fwrite((pRawData + lCount), 1, (long)dwLine, fp);
-        }
-#else
-        for (lCount = 0; lCount < dwRawSize; lCount += info_h.biWidth) {
-			fwrite((pRawData + lCount), 1, (long)dwLine, fp);
-        }
-#endif
+		if (flip) {
+			// 上下颠倒
+	        lCount = dwRawSize;
+	        for (lCount -= (long)info_h.biWidth; lCount >= 0; lCount -= (long)info_h.biWidth) {
+				fwrite((pRawData + lCount), 1, (long)dwLine, fp);
+	        }
+		} else {
+	        for (lCount = 0; lCount < dwRawSize; lCount += info_h.biWidth) {
+				fwrite((pRawData + lCount), 1, (long)dwLine, fp);
+	        }
+		}
     }
 
     fclose(fp);
@@ -72,7 +72,7 @@ int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, char *pB
     return 0;
 }
 
-int gray_raw2png(void *image, size_t length, uint32_t width, 
+static int gray_raw2png(void *image, size_t length, uint32_t width, 
 	uint32_t height, int bit_depth, char *out_file)
 {
     int fmt;
@@ -141,6 +141,7 @@ int csv_img_push (char *filename, uint8_t *pRawData, 	uint32_t length,
 	}
 
 	struct csv_img_t *pIMG = &gCSV->img;
+	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	struct img_list_t *cur = NULL;
 	struct img_package_t *pIPK = NULL;
@@ -158,6 +159,15 @@ int csv_img_push (char *filename, uint8_t *pRawData, 	uint32_t length,
 	pIPK->height = height;
 	pIPK->length = length;
 	pIPK->position = pos;
+	if (CAM_LEFT == pos) {
+		if (pDevC->flip_left) {
+			pIPK->flip = 1;
+		}
+	} else {
+		if (pDevC->flip_right) {
+			pIPK->flip = 1;
+		}
+	}
 
 	if (length > 0) {
 		pIPK->payload = (uint8_t *)malloc(length);
@@ -210,7 +220,7 @@ static void *csv_img_loop (void *data)
 				break;
 			case SUFFIX_BMP:
 			default:
-				gray_raw2bmp(pIPK->payload, pIPK->width, pIPK->height, pIPK->filename);
+				gray_raw2bmp(pIPK->payload, pIPK->width, pIPK->height, pIPK->flip, pIPK->filename);
 				break;
 			}
 
