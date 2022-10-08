@@ -855,7 +855,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
 				pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-			if (pDevC->SaveBmpFile) {
+			if (pDevC->SaveImageFile) {
 				memset(img_name, 0, 256);
 				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
 				save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
@@ -898,7 +898,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
 					pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-				if (pDevC->SaveBmpFile) {
+				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
 					generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
 					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
@@ -918,7 +918,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 		idx++;
 	}
 
-	if (pDevC->SaveBmpFile) {
+	if (pDevC->SaveImageFile) {
 		pCALIB->groupDemarcate++;
 		csv_xml_write_CalibParameters();
 	}
@@ -965,7 +965,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
 					pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-				if (pDevC->SaveBmpFile) {
+				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
 					generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
 					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
@@ -988,7 +988,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 
 	log_debug("highspeed 13 take %ld us.", utility_get_microsecond() - f_timestamp);
 
-	if (pDevC->SaveBmpFile) {
+	if (pDevC->SaveImageFile) {
 	}
 
 	return ret;

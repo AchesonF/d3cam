@@ -78,6 +78,7 @@ extern "C" {
 #include "list.h"
 #include "queue.h"
 #include "crc.h"
+#include "spng.h"
 
 #include "csv_utility.h"
 #include "csv_type.h"
@@ -98,7 +99,7 @@ extern "C" {
 #include "csv_dlp.h"
 #include "csv_cfg.h"
 #include "csv_web.h"
-#include "csv_bmp.h"
+#include "csv_img.h"
 #include "csv_mat.h"
 #if defined(USE_HK_CAMS)
   #include "csv_mvs.h"

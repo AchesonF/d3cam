@@ -41,45 +41,50 @@ struct rgbquad_t {
 #pragma pack(pop)
 
 
-#define NAME_THREAD_BMP			"'thr_bmp'"
+#define NAME_THREAD_IMG			"'thr_img'"
 
 #define MAX_LEN_FILE_NAME		(256)
 
-struct bmp_package_t {
+struct img_package_t {
 	char					filename[MAX_LEN_FILE_NAME];
 	uint32_t				width;
 	uint32_t				height;
 	uint32_t				length;
+	uint8_t					position;	///< 左右位
+	uint8_t					flip;		///< 上下翻转
 
 	uint8_t					*payload;
 };
 
-struct bmp_list_t {
-	struct bmp_package_t	bp;
+struct img_list_t {
+	struct img_package_t	ipk;
 	struct list_head		list;
 };
 
-struct csv_bmp_t {
-	struct bmp_list_t		head_bmp;
+struct csv_img_t {
+	struct img_list_t		head_img;
 
-	const char				*name_bmp;		///< 消息
-	pthread_t				thr_bmp;		///< ID
-	pthread_mutex_t			mutex_bmp;		///< 锁
-	pthread_cond_t			cond_bmp;		///< 条件
+	const char				*name_img;		///< 消息
+	pthread_t				thr_img;		///< ID
+	pthread_mutex_t			mutex_img;		///< 锁
+	pthread_cond_t			cond_img;		///< 条件
 };
 
 
-extern int csv_bmp_push (char *filename, uint8_t *pRawData, 
-	uint32_t length, uint32_t nWidth, uint32_t nHeight);
+extern int csv_img_push (char *filename, uint8_t *pRawData, 
+	uint32_t length, uint32_t nWidth, uint32_t nHeight, uint8_t pos);
 
 
 extern int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, 
 	uint32_t nHeight, char *pBmpName);
 
+extern int gray_raw2png(void *image, size_t length, uint32_t width, 
+	uint32_t height, int bit_depth, char *out_file);
 
-extern int csv_bmp_init (void);
 
-extern int csv_bmp_deinit (void);
+extern int csv_img_init (void);
+
+extern int csv_img_deinit (void);
 
 
 #ifdef __cplusplus

@@ -74,7 +74,7 @@ struct csv_info_t {
 
 	struct csv_msg_t	msg;					///< 接口消息处理
 
-	struct csv_bmp_t	bmp;					///< bmp 延后存图
+	struct csv_img_t	img;					///< 延后存图
 };
 
 

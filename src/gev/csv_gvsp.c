@@ -8,7 +8,7 @@ int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream,
 	uint8_t *imgData, uint32_t imgLength, MV_FRAME_OUT_INFO_EX *imgInfo)
 {
 	struct stream_list_t *cur = NULL;
-	struct image_info_t *pIMG = NULL;
+	struct image_info_t *pIMI = NULL;
 
 	cur = (struct stream_list_t *)malloc(sizeof(struct stream_list_t));
 	if (cur == NULL) {
@@ -16,20 +16,20 @@ int csv_gvsp_cam_grab_fetch (struct gvsp_stream_t *pStream,
 		return -1;
 	}
 	memset(cur, 0, sizeof(struct stream_list_t));
-	pIMG = &cur->img;
+	pIMI = &cur->img;
 
-	pIMG->pixelformat = (uint32_t)imgInfo->enPixelType;
-	pIMG->length = imgLength;
-	pIMG->width = imgInfo->nWidth;
-	pIMG->height = imgInfo->nHeight;
-	pIMG->offset_x = imgInfo->nOffsetX;
-	pIMG->offset_y = imgInfo->nOffsetY;
-	pIMG->padding_x = 0;
-	pIMG->padding_y = 0;
+	pIMI->pixelformat = (uint32_t)imgInfo->enPixelType;
+	pIMI->length = imgLength;
+	pIMI->width = imgInfo->nWidth;
+	pIMI->height = imgInfo->nHeight;
+	pIMI->offset_x = imgInfo->nOffsetX;
+	pIMI->offset_y = imgInfo->nOffsetY;
+	pIMI->padding_x = 0;
+	pIMI->padding_y = 0;
 
 	if (imgLength > 0) {
-		pIMG->payload = (uint8_t *)malloc(imgLength);
-		if (NULL == pIMG->payload) {
+		pIMI->payload = (uint8_t *)malloc(imgLength);
+		if (NULL == pIMI->payload) {
 			log_err("ERROR : malloc payload. [%d].", imgLength);
 			return -1;
 		}
@@ -256,7 +256,7 @@ int csv_gvsp_packet_test (struct gvsp_stream_t *pStream,
 }
 
 static int csv_gvsp_packet_leader (struct gvsp_stream_t *pStream, 
-	struct image_info_t *pIMG)
+	struct image_info_t *pIMI)
 {
     GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
     pHdr->status			= htons(GEV_STATUS_SUCCESS);
@@ -272,8 +272,8 @@ static int csv_gvsp_packet_leader (struct gvsp_stream_t *pStream,
     pDataLeader->timestamp_high = htonl(0);  // TODO
     pDataLeader->timestamp_low  = htonl(0);
     pDataLeader->pixel_format   = htonl(PixelType_Gvsp_Mono8);
-    pDataLeader->size_x         = htonl(pIMG->width);
-    pDataLeader->size_y         = htonl(pIMG->height);
+    pDataLeader->size_x         = htonl(pIMI->width);
+    pDataLeader->size_y         = htonl(pIMI->height);
     pDataLeader->offset_x       = htonl(0);
     pDataLeader->offset_y       = htonl(0);
     pDataLeader->padding_x      = htons(0);
@@ -303,7 +303,7 @@ static int csv_gvsp_packet_payload (struct gvsp_stream_t *pStream,
 }
 
 static int csv_gvsp_packet_trailer (struct gvsp_stream_t *pStream, 
-	struct image_info_t *pIMG)
+	struct image_info_t *pIMI)
 {
     GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
     pHdr->status			= htons(GEV_STATUS_SUCCESS);
@@ -316,7 +316,7 @@ static int csv_gvsp_packet_trailer (struct gvsp_stream_t *pStream,
     GVSPIMAGEDATATRAILER *pDataTrailer = (GVSPIMAGEDATATRAILER*)(pStream->bufSend + sizeof(GVSP_PACKET_HEADER));
     pDataTrailer->reserved     = htons(0);
     pDataTrailer->payload_type = htons(GVSP_PT_UNCOMPRESSED_IMAGE);
-    pDataTrailer->size_y       = htonl(pIMG->height);
+    pDataTrailer->size_y       = htonl(pIMI->height);
 
     pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + sizeof(GVSPIMAGEDATATRAILER);
 
@@ -324,28 +324,28 @@ static int csv_gvsp_packet_trailer (struct gvsp_stream_t *pStream,
 }
 
 static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream, 
-	struct image_info_t *pIMG)
+	struct image_info_t *pIMI)
 {
-	if ((NULL == pStream)||(NULL == pIMG)||(pStream->idx >= TOTAL_CAMS)) {
+	if ((NULL == pStream)||(NULL == pIMI)||(pStream->idx >= TOTAL_CAMS)) {
 		return -1;
 	}
 
 	int ret = 0;
 	struct channel_cfg_t *pCH = &gCSV->cfg.gigecfg.Channel[pStream->idx];
 	uint32_t packsize = (pCH->Cfg_PacketSize&0xFFFF) - 28 - sizeof(GVSP_PACKET_HEADER);
-	uint8_t *pData = pIMG->payload;
+	uint8_t *pData = pIMI->payload;
 
 	pStream->packet_id32 = 0;
-	ret = csv_gvsp_packet_leader(pStream, pIMG);
+	ret = csv_gvsp_packet_leader(pStream, pIMI);
 
-	for (pData = pIMG->payload; pData < pIMG->payload+pIMG->length; ) {
+	for (pData = pIMI->payload; pData < pIMI->payload+pIMI->length; ) {
 		if (pStream->grab_status != GRAB_STATUS_RUNNING) {
 			return -1;
 		}
 
 		pStream->packet_id32++;
 		ret = csv_gvsp_packet_payload(pStream, pData, 
-			(pData+packsize < pIMG->payload+pIMG->length) ? packsize : (pIMG->length%packsize));
+			(pData+packsize < pIMI->payload+pIMI->length) ? packsize : (pIMI->length%packsize));
 		pData += packsize;
 
 		if (pCH->PacketDelay/1000) {
@@ -354,7 +354,7 @@ static int csv_gvsp_image_dispatch (struct gvsp_stream_t *pStream,
 	}
 
 	pStream->packet_id32++;
-	ret = csv_gvsp_packet_trailer(pStream, pIMG);
+	ret = csv_gvsp_packet_trailer(pStream, pIMI);
 
 	return ret;
 }
@@ -461,7 +461,7 @@ static void *csv_gvsp_client_loop (void *data)
 	struct timespec timeo;
 	struct list_head *pos = NULL, *n = NULL;
 	struct stream_list_t *task = NULL;
-	struct image_info_t *pIMG = NULL;
+	struct image_info_t *pIMI = NULL;
 
 	while (1) {
 		list_for_each_safe(pos, n, &pStream->head_stream.list) {
@@ -470,16 +470,16 @@ static void *csv_gvsp_client_loop (void *data)
 				break;
 			}
 
-			pIMG = &task->img;
+			pIMI = &task->img;
 
 			if (pStream->grab_status == GRAB_STATUS_RUNNING) {
-				csv_gvsp_image_dispatch(pStream, pIMG);
+				csv_gvsp_image_dispatch(pStream, pIMI);
 				pStream->block_id64++;
 			}
 
-			if (NULL != pIMG->payload) {
-				free(pIMG->payload);
-				pIMG->payload = NULL;
+			if (NULL != pIMI->payload) {
+				free(pIMI->payload);
+				pIMI->payload = NULL;
 			}
 
 			list_del(&task->list);

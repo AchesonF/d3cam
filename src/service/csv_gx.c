@@ -1042,13 +1042,11 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 		}
 
 		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-		if ((0 == ret)&&(pDevC->SaveBmpFile)) {
+		if ((0 == ret)&&(pDevC->SaveImageFile)) {
 			memset(img_name, 0, 256);
 			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
-			//gray_raw2bmp(pCAM->pMonoImageBuf, pCAM->pFrameBuffer->nWidth, 
-			//	pCAM->pFrameBuffer->nHeight, img_name);
-			csv_bmp_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight);
+			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
+				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i);
 		}
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1091,13 +1089,11 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 			}
 
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-			if ((0 == ret)&&(pDevC->SaveBmpFile)) {
+			if ((0 == ret)&&(pDevC->SaveImageFile)) {
 				memset(img_name, 0, 256);
 				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
-				//gray_raw2bmp(pCAM->pMonoImageBuf, pCAM->pFrameBuffer->nWidth, 
-				//	pCAM->pFrameBuffer->nHeight, img_name);
-				csv_bmp_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight);
+				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1108,17 +1104,21 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 			}
 		}
 
+		if (errNum) {
+			break;
+		}
+
 		idx++;
 	}
 
 //	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
-	pthread_cond_broadcast(&gCSV->bmp.cond_bmp);
+	pthread_cond_broadcast(&gCSV->img.cond_img);
 
 	if (0 != errNum) {
 		return -1;
 	}
 
-	if (pDevC->SaveBmpFile) {
+	if (pDevC->SaveImageFile) {
 		pCALIB->groupDemarcate++;
 		csv_xml_write_CalibParameters();
 	}
@@ -1162,7 +1162,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 				log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
 				GxErrStr(emStatus);
 				errNum++;
-				continue;
+				break;
 			}
 
 			if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
@@ -1172,13 +1172,11 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 			}
 
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-			if ((0 == ret)&&(pDevC->SaveBmpFile)) {
+			if ((0 == ret)&&(pDevC->SaveImageFile)) {
 				memset(img_name, 0, 256);
 				generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
-				//gray_raw2bmp(pCAM->pMonoImageBuf, pCAM->pFrameBuffer->nWidth, 
-				//	pCAM->pFrameBuffer->nHeight, img_name);
-				csv_bmp_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight);
+				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1189,17 +1187,21 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 			}
 		}
 
+		if (errNum) {
+			break;
+		}
+
 		idx++;
 	}
 
 //	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
-	pthread_cond_broadcast(&gCSV->bmp.cond_bmp);
+	pthread_cond_broadcast(&gCSV->img.cond_img);
 
 	if (1 != errNum) {
 		return -1;
 	}
 
-	if (pDevC->SaveBmpFile) {
+	if (pDevC->SaveImageFile) {
 		pPC->groupPointCloud++;
 //		csv_3d_calc();
 	}

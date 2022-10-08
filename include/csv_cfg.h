@@ -16,6 +16,14 @@ enum {
 	TOTAL_CAMS
 };
 
+// 存储图片后缀
+enum {
+	SUFFIX_BMP		= 0,
+	SUFFIX_PNG		= 1,
+
+	END_SUFFIX
+};
+
 struct dlp_cfg_t {
 	char				name[64];
 	float				rate;
@@ -27,7 +35,9 @@ struct device_cfg_t {
 	int					DeviceType;				///< 设备类型 0:2cams
 	uint8_t				SwitchCams;				///< 左右相机互换 1:互换
 	uint8_t				CamImageType;			///< 图像类型 0:灰度图 1:RGB图
-	uint8_t				SaveBmpFile;			///< 保存图像为 bmp
+	uint8_t				SaveImageFile;			///< 保存图像
+	uint8_t				SaveImageFormat;		///< 图像存储格式 SUFFIX_BMP
+	char				*strSuffix;
 
 	struct dlp_cfg_t	dlpcfg[TOTAL_DLP_CMDS];
 };

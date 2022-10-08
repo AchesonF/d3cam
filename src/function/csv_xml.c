@@ -496,7 +496,7 @@ static int csv_xml_DeviceConfiguration (
 {
 	int ret = 0;
 	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[6];
+	struct key_value_pair_t key_pair[8];
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	xml_strlcpy(key_pair[nums].key, "DeviceType", MAX_KEY_SIZE);
@@ -517,8 +517,14 @@ static int csv_xml_DeviceConfiguration (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
-	xml_strlcpy(key_pair[nums].key, "SaveBmpFile", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->SaveBmpFile;
+	xml_strlcpy(key_pair[nums].key, "SaveImageFile", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDevC->SaveImageFile;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "SaveImageFormat", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDevC->SaveImageFormat;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -526,6 +532,16 @@ static int csv_xml_DeviceConfiguration (
 	if (mode == XML_GET) {
 		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
 			"DeviceConfiguration", key_pair, nums, 0);
+
+		switch (pDevC->SaveImageFormat) {
+		case SUFFIX_PNG:
+			pDevC->strSuffix = ".png";
+			break;
+		case SUFFIX_BMP:
+		default:
+			pDevC->strSuffix = ".bmp";
+			break;
+		}
 	} else {
 		ret = xml_set_node_data(pXML->pDoc, pXML->pNode,
 			"DeviceConfiguration", key_pair, nums, 0);
