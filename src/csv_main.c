@@ -27,7 +27,7 @@ static void csv_deinit (void)
 {
 	csv_cfg_deinit();
 
-//	csv_gev_deinit();
+	csv_gev_deinit();
 
 	csv_img_deinit();
 
@@ -313,7 +313,7 @@ int csv_init (void)
 
 	csv_dlp_init();
 
-//	csv_gev_init();
+	csv_gev_init();
 
 	csv_tcp_init();
 

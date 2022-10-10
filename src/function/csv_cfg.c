@@ -79,7 +79,6 @@ static int csv_cfg_calib (struct calib_conf_t *pCALIB)
 
 static int csv_cfg_gev (struct gev_conf_t *pGC)
 {
-	int i = 0;
 	uint32_t file_size = 0;
 	struct channel_cfg_t *pCH = NULL;
 
@@ -112,7 +111,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pGC->LinkSpeed0 = 100;
 
 	pGC->NumberofMessageChannels = 1;
-	pGC->NumberofStreamChannels = TOTAL_CAMS;
+	pGC->NumberofStreamChannels = 1;
 	pGC->NumberofActionSignals = 1;
 	pGC->ActionDeviceKey = 0;
 	pGC->NumberofActiveLinks = 1;
@@ -147,19 +146,16 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pGC->MessageRetryCount = 0;
 	pGC->MessageSourcePort = 0x0000;
 
-	for (i = 0; i < TOTAL_CAMS; i++) {
-		pCH = &pGC->Channel[i];
-
-		pCH->Address = 0x00000000;
-		pCH->Port = 0x0000;
-		pCH->Cfg_PacketSize = SCPS_D|DEFAULT_GVSP_PACKETSIZE;
-		pCH->PacketDelay = 0;
-		pCH->Configuration = 0;
-		pCH->SourcePort = 0;
-		pCH->Capability = 0;
-		pCH->Zone = 0;
-		pCH->ZoneDirection = 0;
-	}
+	pCH = &pGC->Channel;
+	pCH->Address = 0x00000000;
+	pCH->Port = 0x0000;
+	pCH->Cfg_PacketSize = SCPS_D|DEFAULT_GVSP_PACKETSIZE;
+	pCH->PacketDelay = 0;
+	pCH->Configuration = 0;
+	pCH->SourcePort = 0;
+	pCH->Capability = 0;
+	pCH->Zone = 0;
+	pCH->ZoneDirection = 0;
 
 	return 0;
 }

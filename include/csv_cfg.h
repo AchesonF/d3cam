@@ -124,7 +124,7 @@ struct gev_conf_t {
 	uint32_t				MessageRetryCount;
 	uint32_t				MessageSourcePort;
 
-	struct channel_cfg_t	Channel[TOTAL_CAMS];
+	struct channel_cfg_t	Channel;
 };
 
 struct pointcloud_cfg_t {

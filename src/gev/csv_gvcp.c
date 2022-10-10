@@ -230,8 +230,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 {
 	int ret = 0;
 
-	//struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
+	struct gvsp_stream_t *pStream = &gCSV->gvsp.stream;
 
 	switch (regAddr) {
 	case REG_NetworkInterfaceConfiguration0:
@@ -326,8 +326,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelPort0:
-		pGC->Channel[CAM_LEFT].Port = (uint16_t)regData;
-		//pGVCP->stream[CAM_LEFT].peer_addr.sin_port = (uint16_t)regData;
+		pGC->Channel.Port = (uint16_t)regData;
+		pStream->peer_addr.sin_port = (uint16_t)regData;
 		break;
 
 	case REG_StreamChannelPacketSize0:
@@ -348,77 +348,29 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 				regData &= ~SCPS_F;
 			}
 
-			pGC->Channel[CAM_LEFT].Cfg_PacketSize = regData;
+			pGC->Channel.Cfg_PacketSize = regData;
 		} else {
 			ret = -1;
 		}
 		break;
 
 	case REG_StreamChannelPacketDelay0:
-		pGC->Channel[CAM_LEFT].PacketDelay = regData;
+		pGC->Channel.PacketDelay = regData;
 		break;
 
 	case REG_StreamChannelDestinationAddress0:
 		if (0 != regData) {
-			pGC->Channel[CAM_LEFT].Address = swap32(regData);
-			//pGVCP->stream[CAM_LEFT].peer_addr.sin_addr.s_addr = swap32(regData);
+			pGC->Channel.Address = swap32(regData);
+			pStream->peer_addr.sin_addr.s_addr = swap32(regData);
 		} else {
 			ret = -1;
 		}
 		break;
 
 	case REG_StreamChannelConfiguration0:
-		pGC->Channel[CAM_LEFT].Configuration = regData;
+		pGC->Channel.Configuration = regData;
 		break;
 
-	case REG_StreamChannelPort1:
-		pGC->Channel[CAM_RIGHT].Port = (uint16_t)regData;
-		//pGVCP->stream[CAM_RIGHT].peer_addr.sin_port = (uint16_t)regData;
-		break;
-
-	case REG_StreamChannelPacketSize1:
-		if ((0 < (regData&0xFFFF))&&((regData&0xFFFF) < GVSP_PACKET_MAX_SIZE)) {
-			if (regData & SCPS_F) {
-				// GVCPCap_TD
-				uint8_t *data = NULL;
-				uint16_t length = regData&0xFFFF;
-				data = malloc(length);
-				if (NULL == data) {
-					log_err("ERROR : malloc test packet");
-					return -1;
-				}
-				csv_gvsp_lfsr_generator(data, length);
-				//csv_gvsp_packet_test(&pGVCP->stream[CAM_RIGHT], data, length);
-				free(data);
-
-				regData &= ~SCPS_F;
-			}
-
-			pGC->Channel[CAM_RIGHT].Cfg_PacketSize = regData;
-		} else {
-			ret = -1;
-		}
-		break;
-
-	case REG_StreamChannelPacketDelay1:
-		pGC->Channel[CAM_RIGHT].PacketDelay = regData;
-		break;
-
-	case REG_StreamChannelDestinationAddress1:
-		if (0 != regData) {
-			pGC->Channel[CAM_RIGHT].Address = swap32(regData);
-			//pGVCP->stream[CAM_RIGHT].peer_addr.sin_addr.s_addr = swap32(regData);
-		} else {
-			ret = -1;
-		}
-		break;
-
-	case REG_StreamChannelConfiguration1:
-		pGC->Channel[CAM_RIGHT].Configuration = regData;
-		break;
-
-	case REG_OtherStreamChannelsRegisters:
-		break;
 
 	// stream 2-3 to add more
 
@@ -428,35 +380,13 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 	case REG_ActionGroupMask0:
 		break;
 
-	case REG_ActionGroupKey1:
-		break;
-
-	case REG_ActionGroupMask1:
-		break;
-
-	case REG_OtherActionSignalsRegisters:
-		break;
-
 	case REG_StartofManufacturerSpecificRegisterSpace:
 		break;
 
 	case REG_AcquisitionStart:
-		/*if (0 != pGC->Channel[CAM_RIGHT].Port) {
-			pGVCP->stream[CAM_LEFT].grab_status = GRAB_STATUS_RUNNING;
-			pthread_cond_broadcast(&pGVCP->stream[CAM_LEFT].cond_gevgrab);
-		}
-
-		if (0 != pGC->Channel[CAM_RIGHT].Port) {
-			pGVCP->stream[CAM_RIGHT].grab_status = GRAB_STATUS_RUNNING;
-			pthread_cond_broadcast(&pGVCP->stream[CAM_RIGHT].cond_gevgrab);
-		}*/
 		break;
 
 	case REG_AcquisitionStop:
-		/*pGVCP->stream[CAM_LEFT].grab_status = GRAB_STATUS_STOP;
-		pthread_cond_broadcast(&pGVCP->stream[CAM_LEFT].cond_gevgrab);
-		pGVCP->stream[CAM_RIGHT].grab_status = GRAB_STATUS_STOP;
-		pthread_cond_broadcast(&pGVCP->stream[CAM_RIGHT].cond_gevgrab);*/
 		break;
 
 	default:
@@ -1087,7 +1017,7 @@ int csv_gvcp_init (void)
 	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
 
 	pGVCP->fd = -1;
-	pGVCP->name = NAME_UDP_GVCP;
+	pGVCP->name = NAME_SOCKET_GVCP;
 	pGVCP->port = GVCP_PUBLIC_PORT;
 	pGVCP->ReqId = GVCP_REQ_ID_INIT;
 	pGVCP->rxlen = 0;

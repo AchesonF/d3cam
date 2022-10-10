@@ -5,30 +5,29 @@
 extern "C" {
 #endif
 
-#define NAME_SOCKET_STREAM					"'udp_stream'"
-#define NAME_THREAD_STREAM					"'thr_stream'"
-
 #define GVSP_PACKET_MAX_SIZE		(9000)
 
+enum {
+	GRAB_STATUS_NONE		= 0,
+	GRAB_STATUS_RUNNING		= 1,
+	GRAB_STATUS_STOP		= 2
+};
 
-struct payload_data_t {
+struct image_info_t {
 	uint64_t				timestamp;	// ms
-	uint32_t				pixelformat;// pixel
-	uint32_t				length;		// 图像长度
-	uint32_t				width;		// 宽
-	uint32_t				height;		// 高
+	uint32_t				pixelformat;		// pixel
+	uint32_t				length;
+	uint32_t				width;
+	uint32_t				height;
 	uint32_t				offset_x;
 	uint32_t				offset_y;
 	uint16_t				padding_x;
 	uint16_t				padding_y;
-	uint16_t				payload_type;	// 负载类型
-	uint64_t				payload_size;	// 负载数据长度
-	char					filename[MAX_SIZE_FILENAME];
 	uint8_t					*payload;
 };
 
 struct stream_list_t {
-	struct payload_data_t	pd;
+	struct image_info_t		img;
 	struct list_head		list;
 };
 
@@ -36,7 +35,7 @@ struct gvsp_stream_t {
 	int						fd;
 	char					*name;
 	uint8_t					idx;
-
+	uint8_t					grab_status;	///< 抓图状态 0:未知 1:抓取中 2:结束
 	uint64_t				block_id64;		///< reset to 1 when the stream channel is opened
 	uint32_t				packet_id32;	///< reset to 0 at the start of each data block
 	uint32_t				re_packetid;	///< 请求重发id
@@ -53,14 +52,16 @@ struct gvsp_stream_t {
 	pthread_t				thr_stream;
 	pthread_mutex_t			mutex_stream;
 	pthread_cond_t			cond_stream;
+
+	const char				*name_gevgrab;	///< 抓图
+	pthread_t				thr_gevgrab;
+	pthread_mutex_t			mutex_gevgrab;
+	pthread_cond_t			cond_gevgrab;
 };
 
 struct csv_gvsp_t {
-	struct gvsp_stream_t	stream;
+	struct gvsp_stream_t	stream[TOTAL_CAMS];
 };
-
-extern int csv_gvsp_data_fetch (struct gvsp_stream_t *pStream, uint16_t type,
-	uint8_t *pData, uint64_t Length, PGX_FRAME_BUFFER imgInfo, char *filename);
 
 extern int csv_gvsp_packet_test (struct gvsp_stream_t *pStream, 
 	uint8_t *pData, uint32_t length);

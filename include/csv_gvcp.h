@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define NAME_UDP_GVCP				"'udp_gvcp'"
+#define NAME_SOCKET_GVCP			"'udp_gvcp'"
 #define NAME_THREAD_GVCP_ASK		"'thr_gvcpask'"
 
 

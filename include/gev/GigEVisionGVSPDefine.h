@@ -7,7 +7,7 @@ extern "C" {
 
 #define GIGEVISION_MAJOR_VERSION		GEV_VERSION_MAJOR	//(2)
 
-
+#pragma pack(push, 1)
 
 #if 0//(GIGEVISION_MAJOR_VERSION == 1)
 
@@ -114,8 +114,7 @@ typedef struct _GVSP_IMAGE_DATA_TRAILER_ {
  *  +------------+------------+------------+------------+------------+------------+------------+------------+
  */
 
-// typedef struct _GVSP_PACKET_HEADER_
-// {
+// typedef struct gvsp_packet_header_t {
 //     unsigned short  status;                     // 16bits，状态码
 
 //     /*
@@ -150,7 +149,7 @@ typedef struct _GVSP_IMAGE_DATA_TRAILER_ {
 
 // } GVSP_PACKET_HEADER;
 
-typedef struct _GVSP_PACKET_HEADER_ {
+typedef struct gvsp_packet_header_t {
     uint16_t			status;						// 16bits，状态码
     uint16_t			blockid_flag;				// 16bits
 	uint32_t			packet_format;				// [0]EI [1-3]reserved[4-7]format[8-30]reserved
@@ -196,11 +195,10 @@ typedef enum _GVSP_PACKET_PAYLOAD_TYPE_ {
     GVSP_PT_MULTI_IMAGE_EX              = (0x4009),
 
     // [0x8000, 0xffff]自定义
-
 } GVSP_PACKET_PAYLOAD_TYPE;
 
 // additional info for Image Data Leader Packet
-typedef struct _GVSP_IMAGE_DATA_LEADER_ {
+typedef struct ImageDataLeader_t {
     struct {
     	uint8_t			id:4;
     	uint8_t			count:4;
@@ -219,80 +217,54 @@ typedef struct _GVSP_IMAGE_DATA_LEADER_ {
     uint16_t			padding_y;
 } GVSP_IMAGE_DATA_LEADER;
 
-
-//////////////////////////////////////GVSP Define /////////////////////////////////////////////
-
-#ifndef GVSP_COMMON
-
-#define GVSP_COMMON		uint16_t status;		\
-	union {										\
-   		uint16_t		block_id;				\
-    	uint16_t		flag;					\
-    };											\
-    uint8_t				EIAndPF;				\
-    uint8_t				packetid[3];			\
-    uint32_t			block_id64High;			\
-    uint32_t			block_id64Low;			\
-    uint32_t			packet_id32;			\
-
-#endif
-
-
-// GVSP HEAD 2.0标准
-#ifndef TAG_GVSP_HEAD
-  #define TAG_GVSP_HEAD
-
-typedef struct tagGVSP_Head {
-	GVSP_COMMON
-
-} GVSPHEAD;
-
-#endif
-
-
-
-/////////////////////Data Leader define ///////////////////////////////////
-
-
-// Image Data Leader Define
-
-#ifndef TAG_GVSP_IMAGE_DATA_LEADER
-  #define TAG_GVSP_IMAGE_DATA_LEADER
-
-typedef struct tagGVSPImageDataLeader {
-    uint8_t				field_id_count;
-    uint8_t				reserved;
-    uint16_t			payload_type; // 0x0001 or 0x4001
-    uint32_t			timestampHigh;
-    uint32_t			timestampLow;
-    uint32_t			pixel_format;
-    uint32_t			size_x;
-    uint32_t			size_y;
-    uint32_t			offset_x;
-    uint32_t			offset_y;
-    uint16_t			padding_x;
-    uint16_t			padding_y;
-} GVSPIMAGEDATALEADER;
-
-#endif
-
-#ifndef TAG_GVSP_IMAGE_DATA_TRAILER
-  #define TAG_GVSP_IMAGE_DATA_TRAILER
-
-typedef struct tagImageDataTrailer {
+typedef struct ImageDataTrailer_t {
     uint16_t			reserved;
     uint16_t			payload_type; // 0x0001 or 0x4001
     uint32_t			size_y;
-} GVSPIMAGEDATATRAILER;
+} GVSP_IMAGE_DATA_TRAILER;
 
-#endif
+
+// additional info for raw Data Leader Packet
+typedef struct RawDataLeader_t {
+    uint16_t			reserved;           // 置0
+    uint16_t			payload_type;       // 0x0002 or 0x4002
+    uint32_t			timestamp_high;
+    uint32_t			timestamp_low;
+    uint32_t			payload_size_high;
+    uint32_t			payload_size_low;
+} GVSP_RAW_DATA_LEADER;
+
+typedef struct RawDataTrailer_t {
+    uint16_t			reserved;
+    uint16_t			payload_type; // 0x0002 or 0x4002
+} GVSP_RAW_DATA_TRAILER;
+
+#define MAX_SIZE_FILENAME			(64)
+
+// additional info for file Data Leader Packet
+typedef struct FileDataLeader_t {
+    uint16_t			reserved;           // 置0
+    uint16_t			payload_type;       // 0x0003 or 0x4003
+    uint32_t			timestamp_high;
+    uint32_t			timestamp_low;
+    uint32_t			payload_size_high;
+    uint32_t			payload_size_low;
+	char				filename[MAX_SIZE_FILENAME];
+} GVSP_FILE_DATA_LEADER;
+
+typedef struct FileDataTrailer_t {
+    uint16_t			reserved;
+    uint16_t			payload_type; // 0x0003 or 0x4003
+} GVSP_FILE_DATA_TRAILER;
+
+
 
 #endif  // (GIGEVISION_MAJOR_VERSION == 2)
 
 
 typedef struct _GVSP_TEST_PACKET_ {
     uint16_t			dontcare16;					// 16bits
-    uint16_t			packetid16	;				// = 0
+    uint16_t			packetid16;					// = 0
 	uint32_t			dontcare32;					// 32
 } GVSP_TEST_PACKET;
 
@@ -325,6 +297,8 @@ typedef struct _GVSP_TEST_PACKET_ {
 #define GVSP_PAYLOAD_MULTIZONEIMAGE		(0x0009)
 #define GVSP_PAYLOAD_MULTIZONEIMAGE_EX	(0x0009)
 #define GVSP_PAYLOAD_DEVICESPECIFIC		(0x8000)	// >= 0x8000都是这个宏
+
+#pragma pack(pop)
 
 
 #ifdef __cplusplus
