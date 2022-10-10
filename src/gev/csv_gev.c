@@ -454,7 +454,7 @@ static void csv_gev_reg_enroll (void)
 
 
 
-	log_info("OK : enroll gev reg.");
+	log_info("OK : 'enroll' gev reg.");
 }
 
 static void csv_gev_reg_disroll (void)
@@ -486,7 +486,7 @@ static void csv_gev_reg_disroll (void)
 		task = NULL;
 	}
 
-	log_info("OK : disroll gev reg.");
+	log_info("OK : 'disroll' gev reg.");
 }
 
 

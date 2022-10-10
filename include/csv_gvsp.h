@@ -14,7 +14,6 @@ extern "C" {
 struct payload_data_t {
 	uint64_t				timestamp;	// ms
 	uint32_t				pixelformat;// pixel
-	uint32_t				length;		// 图像长度
 	uint32_t				width;		// 宽
 	uint32_t				height;		// 高
 	uint32_t				offset_x;
