@@ -91,8 +91,8 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	strcpy(pGC->ManufacturerName, "CSVision");
 	strcpy(pGC->ModelName, GEV_DEVICE_MODEL_NAME);
 	strcpy(pGC->DeviceVersion, SOFTWARE_VERSION);
-	strcpy(pGC->ManufacturerInfo, "CS vision 3d infomation");
-	strcpy(pGC->SerialNumber, "CS300128001"); // todo update
+	strcpy(pGC->ManufacturerInfo, "CS Vision 3d highspeed structure.");
+	strcpy(pGC->SerialNumber, "CS300131001"); // todo update
 
 	pGC->strXmlfile = GEV_XML_FILENAME;
 	pGC->xmlData = NULL;

@@ -307,7 +307,7 @@ int csv_init (void)
 
 	csv_xml_init();
 
-//	csv_ether_init();
+	csv_ether_init();
 
 	csv_gpi_init();
 
