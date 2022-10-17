@@ -18,25 +18,25 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 	pDevC->strSuffix = ".bmp";
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_NORMAL];
-	strcpy(pDlpcfg->name, "normal");
+	strcpy(pDlpcfg->name, "普通采图");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
 	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_DEMARCATE];
-	strcpy(pDlpcfg->name, "demarcate");
+	strcpy(pDlpcfg->name, "标定采图");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
 	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_BRIGHT];
-	strcpy(pDlpcfg->name, "bright");
+	strcpy(pDlpcfg->name, "常亮采图");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
 	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_HIGHSPEED];
-	strcpy(pDlpcfg->name, "highspeed");
+	strcpy(pDlpcfg->name, "高速采图");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
 	pDlpcfg->expoTime = 10000.0f;
@@ -86,7 +86,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pGC->VersionMinor = GEV_VERSION_MINOR;
 	pGC->DeviceMode = (DM_E|DM_DC_TRANSMITTER|DM_CLC_SingleLC|DM_CHARACTER_UTF8);
 	pGC->IfCapability0 = (NIC_LLA|NIC_DHCP|NIC_PIP);
-	pGC->IfConfiguration0 = (NIC_LLA|NIC_DHCP);
+	pGC->IfConfiguration0 = (NIC_LLA|NIC_DHCP|NIC_PIP);
 
 	strcpy(pGC->ManufacturerName, "CSVision");
 	strcpy(pGC->ModelName, GEV_DEVICE_MODEL_NAME);
@@ -108,7 +108,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	strcpy(pGC->SecondURL, pGC->FirstURL);
 
 	pGC->NumberofNetworkInterfaces = 1;
-	pGC->LinkSpeed0 = 100;
+	pGC->LinkSpeed0 = 1000;
 
 	pGC->NumberofMessageChannels = 1;
 	pGC->NumberofStreamChannels = 1;

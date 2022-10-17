@@ -45,6 +45,8 @@ struct csv_gvcp_t {
 	pthread_cond_t			cond_gvcpask;
 };
 
+extern uint32_t csv_gvcp_readreg_realtime (uint32_t regAddr, uint32_t firm_val);
+
 extern int csv_gvcp_recv_trigger (struct csv_gvcp_t *pGVCP);
 
 extern int csv_gvcp_init (void);

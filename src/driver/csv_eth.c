@@ -753,7 +753,9 @@ int csv_ether_refresh (uint8_t first)
 				csv_gev_reg_value_update(REG_DeviceMACAddressHigh0, pGC->MacHi);
 				csv_gev_reg_value_update(REG_DeviceMACAddressLow0, pGC->MacLow);
 				csv_gev_reg_value_update(REG_CurrentIPAddress0, swap32(pGC->CurrentIPAddress0));
-				csv_gev_reg_value_update(REG_CurrentSubnetMask0, swap32(pGC->CurrentSubnetMask0));
+				csv_gev_reg_value_update(REG_CurrentSubnetMask0, pGC->CurrentSubnetMask0);
+				csv_gev_reg_value_update(REG_PersistentIPAddress, swap32(pGC->CurrentIPAddress0));
+				csv_gev_reg_value_update(REG_PersistentSubnetMask0, pGC->CurrentSubnetMask0);
 			}
 			break;
 		}
@@ -761,7 +763,8 @@ int csv_ether_refresh (uint8_t first)
 
 	pGC->CurrentDefaultGateway0 = pIFCFG->gateway;
 	if (pIFCFG->update_gw && (!first)) {
-		csv_gev_reg_value_update(REG_CurrentDefaultGateway0, swap32(pGC->CurrentDefaultGateway0));
+		csv_gev_reg_value_update(REG_CurrentDefaultGateway0, pGC->CurrentDefaultGateway0);
+		csv_gev_reg_value_update(REG_PersistentDefaultGateway0, pGC->CurrentDefaultGateway0);
 	}
 
 	return ret;

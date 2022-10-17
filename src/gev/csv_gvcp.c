@@ -142,7 +142,19 @@ static int csv_gvcp_packetresend_ack (struct gvcp_ask_t *pASK,
 	return csv_gvcp_sendto(pASK, pACK);
 }
 
+uint32_t csv_gvcp_readreg_realtime (uint32_t regAddr, uint32_t firm_val)
+{
+	uint32_t value = firm_val;
 
+	switch (regAddr) {
+	case REG_DeviceUptime:
+		value = (uint32_t)utility_get_sec_since_boot();
+	break;
+
+	}
+
+	return value;
+}
 
 static int csv_gvcp_readreg_ack (struct gvcp_ask_t *pASK, 
 	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
@@ -224,7 +236,6 @@ static void csv_gvsp_lfsr_generator (uint8_t *data, uint32_t len)
 		lfsr = (lfsr >> 1) ^ (-(lfsr & 1)&0x8016);
 	}
 }
-
 
 static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 {

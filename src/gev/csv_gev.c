@@ -89,7 +89,7 @@ uint32_t csv_gev_reg_value_get (uint32_t addr, uint32_t *value)
 
 		if (addr == pRI->addr) {
 			if (pRI->mode & GEV_REG_READ) {
-				*value = pRI->value;
+				*value = csv_gvcp_readreg_realtime(addr, pRI->value);
 				ret = 0;
 			} else {
 				ret = -2;
@@ -310,11 +310,11 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_NetworkInterfaceConfiguration0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->IfConfiguration0, NULL, toSTR(REG_NetworkInterfaceConfiguration0));
 	csv_gev_reg_add(REG_CurrentIPAddress0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGC->CurrentIPAddress0, NULL, toSTR(REG_CurrentIPAddress0));
+		4, swap32(pGC->CurrentIPAddress0), NULL, toSTR(REG_CurrentIPAddress0));
 	csv_gev_reg_add(REG_CurrentSubnetMask0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGC->CurrentSubnetMask0, NULL, toSTR(REG_CurrentSubnetMask0));
+		4, swap32(pGC->CurrentSubnetMask0), NULL, toSTR(REG_CurrentSubnetMask0));
 	csv_gev_reg_add(REG_CurrentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGC->CurrentDefaultGateway0, NULL, toSTR(REG_CurrentDefaultGateway0));
+		4, swap32(pGC->CurrentDefaultGateway0), NULL, toSTR(REG_CurrentDefaultGateway0));
 
 	csv_gev_reg_add(REG_ManufacturerName, GEV_REG_TYPE_MEM, GEV_REG_READ, 
 		32, 0, pGC->ManufacturerName, toSTR(REG_ManufacturerName));
@@ -337,11 +337,11 @@ static void csv_gev_reg_enroll (void)
 		4, pGC->NumberofNetworkInterfaces, NULL, toSTR(REG_NumberofNetworkInterfaces));
 
 	csv_gev_reg_add(REG_PersistentIPAddress, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->CurrentIPAddress0, NULL, toSTR(REG_PersistentIPAddress));
+		4, swap32(pGC->CurrentIPAddress0), NULL, toSTR(REG_PersistentIPAddress));
 	csv_gev_reg_add(REG_PersistentSubnetMask0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->CurrentSubnetMask0, NULL, toSTR(REG_PersistentSubnetMask0));
+		4, swap32(pGC->CurrentSubnetMask0), NULL, toSTR(REG_PersistentSubnetMask0));
 	csv_gev_reg_add(REG_PersistentDefaultGateway0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->CurrentDefaultGateway0, NULL, toSTR(REG_PersistentDefaultGateway0));
+		4, swap32(pGC->CurrentDefaultGateway0), NULL, toSTR(REG_PersistentDefaultGateway0));
 	csv_gev_reg_add(REG_LinkSpeed0, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGC->LinkSpeed0, NULL, toSTR(REG_LinkSpeed0));
 
@@ -450,6 +450,25 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_AcquisitionStop, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0x00000000, NULL, toSTR(REG_AcquisitionStop));
 
+
+
+	csv_gev_reg_add(REG_DeviceFirmwareVersion, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, pGC->DeviceVersion, toSTR(REG_DeviceFirmwareVersion));
+
+	csv_gev_reg_add(REG_DeviceUptime, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, NULL, toSTR(REG_DeviceUptime));
+
+	csv_gev_reg_add(REG_BoardDeviceType, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0x00000000, NULL, toSTR(REG_BoardDeviceType));
+
+	csv_gev_reg_add(REG_DeviceConnectionSpeed, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1000, NULL, toSTR(REG_DeviceConnectionSpeed));
+
+	csv_gev_reg_add(REG_DeviceConnectionStatus, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, NULL, toSTR(REG_DeviceConnectionStatus));
+
+	csv_gev_reg_add(REG_DeviceLinkThroughputLimitMode, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, NULL, toSTR(REG_DeviceLinkThroughputLimitMode));
 
 
 
