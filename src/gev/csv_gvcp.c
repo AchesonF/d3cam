@@ -151,6 +151,10 @@ uint32_t csv_gvcp_readreg_realtime (uint32_t regAddr, uint32_t firm_val)
 		value = (uint32_t)utility_get_sec_since_boot();
 	break;
 
+	case REG_DeviceTemperature:
+		value = 0;
+		break;
+
 	}
 
 	return value;

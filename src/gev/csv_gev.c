@@ -444,11 +444,15 @@ static void csv_gev_reg_enroll (void)
 		4, 0x00000000, NULL, toSTR(REG_StartofManufacturerSpecificRegisterSpace));
 
 	// add more from genicam xml.
-	csv_gev_reg_add(REG_AcquisitionStart, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0x00000000, NULL, toSTR(REG_AcquisitionStart));
 
-	csv_gev_reg_add(REG_AcquisitionStop, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0x00000000, NULL, toSTR(REG_AcquisitionStop));
+	csv_gev_reg_add(REG_DeviceControlInq, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0x80000000, NULL, toSTR(REG_DeviceControlInq));
+
+	csv_gev_reg_add(REG_GevSCPSMaxInq, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, GVSP_PACKET_MAX_SIZE, NULL, toSTR(REG_GevSCPSMaxInq));
+
+	csv_gev_reg_add(REG_GevSCPSMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1500, NULL, toSTR(REG_GevSCPSMinInq));
 
 
 
@@ -461,14 +465,75 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_BoardDeviceType, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0x00000000, NULL, toSTR(REG_BoardDeviceType));
 
+	csv_gev_reg_add(REG_DeviceMaxThroughput, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1000000000, NULL, toSTR(REG_DeviceMaxThroughput));
+
 	csv_gev_reg_add(REG_DeviceConnectionSpeed, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 1000, NULL, toSTR(REG_DeviceConnectionSpeed));
 
 	csv_gev_reg_add(REG_DeviceConnectionStatus, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_DeviceConnectionStatus));
 
-	csv_gev_reg_add(REG_DeviceLinkThroughputLimitMode, GEV_REG_TYPE_REG, GEV_REG_READ,
+	csv_gev_reg_add(REG_DeviceLinkThroughputLimitMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_DeviceLinkThroughputLimitMode));
+
+	csv_gev_reg_add(REG_DeviceLinkThroughputLimit, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 1000, NULL, toSTR(REG_DeviceLinkThroughputLimit));
+
+	csv_gev_reg_add(REG_DeviceLinkConnectionCount, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1, NULL, toSTR(REG_DeviceLinkConnectionCount));
+
+	csv_gev_reg_add(REG_DeviceLinkHeartbeatMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_DeviceLinkHeartbeatMode));
+
+	csv_gev_reg_add(REG_DeviceLinkHeartbeatTimeout, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 5000, NULL, toSTR(REG_DeviceLinkHeartbeatTimeout));
+
+	csv_gev_reg_add(REG_DeviceCommandTimeout, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1000, NULL, toSTR(REG_DeviceCommandTimeout));
+
+	csv_gev_reg_add(REG_DeviceReset, GEV_REG_TYPE_REG, GEV_REG_WRITE,
+		4, 0, NULL, toSTR(REG_DeviceReset));
+
+	csv_gev_reg_add(REG_DeviceTemperature, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, NULL, toSTR(REG_DeviceTemperature));
+
+
+	csv_gev_reg_add(REG_AcquisitionStart, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0x00000000, NULL, toSTR(REG_AcquisitionStart));
+
+	csv_gev_reg_add(REG_AcquisitionStop, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0x00000000, NULL, toSTR(REG_AcquisitionStop));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

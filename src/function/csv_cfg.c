@@ -149,7 +149,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pCH = &pGC->Channel;
 	pCH->Address = 0x00000000;
 	pCH->Port = 0x0000;
-	pCH->Cfg_PacketSize = SCPS_D|DEFAULT_GVSP_PACKETSIZE;
+	pCH->Cfg_PacketSize = SCPS_D|SCPS_P|DEFAULT_GVSP_PACKETSIZE;
 	pCH->PacketDelay = 0;
 	pCH->Configuration = 0;
 	pCH->SourcePort = 0;
