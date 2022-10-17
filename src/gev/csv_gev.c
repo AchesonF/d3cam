@@ -454,6 +454,20 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_GevSCPSMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 1500, NULL, toSTR(REG_GevSCPSMinInq));
 
+	csv_gev_reg_add(REG_WidthMin, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 2048, NULL, toSTR(REG_WidthMin));
+
+	csv_gev_reg_add(REG_HeightMin, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1536, NULL, toSTR(REG_HeightMin));
+
+	csv_gev_reg_add(REG_Hunit, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1, NULL, toSTR(REG_Hunit));
+
+	csv_gev_reg_add(REG_Vunit, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1, NULL, toSTR(REG_Vunit));
+
+	csv_gev_reg_add(REG_RegionSelectorInq, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, NULL, toSTR(REG_RegionSelectorInq));
 
 
 	csv_gev_reg_add(REG_DeviceFirmwareVersion, GEV_REG_TYPE_REG, GEV_REG_READ,
@@ -497,6 +511,60 @@ static void csv_gev_reg_enroll (void)
 
 	csv_gev_reg_add(REG_DeviceTemperature, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_DeviceTemperature));
+
+
+
+	csv_gev_reg_add(REG_WidthMax, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 2048, NULL, toSTR(REG_WidthMax));
+
+	csv_gev_reg_add(REG_HeightMax, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 1536, NULL, toSTR(REG_HeightMax));
+
+	csv_gev_reg_add(REG_RegionMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_RegionMode));
+
+	csv_gev_reg_add(REG_RegionDestination, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_RegionDestination));
+
+	csv_gev_reg_add(REG_Width, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 2048, NULL, toSTR(REG_Width));
+
+	csv_gev_reg_add(REG_Height, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 1536, NULL, toSTR(REG_Height));
+
+	csv_gev_reg_add(REG_OffsetX, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_OffsetX));
+
+	csv_gev_reg_add(REG_OffsetY, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_OffsetY));
+
+	csv_gev_reg_add(REG_LinePitch, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_LinePitch));
+
+	csv_gev_reg_add(REG_BinningHorizontal, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_BinningHorizontal));
+
+	csv_gev_reg_add(REG_ReverseX, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_ReverseX));
+
+	csv_gev_reg_add(REG_ReverseY, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_ReverseY));
+
+	csv_gev_reg_add(REG_PixelFormat, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, GX_PIXEL_FORMAT_MONO8, NULL, toSTR(REG_PixelFormat));
+
+	csv_gev_reg_add(REG_PixelCoding, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, NULL, toSTR(REG_PixelCoding));
+	csv_gev_reg_add(REG_PixelColorFilter, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, NULL, toSTR(REG_PixelColorFilter));
+	csv_gev_reg_add(REG_TestPattern, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_TestPattern));
+	csv_gev_reg_add(REG_Deinterlacing, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_Deinterlacing));
+
+	csv_gev_reg_add(REG_FrameSpecInfo, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_FrameSpecInfo));
+
 
 
 	csv_gev_reg_add(REG_AcquisitionStart, GEV_REG_TYPE_REG, GEV_REG_RDWR,
