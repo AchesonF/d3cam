@@ -961,9 +961,29 @@ extern "C" {
 
 // R 4 Register
 #define REG_TriggerInq										(0x00010210)
+// [0] OnOff
+// [1] Activation
+// [2] Delay
+// [3] SourceSw
+// [4] SourceCounter0
+// [5-31] reserved
 
-// R 4 Register
+// R 4 Trigger Select Inquiry Register
 #define REG_TriggerSelectInq								(0x00010214)
+// [0] AcqStart
+// [1] AcqEnd
+// [2] AcqActive
+// [3] FrameStart
+// [4] FrameEnd
+// [5] FrameActive
+// [6] FrameBStart
+// [7] FrameBEnd
+// [8] FrameBActive
+// [9] LineStart
+// [10] ExpStart
+// [11] ExpEnd
+// [12] ExpActive
+// [13-31] reserved
 
 // R 4 Register
 #define REG_TriggerDelayAbsMax								(0x00010220)
@@ -1205,6 +1225,7 @@ extern "C" {
 #define REG_OffsetY											(0x00030420)
 #define REG_LinePitch										(0x00030460)
 #define REG_BinningHorizontal								(0x000304A0)
+#define REG_BinningVertical									(0x000304E0)
 #define REG_Decimation										(0x00030600)
 #define REG_ReverseX										(0x00030608)
 #define REG_ReverseY										(0x0003060C)
@@ -1218,7 +1239,10 @@ extern "C" {
 #define REG_FrameSpecInfo									(0x000306DC)
 #define REG_ReverseScanDirection							(0x000306F4)
 #define REG_BitRegionSelector								(0x00030724)
+
+// RW 4 Acquisition Mode
 #define REG_AcquisitionMode									(0x00030800)
+// 0:SingleFrame  1:MultiFrame  2:Continuous
 
 // RW 4 Acquisition Start Register. Starts the Acquisition of the device
 #define REG_AcquisitionStart								(0x00030804)
@@ -1230,20 +1254,57 @@ extern "C" {
 // [0]		command value -> 0
 // [1-31]reserved
 
+// RW 4 Acquisition Frame Count. Number of frames to acquire in multi-frame acquisition mode.
 #define REG_AcquisitionFrameCount							(0x00030814)
+
+// RW 4 Number of frames to acquire for each FrameBurstStart trigger.
 #define REG_AcquisitionBurstFrameCount						(0x00030818)
+
+// RW 4 Controls the acquisition rate at which the frames are captured.
 #define REG_AcquisitionFrameRate							(0x0003081C)
+// [0-15] Enable 0:off 1:on  Acquisition Frame Rate Control Enable.
+// [16-31] rate 
+
+// R 4 Indicates the 'absolute' value of the maximum allowed acquisition frame rate. 
+// The 'absolute' value is a float value that indicates the maximum allowed 
+// acquisition frame rate in frames per second given the current settings for the 
+// area of interest, exposure time, and bandwidth.
 #define REG_ResultingFrameRate								(0x00030824)
-#define REG_AcquisitionLineRate								(0x0003082C)
+
+//#define REG_AcquisitionLineRate								(0x0003082C)
+
+// RW 4 Controls whether or not the selected trigger is active.
 #define REG_TriggerMode										(0x00030840)
+
+// RW 4 Selects the type of trigger to configure.
 #define REG_TriggerSelector									(0x00030844)
+// 0-12 : REG_TriggerSelectInq
+
+// RW 4 Generates an internal trigger if Trigger Source is set to Software.
 #define REG_TriggerSoftware									(0x00030880)
+
+// RW 4 Specifies the internal signal or physical input line to use as the trigger source.
 #define REG_TriggerSource									(0x000308C0)
+// 0:Source0 1:Source1 2:Source2 3:Source3 4:SourceCounter0 7:SourceSw
+
+// RW 4 Specifies the activation mode of the trigger.
 #define REG_TriggerActivation								(0x00030900)
+// 0: Rising Edge  1:Falling Edge
+
+// RW 4 Specifies the delay (in us) to apply after the trigger reception before activating it.
 #define REG_TriggerDelayAbsVal								(0x00030980)
+
+// RW 4 Sets the operation mode of the Exposure (or shutter).
 #define REG_ExposureMode									(0x00030B00)
+// 0:Timed  1:Trigger Width
+
+// RW 4 Exposure time in us when Exposure Mode is Timed.
 #define REG_ExposureTime									(0x00030B04)
+
+// RW 4 Sets the automatic exposure mode when Exposure Mode is Timed.
 #define REG_ExposureAuto									(0x00030B08)
+// 0:off 1:Once 2:Continuous
+
 #define REG_ResultingLineRate								(0x00030B0C)
 #define REG_AcquisitionStatus								(0x00030B10)
 #define REG_FrameTimeoutEnable								(0x00030B14)
