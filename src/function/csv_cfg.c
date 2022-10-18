@@ -97,6 +97,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pGC->strXmlfile = GEV_XML_FILENAME;
 	pGC->xmlData = NULL;
 	csv_file_get_size(pGC->strXmlfile, &file_size);
+	pGC->xmlLength = file_size;
 	snprintf(pGC->FirstURL, GVCP_URL_MAX_LEN, "local:%s;%x;%x", 
 		pGC->strXmlfile, REG_StartOfXmlFile, file_size);
 	if (file_size > 0) {

@@ -86,6 +86,7 @@ struct gev_conf_t {
 	char					SecondURL[GVCP_URL_MAX_LEN];
 	char					*strXmlfile;
 	uint8_t					*xmlData;
+	uint32_t				xmlLength;
 
 	uint32_t				NumberofNetworkInterfaces;
 	uint32_t				LinkSpeed0;

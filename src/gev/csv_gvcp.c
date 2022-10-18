@@ -341,8 +341,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelPort0:
-		pGC->Channel.Port = (uint16_t)regData;
-		pStream->peer_addr.sin_port = (uint16_t)regData;
+		pGC->Channel.Port = swap16((uint16_t)regData);
+		pStream->peer_addr.sin_port = swap16((uint16_t)regData);
 		break;
 
 	case REG_StreamChannelPacketSize0:
@@ -399,6 +399,11 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_AcquisitionStart:
+		{
+//log_debug("csv_gvsp_data_fetch file.");
+//			csv_gvsp_data_fetch(pStream, GVSP_PT_FILE, 
+//				gCSV->cfg.gigecfg.xmlData, gCSV->cfg.gigecfg.xmlLength, NULL, "csv_xml.zip");
+		}
 		break;
 
 	case REG_AcquisitionStop:
@@ -716,22 +721,22 @@ static int csv_gvcp_msg_ack (struct gvcp_ask_t *pASK, CMD_MSG_HEADER *pHdr)
 		break;
 
 	case GEV_READREG_CMD:
-		log_debug("%s", toSTR(GEV_READREG_CMD));
+//		log_debug("%s", toSTR(GEV_READREG_CMD));
 		ret = csv_gvcp_readreg_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_WRITEREG_CMD:
-		log_debug("%s", toSTR(GEV_WRITEREG_CMD));
+//		log_debug("%s", toSTR(GEV_WRITEREG_CMD));
 		ret = csv_gvcp_writereg_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_READMEM_CMD:
-		log_debug("%s", toSTR(GEV_READMEM_CMD));
+//		log_debug("%s", toSTR(GEV_READMEM_CMD));
 		ret = csv_gvcp_readmem_ack(pASK, pHdr, pACK);
 		break;
 
 	case GEV_WRITEMEM_CMD:
-		log_debug("%s", toSTR(GEV_WRITEMEM_CMD));
+//		log_debug("%s", toSTR(GEV_WRITEMEM_CMD));
 		ret = csv_gvcp_writemem_ack(pASK, pHdr, pACK);
 		break;
 
@@ -749,7 +754,7 @@ static int csv_gvcp_msg_ack (struct gvcp_ask_t *pASK, CMD_MSG_HEADER *pHdr)
 		break;
 
 	default:
-		log_debug("WARN : not support cmd 0x%04X.", pHdr->nCommand);
+		log_debug("WARN : not support cmd [0x%04X].", pHdr->nCommand);
 		ret = csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_NOT_IMPLEMENTED);
 		break;
 	}
