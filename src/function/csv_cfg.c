@@ -18,25 +18,25 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 	pDevC->strSuffix = ".bmp";
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_NORMAL];
-	strcpy(pDlpcfg->name, "普通采图");
+	strcpy(pDlpcfg->name, "采普通光图13对");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
 	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_DEMARCATE];
-	strcpy(pDlpcfg->name, "标定采图");
+	strcpy(pDlpcfg->name, "采标定图22对");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
 	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_BRIGHT];
-	strcpy(pDlpcfg->name, "常亮采图");
+	strcpy(pDlpcfg->name, "采常亮图1对");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
 	pDlpcfg->expoTime = 10000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_HIGHSPEED];
-	strcpy(pDlpcfg->name, "高速采图");
+	strcpy(pDlpcfg->name, "采高速图13对");
 	pDlpcfg->rate = 60.0f;
 	pDlpcfg->brightness = 700.0f;
 	pDlpcfg->expoTime = 10000.0f;

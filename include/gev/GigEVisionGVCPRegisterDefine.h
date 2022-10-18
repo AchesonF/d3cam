@@ -792,36 +792,17 @@ extern "C" {
 // R 4 Category Inquiry Register
 #define REG_Category_Inq									(0x00010004)
 // [0]CounterAndTimerControl
-// [1]EncoderControl
-// [2]FrequencyConverter
-// [3]ShadingCorrection
-// [4]FileAccessControl
-// [5]EventControl
-// [6]ChunkDataControl
-// [7]ActionControl
-// [8]ColorTransformationControl
-// [9-31]reserved
+// [1-31]reserved
 
 // R 4 DeviceControl Inquiry Register
 #define REG_DeviceControlInq								(0x00010104)
 // [0]DeviceTemperatureSelector
-// [1]DeviceTemperatureSelector_Senso
+// [1]DeviceTemperatureSelector_Sensor
 // [2]DeviceTemperatureSelector_Mainboard
 // [3]DeviceLinkThroughputLimit
 // [4]DeviceMaxThroughput
 // [5]DeviceLinkHeartbeatTimeout
-// [6]DevicePacketUnorderSupport
-// [7]SensorChannelVersion
-// [8]TG
-// [9-15]reserved
-// [16]Chunk_Sup_Third_Party_Client
-// [17]reserved
-// [18]SupUserOutputValue
-// [19-27]reserved
-// [28]DZ_KEYI
-// [29]DZ_DEGOULD
-// [30]reserved
-// [31]DeviceRIBENNEC
+// [6-31]
 
 // R 4 GevSCPSMax Register
 #define REG_GevSCPSMaxInq									(0x00010120)
@@ -834,29 +815,6 @@ extern "C" {
 
 // R 4 GevSCPDMin Register
 #define REG_GevSCPDMinInq									(0x00010134)
-
-// R 4 GevSCPSInc Register
-#define REG_GevSCPSIncInq									(0x00010144)
-
-// R 4 Specific Attributes Control Inquiry Register
-#define REG_SpecAttributesControlInq						(0x00010150)
-// [0]Orignal_BayerGB
-// [1]Orignal_BayerRG
-// [2]Orignal_BayerGR
-// [3]Orignal_BayerBG
-// [4]Bayer_Change_By_Decimation
-// [5]Bayer_Change_By_ReverseY
-// [6]OffsetY_Locked_When_TL
-// [7]ReverseY_Locked_When_TL
-// [8]Black_Level_Always_Locked
-// [9]Binning_Only_Sup_N_X_N
-// [10]Decimation_Only_Sup_N_X_N
-// [11]Binning_Not_Sup_1_X_2
-// [12]Rolling_Sup_Strobe_Line
-// [13]HDR_Exposure_Limit
-// [14]JPEG_CTRL_BY_WIDTH
-// [15]EXTENDED_ID_LOCK
-// [16-31]reserved
 
 // R 4 Reverse Inq Register
 #define REG_ReverseInq										(0x00010180)
@@ -875,16 +833,7 @@ extern "C" {
 // [12]PixelColorFilter_Inq
 // [13]PixelDynamicRangeMin_Inq
 // [14]PixelDynamicRangeMax_Inq
-// [15]Decimation_Horizontal_Inq
-// [16]Decimation_Vertical_Inq
-// [17]ImageCompressionMode_Inq
-// [18]ReverseScanDirectionInq_Reg
-// [19]ChannelCorrectMode_Inq
-// [20]FanOpenThreshold_Inq
-// [21]ChannelActiveCorrectMode_Inq
-// [22]ChannelPassiveCorrectMode_Inq
-// [23]SensorSelectBit_Inq
-// [24-31]reserved
+// [15-31]reserved
 
 // R 4 WidthMin Register
 #define REG_WidthMin										(0x00010184)
@@ -894,15 +843,15 @@ extern "C" {
 
 // R 4 Binning Max Register
 #define REG_BinningMax										(0x0001018C)
-// [0]BinningHorizontal_1_Inq
-// [1]BinningHorizontal_2_Inq
-// [2]BinningHorizontal_3_Inq
-// [3]BinningHorizontal_4_Inq
+// [0]BinningHorizontal_1
+// [1]BinningHorizontal_2
+// [2]BinningHorizontal_3
+// [3]BinningHorizontal_4
 // [4-15]reserved
-// [16]BinningVertical_1_Inq
-// [17]BinningVertical_2_Inq
-// [18]BinningVertical_3_Inq
-// [19]BinningVertical_4_Inq
+// [16]BinningVertical_1
+// [17]BinningVertical_2
+// [18]BinningVertical_3
+// [19]BinningVertical_4
 // [20-31]reserved
 
 // R 4 Register
@@ -911,47 +860,132 @@ extern "C" {
 // R 4 Register
 #define REG_Vunit											(0x00010194)
 
-// R 4 Register
+// R 4 RegionSelector Inquiry Register
 #define REG_RegionSelectorInq								(0x00010198)
+// [0] Region_0
+// [1] Region_1
+// [2] Region_2
+// [3-29] reserved
+// [30] Region_Sensor
+// [31] Region_All
 
-// R 4 Register
+// R 4 Video Mode Inquiry Register
 #define REG_VideoModeInq									(0x0001019C)
+// [0] VideoMode0
+// [1] VideoMode1
+// [2] VideoMode2
+// [3] VideoMode3
+// [4] VideoMode4
+// [5] VideoMode5
+// [6] VideoMode6
+// [7] VideoMode7
+// [8] VideoMode8
+// [9] VideoMode9
+// [10] VideoMode10
+// [11] VideoMode11
+// [12] VideoMode12
+// [13] VideoMode13
+// [14] VideoMode14
+// [15] VideoMode15
+// [16-31] reserved
 
-// R 4 Register
+// R 4 PixelFormat Inquiry 0 Register
 #define REG_PixelFormatInq0									(0x000101A0)
+// [0] Mono8
+// [1] YUV411Packed
+// [2] YUV422Packed
+// [3] YUV444Packed
+// [4] RGB8
+// [5] Mono16
+// [6] Mono12Packed
+// [7] YUV422YUYVPacked
+// [8] Mono10
+// [9] Mono12
+// [10] Mono10Packed
+// [11-31] reserved
 
-// R 4 Register
+// R 4 PixelFormat Inquiry Register
 #define REG_PixelFormatInq									(0x000101A4)
+// [0] BayerGR8
+// [1] BayerGB8
+// [2] BayerBG8
+// [3] BayerRG8
+// [4] BayerGR16
+// [5] BayerRG16
+// [6] BayerBG16
+// [7] BayerGB16
+// [8] BayerGR12Packed
+// [9] BayerGB12Packed
+// [10] BayerBG12Packed
+// [11] BayerRG12Packed
+// [12] BayerGR12
+// [13] BayerRG12
+// [14] BayerBG12
+// [15] BayerGB12
+// [16] BayerGR10
+// [17] BayerRG10
+// [18] BayerGB10
+// [19] BayerBG10
+// [20] BayerGR10Packed
+// [21] BayerRG10Packed
+// [22] BayerGB10Packed
+// [23] BayerBG10Packed
+// [24-31] reserved
 
-// R 4 Register
+// R 4 TestPattern Inquiry Register
 #define REG_TestPatternInq									(0x000101A8)
+// [0] Black
+// [1] White
+// [2] GreyHRamp
+// [3] GreyVRamp
+// [4] GreyHMoving
+// [5] GreyVMoving
+// [6] HLineMoving
+// [7] VLineMoving
+// [8] ColorBar
+// [9] FrameCounter
+// [10] MonoBar
+// [11] TestImage12
+// [12] TestImage13
+// [13-31] reserved
 
-// R 4 Register
+// R 4 embedded image info Inquiry Register
 #define REG_FrameSpecInfoInq								(0x000101AC)
+// [0] FrameSpecInfo
+// [1] Timestamp
+// [2] Gain
+// [3] Exposure
+// [4] BrightnessInfo
+// [5] WhiteBalance
+// [6] Framecounter
+// [7] ExtTriggerCount
+// [8] ROIPosition
+// [9-31] reserved
 
-// R 4 Register
-#define REG_DecimationMax									(0x000101B0)
-
-// R 4 Register
-#define REG_HOunit											(0x000101B4)
-
-// R 4 Register
-#define REG_VOunit											(0x000101B8)
-
-// R 4 Register
-#define REG_ImageCompressionQualityMinInq					(0x000101BC)
-
-// R 4 Register
-#define REG_ImageCompressionQualityMaxInq					(0x000101C0)
-
-// R 4 Register
-#define REG_ImageCompressionQualityIncInq					(0x000101C4)
-
-// R 4 Register
+// R 4 Frame Rate Control Inquiry Register
 #define REG_FrameRateControlInq								(0x00010200)
+// [0] AcqFrameRatePres
+// [1] AcqFrameRateEn
+// [2] AcqModeContinuous
+// [3] AcqModeSingleFrame
+// [4] AcqModeMultiFrame
+// [5-31] reserved
 
 // R 4 Register
 #define REG_AutoExposureInq									(0x00010204)
+// [0] AutoExposurePres
+// [1] AutoExposureOnePush
+// [2] AutoExposureOnOff
+// [3] AutoExposureAutoMode
+// [4] ExposureMode
+// [5] ExposureModeTimed
+// [6] ExposureModeTriggerWidth
+// [7] GainShutPrior
+// [8] GainPrior
+// [9] ShutPrior
+// [10] HDR
+// [11] HDRGain
+// [12-31] reserved
 
 // R 4 Register
 #define REG_ExposureTimeMaxInq								(0x00010208)
@@ -959,7 +993,7 @@ extern "C" {
 // R 4 Register
 #define REG_ExposureTimeMinInq								(0x0001020C)
 
-// R 4 Register
+// R 4 Trigger Inquiry Register
 #define REG_TriggerInq										(0x00010210)
 // [0] OnOff
 // [1] Activation
@@ -985,77 +1019,238 @@ extern "C" {
 // [12] ExpActive
 // [13-31] reserved
 
-// R 4 Register
+// R 4 Trigger Delay Max Microsecs Register
 #define REG_TriggerDelayAbsMax								(0x00010220)
+
+// R 4 Trigger Delay Min Microsecs Register
 #define REG_TriggerDelayAbsMin								(0x00010224)
+
+// R 4 Acquistion Frame Rate Max Register
 #define REG_AcqFrameRateMaxInq								(0x00010230)
+
+// R 4 Acquistion Frame Rate Min Register
 #define REG_AcqFrameRateMinInq								(0x00010234)
-#define REG_AcqFrameRateUnitInq								(0x00010238)
+
+// R 4 Acquisition Frame Count Max Register
 #define REG_AcqFrameCountMaxInq								(0x00010240)
+
+// R 4 Acquisition Frame Count Min Register
 #define REG_AcqFrameCountMinInq								(0x00010244)
+
+// R 4 Acquisition Burst Frame Count Max Register
 #define REG_AcqBurstFrameCountMaxInq						(0x00010250)
+
+// R 4 Acquisition Burst Frame Count Min Register
 #define REG_AcqBurstFrameCountMinInq						(0x00010254)
-#define REG_HDRExpTimeMaxInq								(0x00010270)
-#define REG_HDRExpTimeMinInq								(0x00010274)
+
+// R 4 DigitalIOControl Inq Register
 #define REG_DigitalIOControlInq								(0x00010280)
+// [0] GPIOPin0Pres
+// [1] GPIOPin1Pres
+// [2] GPIOPin2Pres
+// [3] GPIOPin3Pres
+// [4-31] reserved
+
+// R 4 LineMode Input Inquiry Register
 #define REG_LineModeInputInq								(0x00010284)
+// [0] TriggerSource0
+// [1] TriggerSource1
+// [2] TriggerSource2
+// [3] TriggerSource3
+// [4-31] reserved
+
+// R 4 LineMode Output Inquiry Register
 #define REG_LineModeOutputInq								(0x00010288)
+// [0] Strobe0
+// [1] Strobe1
+// [2] Strobe2
+// [3] Strobe3
+// [4-31] reserved
+
+// R 4 Strobe Line Inquiry Register
 #define REG_LineStrobeInq									(0x0001028C)
+// [0] StrobeLine0OnOff
+// [1] StrobeLine1OnOff
+// [2] StrobeLine2OnOff
+// [3] StrobeLine3OnOff
+// [4-31] reserved
+
+// R 4 Line Debouncer Time Min Register
 #define REG_LineDebouncerTimeMinInq							(0x00010290)
+
+// R 4 Line Debouncer Time Max Register
 #define REG_LineDebouncerTimeMaxInq							(0x00010294)
+
+// R 4 Line Debouncer Time Unit Register
 #define REG_LineDebouncerTimeUnitInq						(0x00010298)
+
+// R 4 Strobe Line Duration Min Register
 #define REG_StrobeLineDurationMinInq						(0x0001029C)
+
+// R 4 Strobe Line Duration Max Register
 #define REG_StrobeLineDurationMaxInq						(0x000102A0)
+
+// R 4 Strobe Line Duration Unit Register
 #define REG_StrobeLineDurationUnitInq						(0x000102A4)
+
+// R 4 Strobe Line Delay Min Register
 #define REG_StrobeLineDelayMinInq							(0x000102A8)
+
+// R 4 Strobe Line Delay Max Register
 #define REG_StrobeLineDelayMaxInq							(0x000102AC)
+
+// R 4 Strobe Line Delay Unit Register
 #define REG_StrobeLineDelayUnitInq							(0x000102B0)
+
+// R 4 Strobe Line Pre Delay Min Register
 #define REG_StrobeLinePreDelayMinInq						(0x000102B4)
+
+// R 4 Strobe Line Pre Delay Max Register
 #define REG_StrobeLinePreDelayMaxInq						(0x000102B8)
+
+// R 4 Strobe Line Pre Delay Unit Register
 #define REG_StrobeLinePreDelayUnitInq						(0x000102BC)
-#define REG_AcqLineRateMaxInq								(0x000102C0)
-#define REG_AcqLineRateMinInq								(0x000102C4)
-#define REG_AcqStatusSelectorInq							(0x000102C8)
-#define REG_FrameTimeoutTimeMinInq							(0x000102CC)
-#define REG_FrameTimeoutTimeMaxInq							(0x000102D0)
-#define REG_FrameTimeoutTimeIncInq							(0x000102D4)
-#define REG_LineSourceInq									(0x000102D8)
-#define REG_StrobeLineSupportInq							(0x000102DC)
-#define REG_SerialPortBaudrateMinInq						(0x000103C0)
-#define REG_SerialPortBaudrateMaxInq						(0x000103C4)
-#define REG_SerialPortBaudrateUnitInq						(0x000103C8)
+
+// R 4 Hue Inquiry Register
 #define REG_HueInq											(0x00010400)
+// [0] Pres
+// [1] OnOff
+// [2] Auto
+// [3] Manual
+// [4] Once
+// [5-31] reserved
+
+// R 4 Hue Ab Min Register
 #define REG_HueAbsMinInq									(0x00010404)
+
+// R 4 Hue Ab Max Register
 #define REG_HueAbsMaxInq									(0x00010408)
+
+// R 4 Gain Inquiry Register
 #define REG_GainInq											(0x00010410)
+// [0] GainPres
+// [1] GainOnOff
+// [2] GainAuto
+// [3] GainManual
+// [4] GainOnce
+// [5-31] reserved
+
+// R 4 Gain Abs Min Register
 #define REG_GainAbsMinInq									(0x00010414)
+
+// R 4 Gain Abs Max Register
 #define REG_GainAbsMaxInq									(0x00010418)
+
+// R 4 BlackLevel Inquiry Register
 #define REG_BlackLevelInq									(0x00010420)
+// [0] Pres
+// [1] OnOff
+// [2] Auto
+// [3] Manual
+// [4] Once
+// [5-31] reserved
+
+// R 4 Black Level Min Register
 #define REG_BlackLevelMinInq								(0x00010424)
+
+// R 4 Black Level Max Register
 #define REG_BlackLevelMaxInq								(0x00010428)
+
+// R 4 BalanceWhiteAuto enable Inq Register
 #define REG_BalanceWhiteAutoInq								(0x00010430)
+// [0] Off
+// [1] Once
+// [2] Continuous
+// [3-31] reserved
+
+// R 4 BalanceRatioSelector Inq Register
 #define REG_BalanceRatioSelectorInq							(0x00010434)
+// [0] BalanceRatioSelector
+// [1] Red
+// [2] Blue
+// [3] Green
+// [4-31] reserved
+
+// R 4 Balance Ratio Min Register
 #define REG_BalanceRatioMinInq								(0x00010440)
+
+// R 4 Balance Ratio Max Register
 #define REG_BalanceRatioMaxInq								(0x00010460)
+
+// R 4 Sharpness Inquiry Register
 #define REG_SharpnessInq									(0x000104A0)
+// [0] Pres
+// [1] OnOff
+// [2] Auto
+// [3] Manual
+// [4] Once
+// [5-31] reserved
+
+// R 4 Sharpness Min Register
 #define REG_SharpnessMinInq									(0x000104A4)
+
+// R 4 Sharpness Max Register
 #define REG_SharpnessMaxInq									(0x000104A8)
+
+// R 4 Saturation Inquiry Register
 #define REG_SaturationInq									(0x000104B0)
+// [0] Pres
+// [1] OnOff
+// [2] Auto
+// [3] Manual
+// [4] Once
+// [5-31] reserved
+
+// R 4 Saturation Abs Min Register
 #define REG_SaturationAbsMinInq								(0x000104B4)
+
+// R 4 Saturation Abs Max Register
 #define REG_SaturationAbsMaxInq								(0x000104B8)
+
+// R 4 Gamma Inquiry Register
 #define REG_GammaInq										(0x000104C0)
+// [0] Pres
+// [1] OnOff
+// [2] Selector_User
+// [3] Selector_sRGB
+// [4-31] reserved
+
+// R 4 Gamma Abs Min Register
 #define REG_GammaAbsMinInq									(0x000104C4)
+
+// R 4 Gamma Abs Max Register
 #define REG_GammaAbsMaxInq									(0x000104C8)
+
+// R 4 Digital shift Inquiry Register
 #define REG_DigitalShiftInq									(0x000104D0)
+
+
+// [0] 
+// [1] 
+// [2] 
+// [3] 
+// [4] 
+// [5] 
+// [6] 
+// [7] 
+// [8] 
+// [9] 
+
 #define REG_DigitalShiftMinInq								(0x000104D4)
 #define REG_DigitalShiftMaxInq								(0x000104D8)
 #define REG_DigitalShiftUintInq								(0x000104DC)
+
 #define REG_BrightnessInq									(0x000104E0)
+
 #define REG_BrightnessMinInq								(0x000104E4)
 #define REG_BrightnessMaxInq								(0x000104E8)
 #define REG_BrightnessUintInq								(0x000104EC)
+
+
 #define REG_AutoAOIInq										(0x000104F0)
+
 #define REG_AutoLimitInq									(0x000104F4)
+
 #define REG_AutoExposureTimeLowerLimitMinInq				(0x00010500)
 #define REG_AutoExposureTimeLowerLimitMaxInq				(0x00010504)
 #define REG_AutoExposureTimeLowerLimitIncInq				(0x00010508)
@@ -1082,7 +1277,9 @@ extern "C" {
 #define REG_FanOpenThresholdMaxInq							(0x00010568)
 #define REG_FanOpenThresholdIncInq							(0x0001056C)
 #define REG_GainValueInq0									(0x00010570)
+
 #define REG_LUTControlInq									(0x00010600)
+
 #define REG_LUTIndexMinInq									(0x00010620)
 #define REG_LUTIndexMaxInq									(0x00010640)
 #define REG_LUTIndexIncInq									(0x00010660)
@@ -1114,18 +1311,38 @@ extern "C" {
 #define REG_DLCIndexMinInq									(0x00010784)
 #define REG_DLCIndexMaxInq									(0x00010788)
 #define REG_DLCIndexIncInq									(0x0001078C)
+
 #define REG_UserSetInq										(0x00010800)
+
 #define REG_AutoCorrectionInq								(0x00010804)
+
 #define REG_CounterAndTimerInq								(0x00010840)
+
 #define REG_CounterSelectorInq								(0x00010844)
+
 #define REG_CounterValueMinInq								(0x00010864)
+
 #define REG_CounterValueMaxInq								(0x00010868)
+
 #define REG_CounterValueIncInq								(0x0001086C)
+
 #define REG_CounterEventSourceInq							(0x00010870)
 #define REG_CounterEventActivationInq						(0x00010874)
 #define REG_CounterResetSourceInq							(0x00010878)
 #define REG_CounterResetActivationInq						(0x0001087C)
 #define REG_EncoderControlInq								(0x00010980)
+
+// [0] 
+// [1] 
+// [2] 
+// [3] 
+// [4] 
+// [5] 
+// [6] 
+// [7] 
+// [8] 
+// [9] 
+
 #define REG_EncoderSelectorInq								(0x00010984)
 #define REG_EncoderOutputModeInq							(0x00010990)
 #define REG_EncoderCounterModeInq							(0x00010994)
@@ -1318,13 +1535,17 @@ extern "C" {
 #define REG_TGDeviceType									(0x00030B3C)
 #define REG_TriggerPartialClose								(0x00030B5C)
 #define REG_PartialFrameDiscard								(0x00030B60)
+
 #define REG_LineMode										(0x00030D00)
+
 #define REG_LineInverter									(0x00030D80)
 #define REG_LineStrobe										(0x00030D84)
 #define REG_LineStatusAll									(0x00030D88)
 #define REG_LineSource										(0x00030DA0)
 #define REG_UserOutputValue									(0x00030EA0)
+
 #define REG_LineDebouncerTime								(0x00030F20)
+
 #define REG_StrobeLineDuration								(0x00030FA0)
 #define REG_StrobeLineDelay									(0x00031020)
 #define REG_StrobeLinePreDelay								(0x000310A0)
@@ -1340,7 +1561,9 @@ extern "C" {
 #define REG_BalanceRatio									(0x000312C0)
 #define REG_BalanceWhiteAuto								(0x000312E0)
 #define REG_BalanceColorTempMode							(0x000312E4)
+
 #define REG_GammaAbsVal										(0x00031300)
+
 #define REG_GammaCtrl										(0x00031308)
 #define REG_SharpnessVal									(0x00031310)
 #define REG_SharpnessCtrl									(0x00031314)
@@ -1358,7 +1581,11 @@ extern "C" {
 #define REG_AutoExposureTimeUpperLimit						(0x00031404)
 #define REG_AutoGainLowerLimit								(0x00031408)
 #define REG_AutoGainUpperLimit								(0x0003140C)
+
+// RW 4 Sets the priority of the Exposure and Gain.
 #define REG_GainShutPrior									(0x00031430)
+// 0: Shut  1:Gain
+
 #define REG_HDREnable										(0x00031450)
 #define REG_HDRShuter										(0x00031454)
 #define REG_HDRGain											(0x00031474)
@@ -1379,15 +1606,21 @@ extern "C" {
 #define REG_TZDenoiseCoef									(0x00031518)
 #define REG_PreampGain										(0x00031520)
 #define REG_LUTEnable										(0x00031700)
+
 #define REG_UserSetCurrent									(0x00031800)
+
 #define REG_UserSetSelector									(0x00031804)
 #define REG_UserSetLoad										(0x00031808)
 #define REG_UserSetSave										(0x0003180C)
 #define REG_UserSetDefaultSelector							(0x00031810)
+
 #define REG_PayloadSize										(0x00031900)
+
 #define REG_PacketUnorderSupport							(0x00031904)
 #define REG_CounterEventSource								(0x00032000)
+
 #define REG_CounterResetSource								(0x00032100)
+
 #define REG_CounterReset									(0x00032200)
 #define REG_CounterValue									(0x00032300)
 #define REG_CounterCurrentValue								(0x00032380)

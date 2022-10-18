@@ -602,8 +602,8 @@ static int csv_gvcp_readmem_ack (struct gvcp_ask_t *pASK,
 static int csv_gvcp_writemem_ack (struct gvcp_ask_t *pASK, 
 	CMD_MSG_HEADER *pHdr, struct gvcp_ack_t *pACK)
 {
-	if ((pHdr->nLength == 0)||(pHdr->nLength % 4)
-	  ||(pHdr->nLength <= 4)||(pHdr->nLength > GVCP_MAX_PAYLOAD_LEN+4)) {
+	if ((pHdr->nLength == 0)/*||(pHdr->nLength % 4)||(pHdr->nLength <= 4)*/
+	  ||(pHdr->nLength > GVCP_MAX_PAYLOAD_LEN+4)) {
 		log_warn("ERROR : writemem param length.");
 		csv_gvcp_error_ack(pASK, pHdr, pACK, GEV_STATUS_INVALID_PARAMETER);
 		return -1;
