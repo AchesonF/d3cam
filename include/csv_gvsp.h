@@ -9,7 +9,7 @@ extern "C" {
 #define NAME_THREAD_STREAM					"'thr_stream'"
 
 #define GVSP_PACKET_MAX_SIZE		(9000)
-
+#define GVSP_PACKET_MIN_SIZE		(1500)
 
 struct payload_data_t {
 	uint64_t				timestamp;	// ms

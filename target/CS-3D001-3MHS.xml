@@ -119,6 +119,14 @@
     <pFeature>HDRSelector</pFeature>
     <pFeature>HDRShuter</pFeature>
     <pFeature>HDRGain</pFeature>
+	<pFeature>AcquisitionCalibrate</pFeature>
+	<pFeature>CalibrateExposureTime0</pFeature>
+	<pFeature>CalibrateExposureTime1</pFeature>
+    <pFeature>AcquisitionDepthImage</pFeature>
+	<pFeature>DepthImageExposureTime</pFeature>
+    <pFeature>AcquisitionPointCloud</pFeature>
+	<pFeature>PointCloudExposureTime</pFeature>
+	<pFeature>AcquisitionHDRImage</pFeature>
   </Category>
   <Category Name="DigitalIOControl">
     <ToolTip>Category that contains the digital input and output control features.</ToolTip>
@@ -328,6 +336,30 @@
       </Integer>
       <Integer Name="AcquisitionStop_RegAddr">
         <Value>0x00030808</Value>
+      </Integer>
+      <Integer Name="AcquisitionCalibrate_RegAddr">
+        <Value>0x00030A00</Value>
+      </Integer>
+      <Integer Name="CalibrateExpoTime0_RegAddr">
+        <Value>0x00030A04</Value>
+      </Integer>
+      <Integer Name="CalibrateExpoTime1_RegAddr">
+        <Value>0x00030A08</Value>
+      </Integer>
+      <Integer Name="AcquisitionPointCloud_RegAddr">
+        <Value>0x00030A10</Value>
+      </Integer>
+      <Integer Name="PointCloudExpoTime_RegAddr">
+        <Value>0x00030A14</Value>
+      </Integer>
+      <Integer Name="AcquisitionDepthImage_RegAddr">
+        <Value>0x00030A20</Value>
+      </Integer>
+      <Integer Name="DepthImageExpoTime_RegAddr">
+        <Value>0x00030A24</Value>
+      </Integer>
+      <Integer Name="AcquisitionHDRImage_RegAddr">
+        <Value>0x00030A30</Value>
       </Integer>
       <Integer Name="DeviceTemperature_RegAddr">
         <Value>0x000301b0</Value>
@@ -3808,6 +3840,82 @@
       <Sign>Unsigned</Sign>
       <Endianess>BigEndian</Endianess>
     </IntReg>
+    <Command NameSpace="Custom" Name="AcquisitionPointCloud">
+      <ToolTip>Starts the Acquisition of the point cloud.</ToolTip>
+      <Description>获取点云图。</Description>
+      <DisplayName>Acquisition Start PointCloud</DisplayName>
+      <Visibility>Beginner</Visibility>
+      <pValue>AcquisitionPointCloud_Reg</pValue>
+      <CommandValue>1</CommandValue>
+    </Command>
+    <MaskedIntReg NameSpace="Custom" Name="AcquisitionPointCloud_Reg">
+      <pAddress>AcquisitionPointCloud_RegAddr</pAddress>
+      <pAddress>AcquisitionControlRegBaseAddress</pAddress>
+      <Length>4</Length>
+      <AccessMode>RW</AccessMode>
+      <pPort>Device</pPort>
+      <Cachable>NoCache</Cachable>
+      <Bit>0</Bit>
+      <Sign>Unsigned</Sign>
+      <Endianess>BigEndian</Endianess>
+    </MaskedIntReg>
+    <Command NameSpace="Custom" Name="AcquisitionDepthImage">
+      <ToolTip>Starts the Acquisition of the depth image.</ToolTip>
+      <Description>获取深度图。</Description>
+      <DisplayName>Acquisition Start DepthImage</DisplayName>
+      <Visibility>Beginner</Visibility>
+      <pValue>AcquisitionDepthImage_Reg</pValue>
+      <CommandValue>1</CommandValue>
+    </Command>
+    <MaskedIntReg NameSpace="Custom" Name="AcquisitionDepthImage_Reg">
+      <pAddress>AcquisitionDepthImage_RegAddr</pAddress>
+      <pAddress>AcquisitionControlRegBaseAddress</pAddress>
+      <Length>4</Length>
+      <AccessMode>RW</AccessMode>
+      <pPort>Device</pPort>
+      <Cachable>NoCache</Cachable>
+      <Bit>0</Bit>
+      <Sign>Unsigned</Sign>
+      <Endianess>BigEndian</Endianess>
+    </MaskedIntReg>
+    <Command NameSpace="Custom" Name="AcquisitionCalibrate">
+      <ToolTip>Starts the Acquisition of the 23 * 2 Calibrate images.</ToolTip>
+      <Description>获取23对标定图像。</Description>
+      <DisplayName>Acquisition Start Calibrate</DisplayName>
+      <Visibility>Beginner</Visibility>
+      <pValue>AcquisitionCalibrate_Reg</pValue>
+      <CommandValue>1</CommandValue>
+    </Command>
+    <MaskedIntReg NameSpace="Custom" Name="AcquisitionCalibrate_Reg">
+      <pAddress>AcquisitionCalibrate_RegAddr</pAddress>
+      <pAddress>AcquisitionControlRegBaseAddress</pAddress>
+      <Length>4</Length>
+      <AccessMode>RW</AccessMode>
+      <pPort>Device</pPort>
+      <Cachable>NoCache</Cachable>
+      <Bit>0</Bit>
+      <Sign>Unsigned</Sign>
+      <Endianess>BigEndian</Endianess>
+    </MaskedIntReg>
+    <Command NameSpace="Custom" Name="AcquisitionHDRImage">
+      <ToolTip>Starts the Acquisition of the HDR image.</ToolTip>
+      <Description>获取高动态图像。</Description>
+      <DisplayName>Acquisition Start HDR Image</DisplayName>
+      <Visibility>Beginner</Visibility>
+      <pValue>AcquisitionHDRImage_Reg</pValue>
+      <CommandValue>1</CommandValue>
+    </Command>
+    <MaskedIntReg NameSpace="Custom" Name="AcquisitionHDRImage_Reg">
+      <pAddress>AcquisitionHDRImage_RegAddr</pAddress>
+      <pAddress>AcquisitionControlRegBaseAddress</pAddress>
+      <Length>4</Length>
+      <AccessMode>RW</AccessMode>
+      <pPort>Device</pPort>
+      <Cachable>NoCache</Cachable>
+      <Bit>0</Bit>
+      <Sign>Unsigned</Sign>
+      <Endianess>BigEndian</Endianess>
+    </MaskedIntReg>
     <Command NameSpace="Standard" Name="AcquisitionStart">
       <ToolTip>Starts the Acquisition of the device.</ToolTip>
       <Description>Starts the Acquisition of the device.</Description>
@@ -4503,6 +4611,115 @@
         <Sign>Unsigned</Sign>
         <Endianess>BigEndian</Endianess>
       </IntReg>
+
+      <Float NameSpace="Custom" Name="CalibrateExposureTime0">
+        <ToolTip>Exposure time in us when Acquisition Calibrate first image.</ToolTip>
+        <Description>Exposure time in us when Acquisition Calibrate first image.</Description>
+        <DisplayName>Calibrate Exposure Time0</DisplayName>
+        <pValue>CalibrateExpoTime0_Float</pValue>
+        <pMin>ExposureMinUsInq_Float</pMin>
+        <pMax>ExposureMaxUsInq_Float</pMax>
+        <Unit>us</Unit>
+        <Representation>Linear</Representation>
+      </Float>
+      <Converter Name="CalibrateExpoTime0_Float">
+        <FormulaTo>FROM*1</FormulaTo>
+        <FormulaFrom>TO/1</FormulaFrom>
+        <pValue>CalibrateExpoTime0_Reg</pValue>
+        <Slope>Increasing</Slope>
+      </Converter>
+      <IntReg NameSpace="Custom" Name="CalibrateExpoTime0_Reg">
+        <pAddress>CalibrateExpoTime0_RegAddr</pAddress>
+        <pAddress>AcquisitionControlRegBaseAddress</pAddress>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Cachable>NoCache</Cachable>
+        <Sign>Unsigned</Sign>
+        <Endianess>BigEndian</Endianess>
+      </IntReg>
+
+      <Float NameSpace="Custom" Name="CalibrateExposureTime1">
+        <ToolTip>Exposure time in us when Acquisition Calibrate 22 images.</ToolTip>
+        <Description>Exposure time in us when Acquisition Calibrate 22 images.</Description>
+        <DisplayName>Calibrate Exposure Time1</DisplayName>
+        <pValue>CalibrateExpoTime1_Float</pValue>
+        <pMin>ExposureMinUsInq_Float</pMin>
+        <pMax>ExposureMaxUsInq_Float</pMax>
+        <Unit>us</Unit>
+        <Representation>Linear</Representation>
+      </Float>
+      <Converter Name="CalibrateExpoTime1_Float">
+        <FormulaTo>FROM*1</FormulaTo>
+        <FormulaFrom>TO/1</FormulaFrom>
+        <pValue>CalibrateExpoTime1_Reg</pValue>
+        <Slope>Increasing</Slope>
+      </Converter>
+      <IntReg NameSpace="Custom" Name="CalibrateExpoTime1_Reg">
+        <pAddress>CalibrateExpoTime1_RegAddr</pAddress>
+        <pAddress>AcquisitionControlRegBaseAddress</pAddress>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Cachable>NoCache</Cachable>
+        <Sign>Unsigned</Sign>
+        <Endianess>BigEndian</Endianess>
+      </IntReg>
+
+      <Float NameSpace="Custom" Name="PointCloudExposureTime">
+        <ToolTip>Exposure time in us when Acquisition Point Cloud.</ToolTip>
+        <Description>Exposure time in us when Acquisition Point Cloud.</Description>
+        <DisplayName>Point Cloud Exposure Time</DisplayName>
+        <pValue>PointCloudExpoTime_Float</pValue>
+        <pMin>ExposureMinUsInq_Float</pMin>
+        <pMax>ExposureMaxUsInq_Float</pMax>
+        <Unit>us</Unit>
+        <Representation>Linear</Representation>
+      </Float>
+      <Converter Name="PointCloudExpoTime_Float">
+        <FormulaTo>FROM*1</FormulaTo>
+        <FormulaFrom>TO/1</FormulaFrom>
+        <pValue>PointCloudExpoTime_Reg</pValue>
+        <Slope>Increasing</Slope>
+      </Converter>
+      <IntReg NameSpace="Custom" Name="PointCloudExpoTime_Reg">
+        <pAddress>PointCloudExpoTime_RegAddr</pAddress>
+        <pAddress>AcquisitionControlRegBaseAddress</pAddress>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Cachable>NoCache</Cachable>
+        <Sign>Unsigned</Sign>
+        <Endianess>BigEndian</Endianess>
+      </IntReg>
+
+      <Float NameSpace="Custom" Name="DepthImageExposureTime">
+        <ToolTip>Exposure time in us when Acquisition Depth Image.</ToolTip>
+        <Description>Exposure time in us when Acquisition Depth Image.</Description>
+        <DisplayName>Depth Image Exposure Time</DisplayName>
+        <pValue>DepthImageExpoTime_Float</pValue>
+        <pMin>ExposureMinUsInq_Float</pMin>
+        <pMax>ExposureMaxUsInq_Float</pMax>
+        <Unit>us</Unit>
+        <Representation>Linear</Representation>
+      </Float>
+      <Converter Name="DepthImageExpoTime_Float">
+        <FormulaTo>FROM*1</FormulaTo>
+        <FormulaFrom>TO/1</FormulaFrom>
+        <pValue>DepthImageExpoTime_Reg</pValue>
+        <Slope>Increasing</Slope>
+      </Converter>
+      <IntReg NameSpace="Custom" Name="DepthImageExpoTime_Reg">
+        <pAddress>DepthImageExpoTime_RegAddr</pAddress>
+        <pAddress>AcquisitionControlRegBaseAddress</pAddress>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Cachable>NoCache</Cachable>
+        <Sign>Unsigned</Sign>
+        <Endianess>BigEndian</Endianess>
+      </IntReg>
+
       <Enumeration NameSpace="Custom" Name="GainShutPrior">
         <ToolTip>Sets the priority of the Exposure and Gain.</ToolTip>
         <Description>Sets the priority of the Exposure and Gain.</Description>

@@ -787,11 +787,12 @@ extern "C" {
 #define REG_StartofManufacturerSpecificRegisterSpace		(0xA000)
 
 
-// custom registers
+// genicam custom registers
 
 // R 4 Category Inquiry Register
 #define REG_Category_Inq									(0x00010004)
 // [0]CounterAndTimerControl
+#define CounterAndTimerControl				(1u<<31)		
 // [1-31]reserved
 
 // R 4 DeviceControl Inquiry Register
@@ -804,13 +805,13 @@ extern "C" {
 // [5]DeviceLinkHeartbeatTimeout
 // [6-31]
 
-// R 4 GevSCPSMax Register
+// R 4 GevSCPSMax Register : REG_StreamChannelPacketSize0
 #define REG_GevSCPSMaxInq									(0x00010120)
 
 // R 4 GevSCPSMin Register
 #define REG_GevSCPSMinInq									(0x00010124)
 
-// R 4 GevSCPDMax Register
+// R 4 GevSCPDMax Register : REG_StreamChannelPacketDelay0
 #define REG_GevSCPDMaxInq									(0x00010130)
 
 // R 4 GevSCPDMin Register
@@ -892,6 +893,7 @@ extern "C" {
 // R 4 PixelFormat Inquiry 0 Register
 #define REG_PixelFormatInq0									(0x000101A0)
 // [0] Mono8
+#define PFI_Mono8							(1<<31)
 // [1] YUV411Packed
 // [2] YUV422Packed
 // [3] YUV444Packed
@@ -1391,6 +1393,8 @@ extern "C" {
 #define REG_UCCValueIndexMinInq								(0x00012010)
 #define REG_UCCValueIndexMaxInq								(0x00012014)
 #define REG_UCCValueIndexIncInq								(0x00012018)
+
+
 #define REG_DeviceScanType									(0x00030000)
 #define REG_DeviceFirmwareVersion							(0x00030024)
 #define REG_DeviceUptime									(0x00030048)
@@ -1510,6 +1514,42 @@ extern "C" {
 
 // RW 4 Specifies the delay (in us) to apply after the trigger reception before activating it.
 #define REG_TriggerDelayAbsVal								(0x00030980)
+
+// RW 4 Acquisition calibrate images.
+#define REG_Calibrate										(0x00030A00)
+
+// RW 4 Exposure Time for Calibrate brightness 1 image.
+#define REG_CalibrateExpoTime0								(0x00030A04)
+
+// RW 4 Exposure Time for Calibrate 22 serial images.
+#define REG_CalibrateExpoTime1								(0x00030A08)
+
+// RW 4 Acquisition Point Cloud file
+#define REG_PointCloud										(0x00030A10)
+// [0]		command value -> 1
+// [1-31]reserved
+
+// RW 4 Exposure Time for Point Cloud.
+#define REG_PointCloudExpoTime								(0x00030A14)
+
+
+// RW 4 Acquisition Depth Image file
+#define REG_DepthImage										(0x00030A20)
+// [0]		command value -> 1
+// [1-31]reserved
+
+// RW 4 Exposure Time for Depth Image.
+#define REG_DepthImageExpoTime								(0x00030A24)
+
+// RW 4 Acquisition HDR image.
+#define REG_HDRImage										(0x00030A30)
+
+// RW 4 Exposure Time for HDRI.
+#define REG_ExposureTime0									(0x00030A34)
+
+#define REG_ExposureTime1									(0x00030A38)
+
+
 
 // RW 4 Sets the operation mode of the Exposure (or shutter).
 #define REG_ExposureMode									(0x00030B00)

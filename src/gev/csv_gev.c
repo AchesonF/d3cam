@@ -289,11 +289,7 @@ uint8_t csv_gev_reg_type_get (uint32_t addr, char **desc)
 	return type;
 }
 
-
-
-
-
-static void csv_gev_reg_enroll (void)
+static void csv_gev_reg_general_enroll (void)
 {
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
@@ -443,20 +439,25 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_StartofManufacturerSpecificRegisterSpace, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, 0x00000000, NULL, toSTR(REG_StartofManufacturerSpecificRegisterSpace));
 
-	// add more from genicam genapi xml.
+}
+
+// from genicam xml
+static void csv_gev_reg_custom_inq_enroll (void)
+{
+	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
 	csv_gev_reg_add(REG_Category_Inq, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0, NULL, toSTR(REG_Category_Inq));
+		4, CounterAndTimerControl, NULL, toSTR(REG_Category_Inq));
 	csv_gev_reg_add(REG_DeviceControlInq, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 1<<31, NULL, toSTR(REG_DeviceControlInq));
+		4, 0, NULL, toSTR(REG_DeviceControlInq));
 	csv_gev_reg_add(REG_GevSCPSMaxInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, GVSP_PACKET_MAX_SIZE, NULL, toSTR(REG_GevSCPSMaxInq));
 	csv_gev_reg_add(REG_GevSCPSMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 1500, NULL, toSTR(REG_GevSCPSMinInq));
+		4, GVSP_PACKET_MIN_SIZE, NULL, toSTR(REG_GevSCPSMinInq));
 	csv_gev_reg_add(REG_GevSCPDMaxInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, GVSP_PACKET_MAX_SIZE, NULL, toSTR(REG_GevSCPDMaxInq));
+		4, 10000, NULL, toSTR(REG_GevSCPDMaxInq));
 	csv_gev_reg_add(REG_GevSCPDMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 1500, NULL, toSTR(REG_GevSCPDMinInq));
+		4, 0, NULL, toSTR(REG_GevSCPDMinInq));
 	csv_gev_reg_add(REG_ReverseInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_ReverseInq));
 	csv_gev_reg_add(REG_WidthMin, GEV_REG_TYPE_REG, GEV_REG_READ,
@@ -474,7 +475,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_VideoModeInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_VideoModeInq));
 	csv_gev_reg_add(REG_PixelFormatInq0, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 1<<31, NULL, toSTR(REG_PixelFormatInq0));
+		4, PFI_Mono8, NULL, toSTR(REG_PixelFormatInq0));
 	csv_gev_reg_add(REG_PixelFormatInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_PixelFormatInq));
 	csv_gev_reg_add(REG_TestPatternInq, GEV_REG_TYPE_REG, GEV_REG_READ,
@@ -488,7 +489,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_ExposureTimeMaxInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 1000000, NULL, toSTR(REG_ExposureTimeMaxInq));
 	csv_gev_reg_add(REG_ExposureTimeMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 10, NULL, toSTR(REG_ExposureTimeMinInq));
+		4, 20, NULL, toSTR(REG_ExposureTimeMinInq));
 	csv_gev_reg_add(REG_TriggerInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_TriggerInq));
 	csv_gev_reg_add(REG_TriggerSelectInq, GEV_REG_TYPE_REG, GEV_REG_READ,
@@ -502,11 +503,11 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_AcqFrameRateMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_AcqFrameRateMinInq));
 	csv_gev_reg_add(REG_AcqFrameCountMaxInq, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0xFFFFFFFF, NULL, toSTR(REG_AcqFrameCountMaxInq));
+		4, 125, NULL, toSTR(REG_AcqFrameCountMaxInq));
 	csv_gev_reg_add(REG_AcqFrameCountMinInq, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 1, NULL, toSTR(REG_AcqFrameCountMinInq));
 	csv_gev_reg_add(REG_AcqBurstFrameCountMaxInq, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0xFFFFFFFF, NULL, toSTR(REG_AcqBurstFrameCountMaxInq));
+		4, 125, NULL, toSTR(REG_AcqBurstFrameCountMaxInq));
 	csv_gev_reg_add(REG_AcqBurstFrameCountMinInq, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 1, NULL, toSTR(REG_AcqBurstFrameCountMinInq));
 	csv_gev_reg_add(REG_DigitalIOControlInq, GEV_REG_TYPE_REG, GEV_REG_READ,
@@ -553,7 +554,7 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_GainAbsMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_GainAbsMinInq));
 	csv_gev_reg_add(REG_GainAbsMaxInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0, NULL, toSTR(REG_GainAbsMaxInq));
+		4, 10, NULL, toSTR(REG_GainAbsMaxInq));
 	csv_gev_reg_add(REG_BlackLevelInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_BlackLevelInq));
 	csv_gev_reg_add(REG_BlackLevelMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
@@ -605,17 +606,17 @@ static void csv_gev_reg_enroll (void)
 		4, 0, NULL, toSTR(REG_AutoLimitInq));
 
 	csv_gev_reg_add(REG_AutoExposureTimeLowerLimitMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0, NULL, toSTR(REG_AutoExposureTimeLowerLimitMinInq));
+		4, 20, NULL, toSTR(REG_AutoExposureTimeLowerLimitMinInq));
 	csv_gev_reg_add(REG_AutoExposureTimeLowerLimitMaxInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0, NULL, toSTR(REG_AutoExposureTimeLowerLimitMaxInq));
+		4, 1000000, NULL, toSTR(REG_AutoExposureTimeLowerLimitMaxInq));
 	csv_gev_reg_add(REG_AutoExposureTimeLowerLimitIncInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0, NULL, toSTR(REG_AutoExposureTimeLowerLimitIncInq));
+		4, 1, NULL, toSTR(REG_AutoExposureTimeLowerLimitIncInq));
 	csv_gev_reg_add(REG_AutoExposureTimeUpperLimitMinInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0, NULL, toSTR(REG_AutoExposureTimeUpperLimitMinInq));
+		4, 20, NULL, toSTR(REG_AutoExposureTimeUpperLimitMinInq));
 	csv_gev_reg_add(REG_AutoExposureTimeUpperLimitMaxInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0, NULL, toSTR(REG_AutoExposureTimeUpperLimitMaxInq));
+		4, 1000000, NULL, toSTR(REG_AutoExposureTimeUpperLimitMaxInq));
 	csv_gev_reg_add(REG_AutoExposureTimeUpperLimitIncInq, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0, NULL, toSTR(REG_AutoExposureTimeUpperLimitIncInq));
+		4, 1, NULL, toSTR(REG_AutoExposureTimeUpperLimitIncInq));
 
 	csv_gev_reg_add(REG_LUTControlInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_LUTControlInq));
@@ -647,47 +648,44 @@ static void csv_gev_reg_enroll (void)
 	csv_gev_reg_add(REG_CounterValueIncInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 1, pGC->DeviceVersion, toSTR(REG_CounterValueIncInq));
 
+}
+
+static void csv_gev_reg_genicam_enroll (void)
+{
+	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
+
+	csv_gev_reg_add(REG_DeviceScanType, GEV_REG_TYPE_MEM, GEV_REG_READ,
+		4, 0, 0, toSTR(REG_DeviceScanType));
 	csv_gev_reg_add(REG_DeviceFirmwareVersion, GEV_REG_TYPE_MEM, GEV_REG_READ,
 		4, 0, pGC->DeviceVersion, toSTR(REG_DeviceFirmwareVersion));
-
 	csv_gev_reg_add(REG_DeviceUptime, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_DeviceUptime));
-
 	csv_gev_reg_add(REG_BoardDeviceType, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0x00000000, NULL, toSTR(REG_BoardDeviceType));
-
+		4, 0, NULL, toSTR(REG_BoardDeviceType));
 	csv_gev_reg_add(REG_DeviceMaxThroughput, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 1000000000, NULL, toSTR(REG_DeviceMaxThroughput));
-
 	csv_gev_reg_add(REG_DeviceConnectionSpeed, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 1000, NULL, toSTR(REG_DeviceConnectionSpeed));
-
 	csv_gev_reg_add(REG_DeviceConnectionStatus, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_DeviceConnectionStatus));
-
 	csv_gev_reg_add(REG_DeviceLinkThroughputLimitMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_DeviceLinkThroughputLimitMode));
-
 	csv_gev_reg_add(REG_DeviceLinkThroughputLimit, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 1000, NULL, toSTR(REG_DeviceLinkThroughputLimit));
-
 	csv_gev_reg_add(REG_DeviceLinkConnectionCount, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 1, NULL, toSTR(REG_DeviceLinkConnectionCount));
-
 	csv_gev_reg_add(REG_DeviceLinkHeartbeatMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_DeviceLinkHeartbeatMode));
-
 	csv_gev_reg_add(REG_DeviceLinkHeartbeatTimeout, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 5000, NULL, toSTR(REG_DeviceLinkHeartbeatTimeout));
-
 	csv_gev_reg_add(REG_DeviceCommandTimeout, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 1000, NULL, toSTR(REG_DeviceCommandTimeout));
-
 	csv_gev_reg_add(REG_DeviceReset, GEV_REG_TYPE_REG, GEV_REG_WRITE,
 		4, 0, NULL, toSTR(REG_DeviceReset));
-
 	csv_gev_reg_add(REG_DeviceTemperature, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_DeviceTemperature));
+	csv_gev_reg_add(REG_FindMe, GEV_REG_TYPE_REG, GEV_REG_WRITE,
+		4, 0, NULL, toSTR(REG_FindMe));
 
 	csv_gev_reg_add(REG_SensorTaps, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_SensorTaps));
@@ -715,16 +713,16 @@ static void csv_gev_reg_enroll (void)
 		4, 0, NULL, toSTR(REG_BinningHorizontal));
 	csv_gev_reg_add(REG_BinningVertical, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_BinningVertical));
+	csv_gev_reg_add(REG_Decimation, GEV_REG_TYPE_REG, GEV_REG_READ,
+		4, 0, NULL, toSTR(REG_Decimation));
 	csv_gev_reg_add(REG_ReverseX, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_ReverseX));
 	csv_gev_reg_add(REG_ReverseY, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_ReverseY));
-
 	csv_gev_reg_add(REG_PixelFormat, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, GX_PIXEL_FORMAT_MONO8, NULL, toSTR(REG_PixelFormat));
-
 	csv_gev_reg_add(REG_PixelCoding, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 0, NULL, toSTR(REG_PixelCoding));
+		4, 8, NULL, toSTR(REG_PixelCoding));
 	csv_gev_reg_add(REG_PixelColorFilter, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_PixelColorFilter));
 	csv_gev_reg_add(REG_TestPattern, GEV_REG_TYPE_REG, GEV_REG_RDWR,
@@ -737,11 +735,11 @@ static void csv_gev_reg_enroll (void)
 
 
 	csv_gev_reg_add(REG_AcquisitionMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0x00000000, NULL, toSTR(REG_AcquisitionMode));
+		4, 0, NULL, toSTR(REG_AcquisitionMode));
 	csv_gev_reg_add(REG_AcquisitionStart, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0x00000000, NULL, toSTR(REG_AcquisitionStart));
+		4, 0, NULL, toSTR(REG_AcquisitionStart));
 	csv_gev_reg_add(REG_AcquisitionStop, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0x00000000, NULL, toSTR(REG_AcquisitionStop));
+		4, 0, NULL, toSTR(REG_AcquisitionStop));
 	csv_gev_reg_add(REG_AcquisitionFrameCount, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 1, NULL, toSTR(REG_AcquisitionFrameCount));
 	csv_gev_reg_add(REG_AcquisitionBurstFrameCount, GEV_REG_TYPE_REG, GEV_REG_RDWR,
@@ -750,7 +748,6 @@ static void csv_gev_reg_enroll (void)
 		4, 1, NULL, toSTR(REG_AcquisitionFrameRate));
 	csv_gev_reg_add(REG_ResultingFrameRate, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_ResultingFrameRate));
-
 	csv_gev_reg_add(REG_TriggerMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_TriggerMode));
 	csv_gev_reg_add(REG_TriggerSelector, GEV_REG_TYPE_REG, GEV_REG_RDWR,
@@ -763,16 +760,36 @@ static void csv_gev_reg_enroll (void)
 		4, 0, NULL, toSTR(REG_TriggerActivation));
 	csv_gev_reg_add(REG_TriggerDelayAbsVal, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_TriggerDelayAbsVal));
+
+	csv_gev_reg_add(REG_Calibrate, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_Calibrate));
+	csv_gev_reg_add(REG_CalibrateExpoTime0, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 30000, NULL, toSTR(REG_CalibrateExpoTime0));
+	csv_gev_reg_add(REG_CalibrateExpoTime1, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 10000, NULL, toSTR(REG_CalibrateExpoTime0));
+
+	csv_gev_reg_add(REG_PointCloud, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_PointCloud));
+	csv_gev_reg_add(REG_PointCloudExpoTime, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 10000, NULL, toSTR(REG_PointCloudExpoTime));
+
+	csv_gev_reg_add(REG_DepthImage, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_DepthImage));
+	csv_gev_reg_add(REG_DepthImageExpoTime, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 10000, NULL, toSTR(REG_DepthImageExpoTime));
+
 	csv_gev_reg_add(REG_ExposureMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_ExposureMode));
 	csv_gev_reg_add(REG_ExposureTime, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 0, NULL, toSTR(REG_ExposureTime));
+		4, 10000, NULL, toSTR(REG_ExposureTime));
 	csv_gev_reg_add(REG_ExposureAuto, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_ExposureAuto));
 
+	csv_gev_reg_add(REG_HDRImage, GEV_REG_TYPE_REG, GEV_REG_RDWR,
+		4, 0, NULL, toSTR(REG_HDRImage));
+
 	csv_gev_reg_add(REG_LineMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_LineMode));
-
 
 	csv_gev_reg_add(REG_LineDebouncerTime, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_LineDebouncerTime));
@@ -818,8 +835,13 @@ static void csv_gev_reg_enroll (void)
 
 
 
+}
 
-
+static void csv_gev_reg_enroll (void)
+{
+	csv_gev_reg_general_enroll();
+	csv_gev_reg_custom_inq_enroll();
+	csv_gev_reg_genicam_enroll();
 
 	log_info("OK : 'enroll' gev reg.");
 }
