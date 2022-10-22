@@ -1203,7 +1203,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 
 	if (pDevC->SaveImageFile) {
 		pPC->groupPointCloud++;
-//		csv_3d_calc();
+		csv_3d_calc();
 	}
 
 	return ret;
