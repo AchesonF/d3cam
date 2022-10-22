@@ -52,6 +52,7 @@ struct img_package_t {
 	uint32_t				length;
 	uint8_t					position;	///< 左右位
 	uint8_t					flip;		///< 上下翻转
+	uint8_t					lastPic;
 
 	uint8_t					*payload;
 };
@@ -72,7 +73,7 @@ struct csv_img_t {
 
 
 extern int csv_img_push (char *filename, uint8_t *pRawData, 
-	uint32_t length, uint32_t nWidth, uint32_t nHeight, uint8_t pos);
+	uint32_t length, uint32_t nWidth, uint32_t nHeight, uint8_t pos, uint8_t lastpic);
 
 
 extern int csv_img_init (void);

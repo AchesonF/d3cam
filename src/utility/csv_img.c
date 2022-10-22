@@ -134,7 +134,7 @@ encode_error:
 }
 
 int csv_img_push (char *filename, uint8_t *pRawData, 	uint32_t length, 
-	uint32_t width, uint32_t height, uint8_t pos)
+	uint32_t width, uint32_t height, uint8_t pos, uint8_t lastpic)
 {
 	if ((NULL == pRawData)||(NULL == filename)) {
 		return -1;
@@ -159,6 +159,8 @@ int csv_img_push (char *filename, uint8_t *pRawData, 	uint32_t length,
 	pIPK->height = height;
 	pIPK->length = length;
 	pIPK->position = pos;
+	pIPK->lastPic = lastpic;
+
 	if (CAM_LEFT == pos) {
 		if (pDevC->flip_left) {
 			pIPK->flip = 1;
@@ -222,6 +224,10 @@ static void *csv_img_loop (void *data)
 			default:
 				gray_raw2bmp(pIPK->payload, pIPK->width, pIPK->height, pIPK->flip, pIPK->filename);
 				break;
+			}
+
+			if (pIPK->lastPic) {
+				csv_3d_calc();
 			}
 
 			if (NULL != pIPK->payload) {

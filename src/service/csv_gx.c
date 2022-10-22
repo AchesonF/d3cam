@@ -1046,7 +1046,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 			memset(img_name, 0, 256);
 			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i);
+				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, 0);
 		}
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1093,7 +1093,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 				memset(img_name, 0, 256);
 				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
 				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i);
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, 0);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1132,6 +1132,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 	int nFrames = 13;
 	int idx = 1;
 	char img_name[256] = {0};
+	uint_t lastpic = 0;
 	struct cam_gx_spec_t *pCAM = NULL;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
@@ -1175,8 +1176,11 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 			if ((0 == ret)&&(pDevC->SaveImageFile)) {
 				memset(img_name, 0, 256);
 				generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
+				if ((nFrames == idx)&&(CAM_RIGHT == i)) {
+					lastpic = 1;
+				}
 				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i);
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, lastpic);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1197,15 +1201,14 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 //	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
 	pthread_cond_broadcast(&gCSV->img.cond_img);
 
-	if (1 != errNum) {
+	if (0 != errNum) {
 		return -1;
 	}
-
+/*
 	if (pDevC->SaveImageFile) {
-		pPC->groupPointCloud++;
 		csv_3d_calc();
 	}
-
+*/
 	return ret;
 }
 

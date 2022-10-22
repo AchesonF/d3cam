@@ -654,7 +654,7 @@ static void csv_gev_reg_genicam_enroll (void)
 {
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 
-	csv_gev_reg_add(REG_DeviceScanType, GEV_REG_TYPE_MEM, GEV_REG_READ,
+	csv_gev_reg_add(REG_DeviceScanType, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, 0, toSTR(REG_DeviceScanType));
 	csv_gev_reg_add(REG_DeviceFirmwareVersion, GEV_REG_TYPE_MEM, GEV_REG_READ,
 		4, 0, pGC->DeviceVersion, toSTR(REG_DeviceFirmwareVersion));
