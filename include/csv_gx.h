@@ -22,6 +22,16 @@ enum {
 	GX_ACQUISITION_STOP
 };
 
+enum {
+	GRAB_NONE					= (0),
+	GRAB_CALIB_PICS				= (1),
+	GRAB_POINTCLOUD_PICS		= (2),
+	GRAB_DEPTHIMAGE_PICS		= (3),
+	GRAB_HDRIMAGE_PICS			= (4),
+
+	GRAB_PICS_END
+};
+
 struct cam_gx_spec_t {
 	uint8_t					opened;			///< 已打开
 

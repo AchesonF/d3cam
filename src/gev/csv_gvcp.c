@@ -410,7 +410,9 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_Calibrate:
-		csv_gx_cams_demarcate(&gCSV->gx);
+		if (regData & (1<<31)) {
+			gCSV->gvcp.grab_type = GRAB_CALIB_PICS;
+		}
 		break;
 
 	case REG_CalibrateExpoTime0: {
@@ -426,7 +428,9 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_PointCloud:
-		csv_gx_cams_highspeed(&gCSV->gx);
+		if (regData & (1<<31)) {
+			gCSV->gvcp.grab_type = GRAB_POINTCLOUD_PICS;
+		}
 		break;
 
 	case REG_PointCloudExpoTime: {
@@ -436,7 +440,9 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_DepthImage:
-		csv_gx_cams_highspeed(&gCSV->gx);
+		if (regData & (1<<31)) {
+			gCSV->gvcp.grab_type = GRAB_DEPTHIMAGE_PICS;
+		}
 		break;
 
 	case REG_DepthImageExpoTime: {
@@ -909,6 +915,23 @@ static void *csv_gvcp_ask_loop (void *data)
 
 			csv_gvcp_ask_deal(&task->ask);
 
+			switch (pGVCP->grab_type) {
+			case GRAB_CALIB_PICS:
+				csv_gx_cams_demarcate(&gCSV->gx);
+				break;
+			case GRAB_POINTCLOUD_PICS:
+				csv_gx_cams_highspeed(&gCSV->gx);
+				break;
+			case GRAB_DEPTHIMAGE_PICS:
+				csv_gx_cams_highspeed(&gCSV->gx);
+				break;
+			case GRAB_HDRIMAGE_PICS:
+				break;
+			default:
+				break;
+			}
+
+			pGVCP->grab_type = GRAB_NONE;
 			list_del(&task->list);
 			free(task);
 			task = NULL;
@@ -1077,6 +1100,7 @@ int csv_gvcp_init (void)
 	pGVCP->port = GVCP_PUBLIC_PORT;
 	pGVCP->ReqId = GVCP_REQ_ID_INIT;
 	pGVCP->rxlen = 0;
+	pGVCP->grab_type = GRAB_NONE;
 
 	pGVCP->name_gvcpask = NAME_THREAD_GVCP_ASK;
 	INIT_LIST_HEAD(&pGVCP->head_gvcpask.list);
