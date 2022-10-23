@@ -409,6 +409,42 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 	case REG_AcquisitionStop:
 		break;
 
+	case REG_Calibrate:
+		csv_gx_cams_demarcate(&gCSV->gx);
+		break;
+
+	case REG_CalibrateExpoTime0: {
+		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_BRIGHT];
+		pDlpcfg->expoTime = (float)regData;
+		}
+		break;
+
+	case REG_CalibrateExpoTime1: {
+		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_DEMARCATE];
+		pDlpcfg->expoTime = (float)regData;
+		}
+		break;
+
+	case REG_PointCloud:
+		csv_gx_cams_highspeed(&gCSV->gx);
+		break;
+
+	case REG_PointCloudExpoTime: {
+		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL];
+		pDlpcfg->expoTime = (float)regData;
+		}
+		break;
+
+	case REG_DepthImage:
+		csv_gx_cams_highspeed(&gCSV->gx);
+		break;
+
+	case REG_DepthImageExpoTime: {
+		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL];
+		pDlpcfg->expoTime = (float)regData;
+		}
+		break;
+
 	default:
 		break;
 	}

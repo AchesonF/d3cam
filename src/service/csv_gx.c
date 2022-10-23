@@ -1132,7 +1132,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 	int nFrames = 13;
 	int idx = 1;
 	char img_name[256] = {0};
-	uint_t lastpic = 0;
+	uint8_t lastpic = 0;
 	struct cam_gx_spec_t *pCAM = NULL;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;

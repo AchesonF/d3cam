@@ -1545,9 +1545,9 @@ extern "C" {
 #define REG_HDRImage										(0x00030A30)
 
 // RW 4 Exposure Time for HDRI.
-#define REG_ExposureTime0									(0x00030A34)
+#define REG_HDRIExposureTime0								(0x00030A34)
 
-#define REG_ExposureTime1									(0x00030A38)
+#define REG_HDRIExposureTime1								(0x00030A38)
 
 
 
