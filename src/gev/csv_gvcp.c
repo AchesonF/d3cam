@@ -344,8 +344,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		pGC->Channel.Port = swap16((uint16_t)regData);
 		pStream->peer_addr.sin_port = swap16((uint16_t)regData);
 		if (0 != regData) {
-			pStream->block_id = 0;
-			pStream->block_id64 = 0;
+			pStream->block_id = 1;
+			pStream->block_id64 = 1;
 		}
 		break;
 
@@ -403,9 +403,15 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_AcquisitionStart:
+		if (1<<31 & regData) {
+			pStream->enable_test = 1;
+			pthread_cond_broadcast(&pStream->cond_test);
+		}
 		break;
 
 	case REG_AcquisitionStop:
+		pStream->enable_test = 0;
+		pthread_cond_broadcast(&pStream->cond_test);
 		break;
 
 	case REG_Calibrate:

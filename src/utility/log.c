@@ -36,9 +36,9 @@ int hex_printf (const uint8_t *buff, int count)
 		return -1;
 	}
 
-	if (cnt > 64) {
-		cnt = 64;
-		printf("!!! TOO LONG. ONLY SHOW HEAD 1024 bytes !!!\n");
+	if (cnt > 16) {
+		cnt = 16;
+		printf("!!! TOO LONG. ONLY SHOW HEAD 256 bytes !!!\n");
 	}
 
 #if HEX_SHOW_FORMAT

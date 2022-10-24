@@ -57,6 +57,12 @@ struct gvsp_stream_t {
 	pthread_t				thr_stream;
 	pthread_mutex_t			mutex_stream;
 	pthread_cond_t			cond_stream;
+
+
+	uint8_t					enable_test;
+	pthread_t				thr_test;
+	pthread_mutex_t			mutex_test;
+	pthread_cond_t			cond_test;
 };
 
 struct csv_gvsp_t {

@@ -276,7 +276,14 @@ static int csv_gvsp_data_dispatch (struct gvsp_stream_t *pStream,
 
 	int ret = 0;
 	struct channel_cfg_t *pCH = &gCSV->cfg.gigecfg.Channel;
-	uint32_t packsize = (pCH->Cfg_PacketSize&0xFFFF) - 28 - sizeof(GVSP_PACKET_HEADER_V1);
+	uint8_t len_hdr = 0;
+#if USE_GVSP_EI_FLAG
+	len_hdr = sizeof(GVSP_PACKET_HEADER_V2);
+#else
+	len_hdr = sizeof(GVSP_PACKET_HEADER_V1);
+#endif
+	uint32_t packsize = (pCH->Cfg_PacketSize&0xFFFF) - 28 - len_hdr;
+
 	uint8_t *pData = pPD->payload;
 	uint64_t nLength = pPD->payload_size;
 
@@ -510,6 +517,105 @@ static int csv_gvsp_client_thread_cancel (struct gvsp_stream_t *pStream)
 	return ret;
 }
 
+static void *gvsp_image_test_loop (void *data)
+{
+	if (NULL == data) {
+		goto exit_thr;
+	}
+
+	int ret = 0;
+	struct gvsp_stream_t *pStream = (struct gvsp_stream_t *)data;
+	uint8_t *pData = NULL;
+	uint32_t Length = 0;
+	GX_FRAME_BUFFER imgInfo;
+
+	imgInfo.nPixelFormat = GX_PIXEL_FORMAT_MONO8;
+	imgInfo.nWidth = 2048;
+	imgInfo.nHeight = 1536;
+	imgInfo.nOffsetX = 0;
+	imgInfo.nOffsetY = 0;
+
+	Length = imgInfo.nWidth*imgInfo.nHeight;
+	pData = malloc(Length);
+	if (NULL == pData) {
+		log_err("ERROR : malloc");
+		goto exit_thr;
+	}
+
+	ret = csv_file_read_data("data/2048_1536.raw", pData, Length);
+	if (ret < 0) {
+		goto exit_thr;
+	}
+
+	while (1) {
+		pthread_cond_wait(&pStream->cond_test, &pStream->mutex_test);
+
+		while (pStream->enable_test) {
+			csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, pData, Length, &imgInfo, NULL);
+
+			usleep(50000);
+		}
+	}
+
+exit_thr:
+	pStream->thr_test = 0;
+	csv_gvsp_client_close(pStream);
+
+	pthread_exit(NULL);
+
+	return NULL;
+}
+
+int gvsp_image_test_thread (struct gvsp_stream_t *pStream)
+{
+	int ret = -1;
+
+	if (NULL == pStream) {
+		return -1;
+	}
+
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    if (pthread_mutex_init(&pStream->mutex_test, NULL) != 0) {
+        return -1;
+    }
+
+    if (pthread_cond_init(&pStream->cond_test, NULL) != 0) {
+        return -1;
+    }
+
+	ret = pthread_create(&pStream->thr_test, &attr, gvsp_image_test_loop, (void *)pStream);
+	if (ret < 0) {
+		return -1;
+	} else {
+		log_info("OK : create pthread @ (%p).", pStream->thr_test);
+	}
+
+	return ret;
+}
+
+int gvsp_image_test_thread_cancel (struct gvsp_stream_t *pStream)
+{
+	int ret = 0;
+	void *retval = NULL;
+
+	if (pStream->thr_test <= 0) {
+		return 0;
+	}
+
+	ret = pthread_cancel(pStream->thr_test);
+	if (ret == 0) {
+		log_info("OK : cancel pthread (%p).", pStream->thr_test);
+	}
+
+	ret = pthread_join(pStream->thr_test, &retval);
+
+	pStream->thr_test = 0;
+
+	return ret;
+}
 
 int csv_gvsp_init (void)
 {
@@ -527,7 +633,7 @@ int csv_gvsp_init (void)
 	INIT_LIST_HEAD(&pStream->head_stream.list);
 
 	ret = csv_gvsp_client_thread(pStream);
-
+gvsp_image_test_thread(pStream);
 	return ret;
 }
 
@@ -537,7 +643,7 @@ int csv_gvsp_deinit (void)
 	struct gvsp_stream_t *pStream = &gCSV->gvsp.stream;
 
 	ret = csv_gvsp_client_thread_cancel(pStream);
-
+gvsp_image_test_thread_cancel(pStream);
 	return ret;
 }
 
