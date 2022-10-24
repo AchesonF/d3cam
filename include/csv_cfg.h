@@ -138,6 +138,8 @@ struct pointcloud_cfg_t {
 	uint8_t					groupPointCloud;	///< 点云次数
 	uint8_t					enable;				///< 使能计算
 	uint8_t					initialized;		///< 已初始化。执行一次即可
+
+	uint8_t					test_bmp;
 };
 
 // 标定

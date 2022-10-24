@@ -629,7 +629,7 @@ static int csv_xml_PointCloudConfiguration (
 {
 	int ret = 0;
 	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[10];
+	struct key_value_pair_t key_pair[16];
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	xml_strlcpy(key_pair[nums].key, "ImageSaveRoot", MAX_KEY_SIZE);
@@ -682,6 +682,12 @@ static int csv_xml_PointCloudConfiguration (
 
 	xml_strlcpy(key_pair[nums].key, "initialized", MAX_KEY_SIZE);
 	key_pair[nums].value = &pPC->initialized;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "test_bmp", MAX_KEY_SIZE);
+	key_pair[nums].value = &pPC->test_bmp;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;

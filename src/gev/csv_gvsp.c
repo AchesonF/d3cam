@@ -33,7 +33,7 @@ int csv_gvsp_data_fetch (struct gvsp_stream_t *pStream, uint16_t type,
 	pPD = &cur->pd;
 
 	pPD->payload_type = type;
-	pPD->timestamp = utility_get_microsecond();
+	pPD->timestamp = utility_get_millisecond();
 	pPD->payload_size = Length;
 
 	switch (type) {
@@ -80,8 +80,8 @@ static int csv_gvsp_sendto (int fd, struct sockaddr_in *peer, uint8_t *txbuf, ui
 		return 0;
 	}
 
-//	log_hex(STREAM_UDP, txbuf, txlen, "gvsp send[%d] '%s:%d'", txlen, 
-//		inet_ntoa(peer->sin_addr), htons(peer->sin_port));
+	log_hex(STREAM_UDP, txbuf, txlen, "gvsp send[%d] '%s:%d'", txlen, 
+		inet_ntoa(peer->sin_addr), htons(peer->sin_port));
 
 	return sendto(fd, txbuf, txlen, 0, (struct sockaddr *)&peer, sizeof(struct sockaddr_in));
 }
@@ -104,21 +104,31 @@ int csv_gvsp_packet_test (struct gvsp_stream_t *pStream,
 static int csv_gvsp_data_packet_leader (struct gvsp_stream_t *pStream, 
 	struct payload_data_t *pPD)
 {
-    GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
-    pHdr->status			= htons(GEV_STATUS_SUCCESS);
-	pHdr->blockid_flag		= htons(0);	// resend flag ~bit15
-    pHdr->packet_format		= htonl((1<<31)|(GVSP_PACKET_FMT_LEADER<<24)); // EI=1 & Leader
-	pHdr->block_id_high		= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
-	pHdr->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
-	pHdr->packet_id			= htonl(pStream->packet_id32);
+	uint8_t len_hdr = 0;
+
+#if USE_GVSP_EI_FLAG
+	GVSP_PACKET_HEADER_V2 *pHdr2 = (GVSP_PACKET_HEADER_V2 *)pStream->bufSend;
+	pHdr2->status			= htons(GEV_STATUS_SUCCESS);
+	pHdr2->blockid_flag		= htons(0);	// resend flag ~bit15
+	pHdr2->packet_format	= htonl((1<<31)|(GVSP_PACKET_FMT_LEADER<<24)); // EI=1 & Leader
+	pHdr2->block_id_high	= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
+	pHdr2->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
+	pHdr2->packet_id		= htonl(pStream->packet_id32);
+
+	len_hdr = sizeof(GVSP_PACKET_HEADER_V2);
+#else
+	GVSP_PACKET_HEADER_V1 *pHdr1 = (GVSP_PACKET_HEADER_V1 *)pStream->bufSend;
+	pHdr1->status			= htons(GEV_STATUS_SUCCESS);
+	pHdr1->block_id			= htons(pStream->block_id);
+	pHdr1->packet_fmt_id	= htonl((GVSP_PACKET_FMT_LEADER<<24)|(pStream->packet_id&GVSP_PACKET_ID_MAX));
+
+	len_hdr = sizeof(GVSP_PACKET_HEADER_V1);
+#endif
 
 	switch (pPD->payload_type) {
 	case GVSP_PT_UNCOMPRESSED_IMAGE: {
-		    GVSP_IMAGE_DATA_LEADER* pDataLeader = (GVSP_IMAGE_DATA_LEADER*)(pStream->bufSend 
-				+ sizeof(GVSP_PACKET_HEADER));
-			pDataLeader->field.id		= 0;
-			pDataLeader->field.count	= 0;
-		    pDataLeader->reserved       = 0;
+		    GVSP_IMAGE_DATA_LEADER* pDataLeader = (GVSP_IMAGE_DATA_LEADER*)(pStream->bufSend + len_hdr);
+			pDataLeader->reserved		= 0;
 		    pDataLeader->payload_type   = htons(GVSP_PT_UNCOMPRESSED_IMAGE);
 		    pDataLeader->timestamp_high = htonl((pPD->timestamp>>32)&0xFFFFFFFF);
 		    pDataLeader->timestamp_low  = htonl(pPD->timestamp&0xFFFFFFFF);
@@ -130,13 +140,12 @@ static int csv_gvsp_data_packet_leader (struct gvsp_stream_t *pStream,
 		    pDataLeader->padding_x      = htons(0);
 		    pDataLeader->padding_y      = htons(0);
 
-		    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + sizeof(GVSP_IMAGE_DATA_LEADER);
+		    pStream->lenSend = len_hdr + sizeof(GVSP_IMAGE_DATA_LEADER);
 		}
 		break;
 
 	case GVSP_PT_RAW_DATA: {
-		    GVSP_RAW_DATA_LEADER* pDataLeader = (GVSP_RAW_DATA_LEADER*)(pStream->bufSend 
-				+ sizeof(GVSP_PACKET_HEADER));
+		    GVSP_RAW_DATA_LEADER* pDataLeader = (GVSP_RAW_DATA_LEADER*)(pStream->bufSend + len_hdr);
 		    pDataLeader->reserved       = 0;
 		    pDataLeader->payload_type   = htons(GVSP_PT_RAW_DATA);
 		    pDataLeader->timestamp_high = htonl((pPD->timestamp>>32)&0xFFFFFFFF);
@@ -144,13 +153,12 @@ static int csv_gvsp_data_packet_leader (struct gvsp_stream_t *pStream,
 		    pDataLeader->payload_size_high	= htonl((pPD->payload_size>>32)&0xFFFFFFFF);
 		    pDataLeader->payload_size_low	= htonl(pPD->payload_size&0xFFFFFFFF);
 
-		    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + sizeof(GVSP_RAW_DATA_LEADER);
+		    pStream->lenSend = len_hdr + sizeof(GVSP_RAW_DATA_LEADER);
 		}
 		break;
 
 	case GVSP_PT_FILE: {
-		    GVSP_FILE_DATA_LEADER* pDataLeader = (GVSP_FILE_DATA_LEADER*)(pStream->bufSend 
-				+ sizeof(GVSP_PACKET_HEADER));
+		    GVSP_FILE_DATA_LEADER* pDataLeader = (GVSP_FILE_DATA_LEADER*)(pStream->bufSend + len_hdr);
 		    pDataLeader->reserved       = 0;
 		    pDataLeader->payload_type   = htons(GVSP_PT_FILE);
 		    pDataLeader->timestamp_high = htonl((pPD->timestamp>>32)&0xFFFFFFFF);
@@ -160,7 +168,7 @@ static int csv_gvsp_data_packet_leader (struct gvsp_stream_t *pStream,
 			memset(pDataLeader->filename, 0, MAX_SIZE_FILENAME);
 			strcpy(pDataLeader->filename, pPD->filename);
 
-		    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + sizeof(GVSP_FILE_DATA_LEADER);
+		    pStream->lenSend = len_hdr + sizeof(GVSP_FILE_DATA_LEADER);
 		}
 		break;
 
@@ -174,17 +182,30 @@ static int csv_gvsp_data_packet_leader (struct gvsp_stream_t *pStream,
 static int csv_gvsp_data_packet_payload (struct gvsp_stream_t *pStream, 
 	uint8_t *pData, uint32_t length)
 {
-    GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
-    pHdr->status			= htons(GEV_STATUS_SUCCESS);
-	pHdr->blockid_flag		= htons(0);	// resend flag ~bit15
-    pHdr->packet_format		= htonl((1<<31)|(GVSP_PACKET_FMT_PAYLOAD_GENERIC<<24)); // EI=1 & payload
-	pHdr->block_id_high		= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
-	pHdr->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
-	pHdr->packet_id			= htonl(pStream->packet_id32);
+	uint8_t len_hdr = 0;
 
-	memcpy(pStream->bufSend+sizeof(GVSP_PACKET_HEADER), pData, length);
+#if USE_GVSP_EI_FLAG
+	GVSP_PACKET_HEADER_V2 *pHdr2 = (GVSP_PACKET_HEADER_V2 *)pStream->bufSend;
+	pHdr2->status			= htons(GEV_STATUS_SUCCESS);
+	pHdr2->blockid_flag		= htons(0);	// resend flag ~bit15
+	pHdr2->packet_format	= htonl((1<<31)|(GVSP_PACKET_FMT_PAYLOAD_GENERIC<<24)); // EI=1 & payload
+	pHdr2->block_id_high	= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
+	pHdr2->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
+	pHdr2->packet_id		= htonl(pStream->packet_id32);
 
-    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + length;
+	len_hdr = sizeof(GVSP_PACKET_HEADER_V2);
+#else
+	GVSP_PACKET_HEADER_V1 *pHdr1 = (GVSP_PACKET_HEADER_V1 *)pStream->bufSend;
+	pHdr1->status			= htons(GEV_STATUS_SUCCESS);
+	pHdr1->block_id			= htons(pStream->block_id);
+	pHdr1->packet_fmt_id	= htonl((GVSP_PACKET_FMT_PAYLOAD_GENERIC<<24)|(pStream->packet_id&GVSP_PACKET_ID_MAX));
+
+	len_hdr = sizeof(GVSP_PACKET_HEADER_V1);
+#endif
+
+	memcpy(pStream->bufSend+len_hdr, pData, length);
+
+	pStream->lenSend = len_hdr + length;
 
 	return csv_gvsp_sendto(pStream->fd, &pStream->peer_addr, pStream->bufSend, pStream->lenSend);
 }
@@ -192,41 +213,51 @@ static int csv_gvsp_data_packet_payload (struct gvsp_stream_t *pStream,
 static int csv_gvsp_data_packet_trailer (struct gvsp_stream_t *pStream, 
 	struct payload_data_t *pPD)
 {
-    GVSP_PACKET_HEADER *pHdr = (GVSP_PACKET_HEADER *)pStream->bufSend;
-    pHdr->status			= htons(GEV_STATUS_SUCCESS);
-	pHdr->blockid_flag		= htons(0);	// resend flag ~bit15
-    pHdr->packet_format		= htonl((1<<31)|(GVSP_PACKET_FMT_TRAILER<<24)); // EI=1 & trailer
-	pHdr->block_id_high		= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
-	pHdr->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
-	pHdr->packet_id			= htonl(pStream->packet_id32);
+	uint8_t len_hdr = 0;
+
+#if USE_GVSP_EI_FLAG
+	GVSP_PACKET_HEADER_V2 *pHdr2 = (GVSP_PACKET_HEADER_V2 *)pStream->bufSend;
+	pHdr2->status			= htons(GEV_STATUS_SUCCESS);
+	pHdr2->blockid_flag		= htons(0);	// resend flag ~bit15
+	pHdr2->packet_format	= htonl((1<<31)|(GVSP_PACKET_FMT_TRAILER<<24)); // EI=1 & trailer
+	pHdr2->block_id_high	= htonl((pStream->block_id64>>32)&0xFFFFFFFF);
+	pHdr2->block_id_low		= htonl(pStream->block_id64&0xFFFFFFFF);
+	pHdr2->packet_id		= htonl(pStream->packet_id32);
+
+	len_hdr = sizeof(GVSP_PACKET_HEADER_V2);
+#else
+	GVSP_PACKET_HEADER_V1 *pHdr1 = (GVSP_PACKET_HEADER_V1 *)pStream->bufSend;
+	pHdr1->status			= htons(GEV_STATUS_SUCCESS);
+	pHdr1->block_id			= htons(pStream->block_id);
+	pHdr1->packet_fmt_id	= htonl((GVSP_PACKET_FMT_TRAILER<<24)|(pStream->packet_id&GVSP_PACKET_ID_MAX));
+
+	len_hdr = sizeof(GVSP_PACKET_HEADER_V1);
+#endif
 
 	switch (pPD->payload_type) {
 	case GVSP_PT_UNCOMPRESSED_IMAGE: {
-		    GVSP_IMAGE_DATA_TRAILER *pDataTrailer = (GVSP_IMAGE_DATA_TRAILER*)(pStream->bufSend 
-				+ sizeof(GVSP_PACKET_HEADER));
+		    GVSP_IMAGE_DATA_TRAILER *pDataTrailer = (GVSP_IMAGE_DATA_TRAILER*)(pStream->bufSend + len_hdr);
 		    pDataTrailer->reserved     = htons(0);
 		    pDataTrailer->payload_type = htons(GVSP_PT_UNCOMPRESSED_IMAGE);
 		    pDataTrailer->size_y       = htonl(pPD->height);
 
-		    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + sizeof(GVSP_IMAGE_DATA_TRAILER);
+		    pStream->lenSend = len_hdr + sizeof(GVSP_IMAGE_DATA_TRAILER);
 		}
 		break;
 	case GVSP_PT_RAW_DATA: {
-		    GVSP_RAW_DATA_TRAILER *pDataTrailer = (GVSP_RAW_DATA_TRAILER*)(pStream->bufSend 
-				+ sizeof(GVSP_PACKET_HEADER));
+		    GVSP_RAW_DATA_TRAILER *pDataTrailer = (GVSP_RAW_DATA_TRAILER*)(pStream->bufSend + len_hdr);
 		    pDataTrailer->reserved     = htons(0);
 		    pDataTrailer->payload_type = htons(GVSP_PT_RAW_DATA);
 
-		    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + sizeof(GVSP_RAW_DATA_TRAILER);
+		    pStream->lenSend = len_hdr + sizeof(GVSP_RAW_DATA_TRAILER);
 		}
 		break;
 	case GVSP_PT_FILE: {
-		    GVSP_FILE_DATA_TRAILER *pDataTrailer = (GVSP_FILE_DATA_TRAILER*)(pStream->bufSend 
-				+ sizeof(GVSP_PACKET_HEADER));
+		    GVSP_FILE_DATA_TRAILER *pDataTrailer = (GVSP_FILE_DATA_TRAILER*)(pStream->bufSend + len_hdr);
 		    pDataTrailer->reserved     = htons(0);
 		    pDataTrailer->payload_type = htons(GVSP_PT_FILE);
 
-		    pStream->lenSend = sizeof(GVSP_PACKET_HEADER) + sizeof(GVSP_FILE_DATA_TRAILER);
+		    pStream->lenSend = len_hdr + sizeof(GVSP_FILE_DATA_TRAILER);
 		}
 		break;
 	default:
@@ -235,7 +266,6 @@ static int csv_gvsp_data_packet_trailer (struct gvsp_stream_t *pStream,
 
 	return csv_gvsp_sendto(pStream->fd, &pStream->peer_addr, pStream->bufSend, pStream->lenSend);
 }
-
 
 static int csv_gvsp_data_dispatch (struct gvsp_stream_t *pStream, 
 	struct payload_data_t *pPD)
@@ -246,13 +276,15 @@ static int csv_gvsp_data_dispatch (struct gvsp_stream_t *pStream,
 
 	int ret = 0;
 	struct channel_cfg_t *pCH = &gCSV->cfg.gigecfg.Channel;
-	uint32_t packsize = (pCH->Cfg_PacketSize&0xFFFF) - 28 - sizeof(GVSP_PACKET_HEADER);
+	uint32_t packsize = (pCH->Cfg_PacketSize&0xFFFF) - 28 - sizeof(GVSP_PACKET_HEADER_V1);
 	uint8_t *pData = pPD->payload;
 	uint64_t nLength = pPD->payload_size;
 
+	pStream->packet_id = 0;
 	pStream->packet_id32 = 0;
 	ret = csv_gvsp_data_packet_leader(pStream, pPD);
 	for (pData = pPD->payload; pData < pPD->payload+nLength; ) {
+		pStream->packet_id++;
 		pStream->packet_id32++;
 		ret = csv_gvsp_data_packet_payload(pStream, pData, 
 			(pData+packsize < pPD->payload+nLength) ? packsize : (nLength%packsize));
@@ -263,11 +295,13 @@ static int csv_gvsp_data_dispatch (struct gvsp_stream_t *pStream,
 		}
 	}
 
+	pStream->packet_id++;
 	pStream->packet_id32++;
 	ret = csv_gvsp_data_packet_trailer(pStream, pPD);
 
 	return ret;
 }
+
 
 static int csv_gvsp_client_open (struct gvsp_stream_t *pStream)
 {
@@ -382,6 +416,7 @@ static void *csv_gvsp_client_loop (void *data)
 			pPD = &task->pd;
 
 			csv_gvsp_data_dispatch(pStream, pPD);
+			pStream->block_id++;
 			pStream->block_id64++;
 
 			if (NULL != pPD->payload) {
@@ -485,6 +520,8 @@ int csv_gvsp_init (void)
 	pStream->fd = -1;
 	pStream->name = NAME_SOCKET_STREAM;
 	pStream->name_stream = NAME_THREAD_STREAM;
+	pStream->block_id = 1;
+	pStream->packet_id = 0;
 	pStream->block_id64 = 1;
 	pStream->packet_id32 = 0;
 	INIT_LIST_HEAD(&pStream->head_stream.list);

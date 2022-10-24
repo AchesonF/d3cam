@@ -1204,11 +1204,7 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 	if (0 != errNum) {
 		return -1;
 	}
-/*
-	if (pDevC->SaveImageFile) {
-		csv_3d_calc();
-	}
-*/
+
 	return ret;
 }
 

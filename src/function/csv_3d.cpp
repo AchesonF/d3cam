@@ -116,9 +116,15 @@ int csv_3d_calc (void)
 		csv_3d_init();
 	}
 
-	string imgRoot = string(pPC->ImageSaveRoot);
 	vector<vector<Mat>> imgGroupList;
-	loadSrcImageEx(imgRoot, imgGroupList);
+	if (pPC->test_bmp) {
+		string imgRoot = string("data/test_bmps");
+		pPC->groupPointCloud = 1;
+		loadSrcImageEx(imgRoot, imgGroupList);
+	} else {
+		string imgRoot = string(pPC->ImageSaveRoot);
+		loadSrcImageEx(imgRoot, imgGroupList);
+	}
 
 	vector<vector<CsvImageSimple>> imageGroups;
 	CsvImageSimple depthImage;

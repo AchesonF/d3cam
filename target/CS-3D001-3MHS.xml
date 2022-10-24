@@ -1732,7 +1732,7 @@
       <AccessMode>RO</AccessMode>
       <pPort>Device</pPort>
       <Cachable>NoCache</Cachable>
-      <PollingTime>10000</PollingTime>
+      <!--PollingTime>10000</PollingTime-->
       <Sign>Signed</Sign>
       <Endianess>BigEndian</Endianess>
     </IntReg>
@@ -4079,7 +4079,7 @@
       <AccessMode>RW</AccessMode>
       <pPort>Device</pPort>
       <Cachable>NoCache</Cachable>
-      <PollingTime>250</PollingTime>
+      <!--PollingTime>250</PollingTime-->
       <pInvalidator>UserSetLoad</pInvalidator>
       <pInvalidator>GevSCPD</pInvalidator>
       <LSB>31</LSB>
@@ -4116,7 +4116,7 @@
       <AccessMode>RW</AccessMode>
       <pPort>Device</pPort>
       <Cachable>NoCache</Cachable>
-      <PollingTime>250</PollingTime>
+      <!--PollingTime>250</PollingTime-->
       <pInvalidator>UserSetLoad</pInvalidator>
       <pInvalidator>GevSCPD</pInvalidator>
       <LSB>15</LSB>
@@ -4143,7 +4143,7 @@
       <AccessMode>RO</AccessMode>
       <pPort>Device</pPort>
       <Cachable>NoCache</Cachable>
-      <PollingTime>5000</PollingTime>
+      <!--PollingTime>5000</PollingTime-->
       <pInvalidator>UserSetLoad</pInvalidator>
       <pInvalidator>GevSCPD</pInvalidator>
       <Sign>Unsigned</Sign>
@@ -4594,7 +4594,7 @@
         <AccessMode>RW</AccessMode>
         <pPort>Device</pPort>
         <Cachable>NoCache</Cachable>
-        <PollingTime>250</PollingTime>
+        <!--PollingTime>250</PollingTime-->
         <Sign>Unsigned</Sign>
         <Endianess>BigEndian</Endianess>
       </IntReg>
@@ -4605,7 +4605,7 @@
         <AccessMode>RW</AccessMode>
         <pPort>Device</pPort>
         <Cachable>NoCache</Cachable>
-        <PollingTime>5000</PollingTime>
+        <!--PollingTime>5000</PollingTime-->
         <pInvalidator>UserSetLoad</pInvalidator>
         <pInvalidator>GainCtrl_Reg</pInvalidator>
         <Sign>Unsigned</Sign>
@@ -6178,7 +6178,7 @@
         <AccessMode>RW</AccessMode>
         <pPort>Device</pPort>
         <Cachable>NoCache</Cachable>
-        <PollingTime>5000</PollingTime>
+        <!--PollingTime>5000</PollingTime-->
         <pInvalidator>UserSetLoad</pInvalidator>
         <pInvalidator>ExposureAuto_Reg</pInvalidator>
         <Sign>Unsigned</Sign>
@@ -6191,7 +6191,7 @@
         <AccessMode>RW</AccessMode>
         <pPort>Device</pPort>
         <Cachable>NoCache</Cachable>
-        <PollingTime>5000</PollingTime>
+        <!--PollingTime>5000</PollingTime-->
         <pInvalidator>UserSetLoad</pInvalidator>
         <Sign>Unsigned</Sign>
         <Endianess>BigEndian</Endianess>
@@ -6684,7 +6684,7 @@
         <AccessMode>RW</AccessMode>
         <pPort>Device</pPort>
         <Cachable>NoCache</Cachable>
-        <PollingTime>5000</PollingTime>
+        <!--PollingTime>5000</PollingTime-->
         <pInvalidator>UserSetLoad</pInvalidator>
         <Sign>Unsigned</Sign>
         <Endianess>BigEndian</Endianess>
@@ -6695,7 +6695,7 @@
         <Length>4</Length>
         <AccessMode>RW</AccessMode>
         <pPort>Device</pPort>
-        <Cachable>NoCache</Cachable>
+        <!--Cachable>NoCache</Cachable-->
         <PollingTime>5000</PollingTime>
         <pInvalidator>UserSetLoad</pInvalidator>
         <pInvalidator>BalanceRatioSelector</pInvalidator>

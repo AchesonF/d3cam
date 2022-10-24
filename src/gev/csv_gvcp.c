@@ -343,6 +343,10 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 	case REG_StreamChannelPort0:
 		pGC->Channel.Port = swap16((uint16_t)regData);
 		pStream->peer_addr.sin_port = swap16((uint16_t)regData);
+		if (0 != regData) {
+			pStream->block_id = 0;
+			pStream->block_id64 = 0;
+		}
 		break;
 
 	case REG_StreamChannelPacketSize0:
@@ -399,11 +403,6 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_AcquisitionStart:
-		{
-//log_debug("csv_gvsp_data_fetch file.");
-//			csv_gvsp_data_fetch(pStream, GVSP_PT_FILE, 
-//				gCSV->cfg.gigecfg.xmlData, gCSV->cfg.gigecfg.xmlLength, NULL, "csv_xml.zip");
-		}
 		break;
 
 	case REG_AcquisitionStop:
@@ -430,6 +429,12 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 	case REG_PointCloud:
 		if (regData & (1<<31)) {
 			gCSV->gvcp.grab_type = GRAB_POINTCLOUD_PICS;
+
+			{
+				log_debug("csv_gvsp_data_fetch file.");
+				csv_gvsp_data_fetch(pStream, GVSP_PT_FILE, 
+					gCSV->cfg.gigecfg.xmlData, gCSV->cfg.gigecfg.xmlLength, NULL, "csv_xml.zip");
+			}
 		}
 		break;
 

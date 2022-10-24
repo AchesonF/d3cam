@@ -36,6 +36,11 @@ struct gvsp_stream_t {
 	char					*name;
 	uint8_t					idx;
 
+	// for ver 1
+	uint16_t				block_id;		///< reset to 1 when the stream channel is opened
+	uint32_t				packet_id;		///< reset to 0 at the start of each data block
+
+	// for ver 2
 	uint64_t				block_id64;		///< reset to 1 when the stream channel is opened
 	uint32_t				packet_id32;	///< reset to 0 at the start of each data block
 	uint32_t				re_packetid;	///< 请求重发id
