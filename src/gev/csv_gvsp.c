@@ -553,7 +553,7 @@ static void *gvsp_image_test_loop (void *data)
 		while (pStream->enable_test) {
 			csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, pData, Length, &imgInfo, NULL);
 
-			usleep(50000);
+			sleep(1);
 		}
 	}
 

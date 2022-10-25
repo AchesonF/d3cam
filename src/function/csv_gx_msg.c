@@ -255,12 +255,6 @@ static int gx_msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t
 	return csv_msg_send(pACK);
 }
 
-int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pACK)
-{
-	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
-
-	return csv_msg_send(pACK);
-}
 
 void csv_gx_msg_cmd_enroll (void)
 {

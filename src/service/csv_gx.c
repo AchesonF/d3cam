@@ -1283,6 +1283,9 @@ static int csv_gx_thread (struct csv_gx_t *pGX)
         return -1;
     }
 
+	pthread_mutex_init(&pGX->mutex_wait_depth, NULL);
+	pthread_cond_init(&pGX->cond_wait_depth, NULL);
+
 	ret = pthread_create(&pGX->thr_gx, &attr, csv_gx_loop, (void *)pGX);
 	if (ret < 0) {
 		log_err("ERROR : create pthread %s.", pGX->name_gx);

@@ -67,6 +67,9 @@ struct csv_gx_t {
 	pthread_t				thr_gx;			///< ID
 	pthread_mutex_t			mutex_gx;		///< 锁
 	pthread_cond_t			cond_gx;		///< 条件
+
+	pthread_mutex_t			mutex_wait_depth;
+	pthread_cond_t			cond_wait_depth;
 };
 
 extern int csv_gx_acquisition (uint8_t state);

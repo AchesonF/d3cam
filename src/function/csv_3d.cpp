@@ -159,6 +159,8 @@ int csv_3d_calc (void)
 		string outfilepng = string(pPC->outDepthImage);
 		normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
 		imwrite(outfilepng, vdisp);
+
+		pthread_cond_broadcast(&gCSV->gx.cond_wait_depth);
 	}
 
 	if (pPC->saveXYZ) {
