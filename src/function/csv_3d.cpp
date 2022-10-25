@@ -171,7 +171,7 @@ int csv_3d_calc (void)
 		log_debug("save pointcloud take %ld us.", utility_get_microsecond() - f_timestamp);
 	}
 
-	pPC->groupPointCloud++;
+	//pPC->groupPointCloud++;
 
 	return 0;
 }

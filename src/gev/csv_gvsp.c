@@ -523,7 +523,7 @@ static void *gvsp_image_test_loop (void *data)
 		goto exit_thr;
 	}
 
-	int ret = 0;
+	int ret = -1;
 	struct gvsp_stream_t *pStream = (struct gvsp_stream_t *)data;
 	uint8_t *pData = NULL;
 	uint32_t Length = 0;
@@ -542,7 +542,7 @@ static void *gvsp_image_test_loop (void *data)
 		goto exit_thr;
 	}
 
-	ret = csv_file_read_data("data/2048_1536.raw", pData, Length);
+//	ret = csv_file_read_data("data/2048_1536.raw", pData, Length);
 	if (ret < 0) {
 		goto exit_thr;
 	}
@@ -559,7 +559,11 @@ static void *gvsp_image_test_loop (void *data)
 
 exit_thr:
 	pStream->thr_test = 0;
-	csv_gvsp_client_close(pStream);
+
+	if (NULL != pData) {
+		free(pData);
+		pData = NULL;
+	}
 
 	pthread_exit(NULL);
 

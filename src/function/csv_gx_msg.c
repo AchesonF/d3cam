@@ -75,8 +75,8 @@ static int gx_msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ac
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serial, gCSV->dlp.expoTime,
-		pCAMRIGHT->serial, gCSV->dlp.expoTime);
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].expoTime,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].expoTime);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
@@ -91,7 +91,7 @@ static int gx_msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ac
 	float *ExpoTime = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->dlp.expoTime = *ExpoTime;
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].expoTime = *ExpoTime;
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
@@ -141,8 +141,8 @@ static int gx_msg_cameras_rate_get (struct msg_package_t *pMP, struct msg_ack_t 
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_rate, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serial, gCSV->dlp.rate,
-		pCAMRIGHT->serial, gCSV->dlp.rate);
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_rate, len_msg, 0);
@@ -157,7 +157,7 @@ static int gx_msg_cameras_rate_set (struct msg_package_t *pMP, struct msg_ack_t 
 	float *rate = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->dlp.rate = *rate;
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate = *rate;
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
@@ -174,8 +174,8 @@ static int gx_msg_cameras_brightness_get (struct msg_package_t *pMP, struct msg_
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_bright, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serial, gCSV->dlp.brightness,
-		pCAMRIGHT->serial, gCSV->dlp.brightness);
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_bright, len_msg, 0);
@@ -190,7 +190,7 @@ static int gx_msg_cameras_brightness_set (struct msg_package_t *pMP, struct msg_
 	float *bright = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->dlp.brightness = *bright;
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness = *bright;
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
