@@ -222,6 +222,18 @@ static int gx_msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t 
 	return csv_msg_send(pACK);
 }
 
+static int gx_msg_cameras_rgb_exposure_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int result = -1;
+
+	if (pMP->hdr.length == sizeof(float)) {
+		result = 0;
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+
+	return csv_msg_send(pACK);
+}
 
 static int gx_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
@@ -270,6 +282,7 @@ void csv_gx_msg_cmd_enroll (void)
 	msg_command_add(CAMERA_GET_BRIGHTNESS, toSTR(CAMERA_GET_BRIGHTNESS), gx_msg_cameras_brightness_get);
 	msg_command_add(CAMERA_SET_BRIGHTNESS, toSTR(CAMERA_SET_BRIGHTNESS), gx_msg_cameras_brightness_set);
 	msg_command_add(CAMERA_SET_CAMERA_NAME, toSTR(CAMERA_SET_CAMERA_NAME), gx_msg_cameras_name_set);
+	msg_command_add(CAMERA_SET_RGB_EXPOSURE, toSTR(CAMERA_SET_RGB_EXPOSURE), gx_msg_cameras_rgb_exposure_set);
 
 	msg_command_add(CAMERA_GET_GRAB_FLASH, toSTR(CAMERA_GET_GRAB_FLASH), gx_msg_cameras_grab_gray);
 	msg_command_add(CAMERA_GET_GRAB_DEEP, toSTR(CAMERA_GET_GRAB_DEEP), gx_msg_cameras_grab_img_depth);
