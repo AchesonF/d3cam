@@ -471,7 +471,7 @@ int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
 	}
 
 	if (ret_timeo < 0) {
-		len_err = snprintf(str_err, 128, "Cams busy now.");
+		len_err = snprintf(str_err, 128, "depth timeout.");
 	} else {
 		depthImg = imread(pPC->outDepthImage);
 		depthMatsize = depthImg.cols * depthImg.rows *2;

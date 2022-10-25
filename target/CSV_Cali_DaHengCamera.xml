@@ -1,49 +1,49 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<calibration fileFlag="CSV_HANDEYE_CALIB" version="4.0" time="2022/10/21 11:50:13">
+<calibration fileFlag="CSV_HANDEYE_CALIB" version="4.0" time="2022/10/25 11:57:37">
     <calibrationBoardSize>192.00000000</calibrationBoardSize>
     <!--calibType:Using robot with fixxed cameras<0>,Using robot with moved cameras<1>,No robot<2>-->
     <calibType>2</calibType>
     <!--updateFlag:calib camera and hand-eye together<0>,update calib file with unknown method<1>-->
     <!--update calib file with teach info<2>,update calib file with new hand-eye info<3>-->
     <updateFlag>0</updateFlag>
-    <moveRange>67.52920532,11.35131836,2623.70654297,2129.91503906,1569.01452637,831.36938477</moveRange>
-    <camera cameraNumber="2" cameraRMS="0.0233">
+    <moveRange>64.37667847,-53.63473511,2563.97167969,2102.71972656,1571.73291016,1091.16796875</moveRange>
+    <camera cameraNumber="2" cameraRMS="0.0231">
         <focalLength>8.00000000</focalLength>
         <cameraResolution>2048,1536</cameraResolution>
         <camera-1>
             <cameraID>0</cameraID>
             <!--Camera Intrin Param Version:CSV 1,OpenCV 2,CSV-2-OPENCV 3,OPENCV-2-CSV 4-->
             <intrinVersion>1</intrinVersion>
-            <intrinsicParam>2346.1421852979, 2347.6126110700, 1056.6649227702, 757.0000599809, -0.0819257767, -0.1065097158, 0.1645008281, -0.0655607208, -0.9914764795, 0.1940478458</intrinsicParam>
+            <intrinsicParam>2349.3819482498, 2348.6714523284, 1058.6494284921, 745.2847487896, -0.6382816910, -0.1073492077, 0.1741395129, -0.0906050452, 0.1419662871, -0.5493152643</intrinsicParam>
             <extrinsicParam>
-                <row0>-0.9967901890, -0.0074728443, 0.0797086929, -144.3073176882</row0>
-                <row1>0.0073679598, -0.9999715603, -0.0016098831, 1.0908398066</row1>
-                <row2>0.0797184564, -0.0010174252, 0.9968169002, 9.7646177737</row2>
+                <row0>0.9975110559, -0.0025290615, 0.0704648644, -144.4540342414</row0>
+                <row1>0.0022641956, 0.9999900698, 0.0038384557, -0.0915866394</row1>
+                <row2>-0.0704738723, -0.0036693558, 0.9975068767, 12.1636735313</row2>
             </extrinsicParam>
         </camera-1>
         <camera-2>
             <cameraID>1</cameraID>
             <!--Camera Intrin Param Version:CSV 1,OpenCV 2,CSV-2-OPENCV 3,OPENCV-2-CSV 4-->
             <intrinVersion>1</intrinVersion>
-            <intrinsicParam>2349.3980289702, 2349.2552264233, 1057.2566339923, 736.1704682904, -0.6061174754, -0.1073389720, 0.1731416445, -0.0872612390, 0.1895544015, -1.3554631654</intrinsicParam>
+            <intrinsicParam>2347.2011753659, 2347.9602308541, 1057.8695508932, 762.9635016868, 0.0326035411, -0.1062064091, 0.1657847490, -0.0807422279, -0.4577795005, 0.7069150566</intrinsicParam>
             <extrinsicParam>
-                <row0>-0.9968143229, 0.0024112046, -0.0797207113, 144.0287167165</row0>
-                <row1>-0.0024846394, -0.9999965755, 0.0008219665, 0.3384529746</row1>
-                <row2>-0.0797184564, 0.0010174252, 0.9968169002, 13.2948802444</row2>
+                <row0>0.9974899203, 0.0066347904, -0.0704970806, 144.7243194752</row0>
+                <row1>-0.0068769279, 0.9999712573, -0.0031925660, -1.2196934385</row1>
+                <row2>0.0704738723, 0.0036693558, 0.9975068767, 8.2652919389</row2>
             </extrinsicParam>
         </camera-2>
     </camera>
-    <projector projectorNumber="1" projectorRMS="0.0872">
+    <projector projectorNumber="1" projectorRMS="0.0864">
         <projectorResolution>1920,1080</projectorResolution>
         <projector-1>
             <projectorID>-1</projectorID>
             <!--Camera Intrin Param Version:CSV 1,OpenCV 2,CSV-2-OPENCV 3,OPENCV-2-CSV 4-->
             <intrinVersion>1</intrinVersion>
-            <intrinsicParam>1587.8926104448, 1588.3317665006, 956.8284671615, 573.5826589146, -0.1057051977, 0.0309115219, -0.0708097125, 0.0583057832, 0.8938529051, -1.2973229064</intrinsicParam>
+            <intrinsicParam>1587.8221149071, 1587.8325048321, 955.0877330937, 573.5029890789, -0.1117648245, 0.0307445049, -0.0678270285, 0.0467980442, 0.2766923154, -1.2253676446</intrinsicParam>
             <extrinsicParam>
-                <row0>0.9999105295, -0.0000543884, -0.0133764720, -0.1268876458</row0>
-                <row1>0.0000000000, 0.9999917340, -0.0040659422, -0.0099123172</row1>
-                <row2>0.0133765826, 0.0040655784, 0.9999022643, 2.0912387159</row2>
+                <row0>0.9998487802, -0.0000049894, -0.0173901301, -0.4304807439</row0>
+                <row1>-0.0000000000, 0.9999999588, -0.0002869072, 0.0096152920</row1>
+                <row2>0.0173901308, 0.0002868638, 0.9998487391, 1.4549787241</row2>
             </extrinsicParam>
         </projector-1>
     </projector>

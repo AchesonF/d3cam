@@ -81,7 +81,7 @@ int csv_save_pointXYZ (Mat& out, vector<float> *point3D)
 			Vec3f *p0 = out2.ptr<Vec3f>(i);
 			for (int j = 0; j < out2.cols; j++) {
 				Vec3f p = p0[j];
-				if (isnan(p[0]) || isnan(p[1]) || isnan(p[2])) {
+				if (p[2] < 0.01f) {
 					continue;
 				}
 				outfile << p[0] << " " << p[1] << " " << p[2] << " " << "\n";
