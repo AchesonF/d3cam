@@ -171,13 +171,29 @@ static int csv_img_sender (char *path, uint16_t group)
 	char str_cmd[256] = {0};
 
 	memset(str_cmd, 0, 256);
-#if 0
+
+#if 1
 	snprintf(str_cmd, 256, "ftp-upload -h %s %s/CSV_%03d*", 
 		inet_ntoa(gCSV->tcpl.peer.sin_addr), path, group);
 #else
 	snprintf(str_cmd, 256, "ftp-upload -v -h %s %s/CSV_%03d*", 
 		inet_ntoa(gCSV->tcpl.peer.sin_addr), path, group);
 #endif
+
+	return system(str_cmd);
+}
+
+int csv_img_clear (char *path)
+{
+	char str_cmd[256] = {0};
+
+	if ((NULL == path)||(strcmp(path, "/") == 0)) {
+		return -1;
+	}
+
+	memset(str_cmd, 0, 256);
+
+	snprintf(str_cmd, 256, "rm -rf %s/*", path); // be careful for root directory "/"
 
 	return system(str_cmd);
 }
@@ -285,7 +301,7 @@ static void *csv_img_loop (void *data)
 						csv_img_sender(pCALIB->path, pCALIB->groupCalibrate);
 					}
 
-					if (++pCALIB->groupCalibrate > MAX_SAVE_IMG_GROUPS) {
+					if (++pCALIB->groupCalibrate == 0) {
 						pCALIB->groupCalibrate = 1;
 					}
 					csv_xml_write_CalibParameters();
@@ -297,7 +313,7 @@ static void *csv_img_loop (void *data)
 							csv_img_sender(pPC->ImageSaveRoot, pPC->groupPointCloud);
 						}
 
-						if (++pPC->groupPointCloud > MAX_SAVE_IMG_GROUPS) {
+						if (++pPC->groupPointCloud == 0) {
 							pPC->groupPointCloud = 1;
 						}
 						csv_xml_write_PointCloudParameters();

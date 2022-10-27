@@ -1012,6 +1012,8 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 		return -1;
 	}
 
+	csv_img_clear(pCALIB->path);
+
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	// 1 常亮
@@ -1137,6 +1139,9 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 	if ((!libInit)||(pGX->cnt_gx < 2)) {
 		return -1;
 	}
+
+	csv_img_clear(pPC->ImageSaveRoot);
+
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
 	// 1 常亮
