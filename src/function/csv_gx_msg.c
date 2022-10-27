@@ -343,16 +343,21 @@ static int gx_msg_cameras_rgb_exposure_set (struct msg_package_t *pMP, struct ms
 static int gx_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
-	int result = -1;
+    char str_err[128] = {0};
+    int len_err = 0;
 
 	gCSV->gx.action_type = ACTION_CALIBRATION;
 	ret = csv_gx_cams_calibrate(&gCSV->gx);
 
 	if (ret == 0) {
-		result = 0;
+		csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
+	} else if (-2 == ret) {
+		len_err = snprintf(str_err, 128, "Cams busy now.");
+		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
+	} else {
+		len_err = snprintf(str_err, 128, "Cams grab failed.");
+		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 	}
-
-	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
 
 	return csv_msg_send(pACK);
 }
@@ -360,16 +365,21 @@ static int gx_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t
 static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
-	int result = -1;
+    char str_err[128] = {0};
+    int len_err = 0;
 
 	gCSV->gx.action_type = ACTION_POINTCLOUD;
 	ret = csv_gx_cams_pointcloud(&gCSV->gx);
 
 	if (ret == 0) {
-		result = 0;
+		csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
+	} else if (-2 == ret) {
+		len_err = snprintf(str_err, 128, "Cams busy now.");
+		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
+	} else {
+		len_err = snprintf(str_err, 128, "Cams grab failed.");
+		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 	}
-
-	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
 
 	return csv_msg_send(pACK);
 }

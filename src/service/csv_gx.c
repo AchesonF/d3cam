@@ -1012,7 +1012,13 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	csv_img_clear(pCALIB->path, pCALIB->groupCalibrate);
+	if (pGX->busying) {
+		return -2;
+	}
+
+	pGX->busying = true;
+
+	csv_img_clear(pCALIB->path);
 
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
@@ -1118,6 +1124,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 	pthread_cond_broadcast(&gCSV->img.cond_img);
 
 	if (0 != errNum) {
+		pGX->busying = false;
 		return -1;
 	}
 
@@ -1140,7 +1147,13 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	csv_img_clear(pPC->ImageSaveRoot, pPC->groupPointCloud);
+	if (pGX->busying) {
+		return -2;
+	}
+
+	pGX->busying = true;
+
+	csv_img_clear(pPC->ImageSaveRoot);
 
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
@@ -1247,6 +1260,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 	pthread_cond_broadcast(&gCSV->img.cond_img);
 
 	if (0 != errNum) {
+		pGX->busying = false;
 		return -1;
 	}
 
@@ -1379,6 +1393,7 @@ int csv_gx_init (void)
 	pGX->cnt_gx = 0;
 	pGX->name_gx = NAME_THREAD_GX;
 	pGX->action_type = ACTION_NONE;
+	pGX->busying = false;
 
 	ret = csv_gx_thread(pGX);
 

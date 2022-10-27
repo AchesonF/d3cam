@@ -77,6 +77,7 @@ struct csv_gx_t {
 	pthread_cond_t			cond_gx;		///< 条件
 
 	uint8_t					action_type;		///< 获取图像组类型 0: none 1:calib 2:pointcloud ...
+	uint8_t					busying;		///< 忙于处理图像
 
 	pthread_mutex_t			mutex_wait_depth;
 	pthread_cond_t			cond_wait_depth;
