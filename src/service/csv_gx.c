@@ -740,14 +740,14 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		GetFloatRange(pCAM->hDevice, GX_FLOAT_GAIN, &pCAM->gainRange);
 		GetEnum(pCAM->hDevice, GX_ENUM_PIXEL_FORMAT, &pCAM->PixelFormat);
 
-#if 1
-		memset(cfg_name, 0, 256);
-		snprintf(cfg_name, 256, "%s_%s.ini", pCAM->model, pCAM->serial);
-		emStatus = GXExportConfigFile(pCAM->hDevice, cfg_name);
-		if (GX_STATUS_SUCCESS != emStatus) {
-			GxErrStr(emStatus);
+		if (gCSV->cfg.devicecfg.exportCamsCfg) {
+			memset(cfg_name, 0, 256);
+			snprintf(cfg_name, 256, "%s_%s.ini", pCAM->model, pCAM->serial);
+			emStatus = GXExportConfigFile(pCAM->hDevice, cfg_name);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				GxErrStr(emStatus);
+			}
 		}
-#endif
 	}
 
 	if ((TOTAL_CAMS != pGX->cnt_gx)||(pGX->Cam[CAM_LEFT].PayloadSize != pGX->Cam[CAM_RIGHT].PayloadSize)) {
@@ -990,12 +990,12 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 	return ret;
 }
 
-int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
+int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 {
 	int ret = 0, i = 0;
-	int nFrames = 23;
-	int idx = 0;
+	int idx = 1;
 	char img_name[256] = {0};
+	uint8_t lastpic = 0;
 	struct cam_gx_spec_t *pCAM = NULL;
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
@@ -1014,7 +1014,7 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
-	// 1 亮光
+	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
 
 	for (i = 0; i < pGX->cnt_gx; i++) {
@@ -1044,9 +1044,9 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 		if ((0 == ret)&&(pDevC->SaveImageFile)) {
 			memset(img_name, 0, 256);
-			generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
+			csv_img_generate_filename(pCALIB->path, pCALIB->groupCalibrate, 0, i, img_name);
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, 0);
+				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, 0);
 		}
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1058,12 +1058,10 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 
 	}
 
-	idx++;
+	// 22 标定条纹
+	ret = csv_dlp_just_write(DLP_CMD_CALIB);
 
-	// 22 标定
-	ret = csv_dlp_just_write(DLP_CMD_DEMARCATE);
-
-	while (idx < nFrames) {
+	while (idx <= NUM_PICS_CALIB) {
 		for (i = 0; i < pGX->cnt_gx; i++) {
 			pCAM = &pGX->Cam[i];
 
@@ -1091,9 +1089,12 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 			if ((0 == ret)&&(pDevC->SaveImageFile)) {
 				memset(img_name, 0, 256);
-				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
+				csv_img_generate_filename(pCALIB->path, pCALIB->groupCalibrate, idx, i, img_name);
+				if ((NUM_PICS_CALIB == idx)&&(CAM_RIGHT == i)) {
+					lastpic = 1;
+				}
 				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, 0);
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, lastpic);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1118,18 +1119,12 @@ int csv_gx_cams_demarcate (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	if (pDevC->SaveImageFile) {
-		pCALIB->groupDemarcate++;
-		csv_xml_write_CalibParameters();
-	}
-
 	return ret;
 }
 
-int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
+int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 {
 	int ret = 0, i = 0;
-	int nFrames = 13;
 	int idx = 1;
 	char img_name[256] = {0};
 	uint8_t lastpic = 0;
@@ -1144,10 +1139,54 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 	}
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
-	// 13 高速光
-	ret = csv_dlp_just_write(DLP_CMD_NORMAL);//(DLP_CMD_HIGHSPEED);
+	// 1 常亮
+	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
 
-	while (idx <= nFrames) {
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+			errNum++;
+			continue;
+		}
+
+		//memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
+
+		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
+			GxErrStr(emStatus);
+			errNum++;
+			break;
+		}
+
+		if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+			log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+			errNum++;
+			continue;
+		}
+
+		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+		if ((0 == ret)&&(pDevC->SaveImageFile)) {
+			memset(img_name, 0, 256);
+			csv_img_generate_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, 0, i, img_name);
+			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
+				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, 0);
+		}
+
+		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			GxErrStr(emStatus);
+			errNum++;
+			continue;
+		}
+
+	}
+
+	// 13 条纹
+	ret = csv_dlp_just_write(DLP_CMD_POINTCLOUD);
+
+	while (idx <= NUM_PICS_POINTCLOUD) {
 		for (i = 0; i < pGX->cnt_gx; i++) {
 			pCAM = &pGX->Cam[i];
 
@@ -1175,12 +1214,13 @@ int csv_gx_cams_highspeed (struct csv_gx_t *pGX)
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 			if ((0 == ret)&&(pDevC->SaveImageFile)) {
 				memset(img_name, 0, 256);
-				generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
-				if ((nFrames == idx)&&(CAM_RIGHT == i)) {
+				csv_img_generate_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
+				if ((NUM_PICS_POINTCLOUD == idx)&&(CAM_RIGHT == i)) {
 					lastpic = 1;
+					csv_img_generate_depth_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, pPC->outDepthImage);
 				}
 				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, lastpic);
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, lastpic);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1333,6 +1373,7 @@ int csv_gx_init (void)
 	libInit = false;
 	pGX->cnt_gx = 0;
 	pGX->name_gx = NAME_THREAD_GX;
+	pGX->action_type = ACTION_NONE;
 
 	ret = csv_gx_thread(pGX);
 

@@ -133,8 +133,57 @@ encode_error:
     return ret;
 }
 
-int csv_img_push (char *filename, uint8_t *pRawData, 	uint32_t length, 
-	uint32_t width, uint32_t height, uint8_t pos, uint8_t lastpic)
+/* *path : 路径
+group : 次数
+idx : 编号
+lr : 左右
+suffix : 后缀类型
+*img_file : 生成名
+*/
+int csv_img_generate_filename (char *path, uint16_t group, 
+	int idx, int lr, char *img_file)
+{
+	if (idx == 0) {
+		snprintf(img_file, 128, "%s/CSV_%03dC%d%s", path, group, 
+			lr+1, gCSV->cfg.devicecfg.strSuffix);
+	} else {
+		snprintf(img_file, 128, "%s/CSV_%03dC%dS00P%03d%s", path, group, 
+			lr+1, idx, gCSV->cfg.devicecfg.strSuffix);
+	}
+
+	log_debug("img : '%s'", img_file);
+
+	return 0;
+}
+
+int csv_img_generate_depth_filename (char *path, uint16_t group, char *img_file)
+{
+	snprintf(img_file, 128, "%s/CSV_%03d_depth.png", path, group);
+
+	log_debug("img : '%s'", img_file);
+
+	return 0;
+}
+
+// 由 ftp-upload 发送至 tcp 连接端所在的 ftp 服务器（匿名登陆）
+static int csv_img_sender (char *path, uint16_t group)
+{
+	char str_cmd[256] = {0};
+
+	memset(str_cmd, 0, 256);
+#if 0
+	snprintf(str_cmd, 256, "ftp-upload -h %s %s/CSV_%03d*", 
+		inet_ntoa(gCSV->tcpl.peer.sin_addr), path, group);
+#else
+	snprintf(str_cmd, 256, "ftp-upload -v -h %s %s/CSV_%03d*", 
+		inet_ntoa(gCSV->tcpl.peer.sin_addr), path, group);
+#endif
+
+	return system(str_cmd);
+}
+
+int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length, 
+	uint32_t width, uint32_t height, uint8_t pos, uint8_t action, uint8_t lastpic)
 {
 	if ((NULL == pRawData)||(NULL == filename)) {
 		return -1;
@@ -159,6 +208,7 @@ int csv_img_push (char *filename, uint8_t *pRawData, 	uint32_t length,
 	pIPK->height = height;
 	pIPK->length = length;
 	pIPK->position = pos;
+	pIPK->action = action;
 	pIPK->lastPic = lastpic;
 
 	if (CAM_LEFT == pos) {
@@ -198,6 +248,8 @@ static void *csv_img_loop (void *data)
 
 	struct csv_img_t *pIMG = (struct csv_img_t *)data;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
+	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
+	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	int ret = 0;
 
@@ -227,7 +279,31 @@ static void *csv_img_loop (void *data)
 			}
 
 			if (pIPK->lastPic) {
-				csv_3d_calc();
+				switch (pIPK->action) {
+				case ACTION_CALIBRATION:
+					if (pDevC->ftpupload) {
+						csv_img_sender(pCALIB->path, pCALIB->groupCalibrate);
+					}
+
+					if (++pCALIB->groupCalibrate > MAX_SAVE_IMG_GROUPS) {
+						pCALIB->groupCalibrate = 1;
+					}
+					csv_xml_write_CalibParameters();
+					break;
+				case ACTION_POINTCLOUD:
+					ret = csv_3d_calc();
+					if (0 == ret) {
+						if (pDevC->ftpupload) {
+							csv_img_sender(pPC->ImageSaveRoot, pPC->groupPointCloud);
+						}
+
+						if (++pPC->groupPointCloud > MAX_SAVE_IMG_GROUPS) {
+							pPC->groupPointCloud = 1;
+						}
+						csv_xml_write_PointCloudParameters();
+					}
+					break;
+				}
 			}
 
 			if (NULL != pIPK->payload) {

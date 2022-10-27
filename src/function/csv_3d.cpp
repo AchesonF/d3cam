@@ -29,8 +29,9 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 	// 导入C1相机图像
 	vector<Mat> src1list;
 	for (i = 0; i < 13; i++) {
-		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C1S00P000.bmp
-		snprintf(filename, 512, "CSV_%03dC1S00P%03d.bmp", pPC->groupPointCloud, i+1);
+		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C1S00P000.bmp/.png
+		snprintf(filename, 512, "CSV_%03dC1S00P%03d%s", pPC->groupPointCloud, i+1, 
+			gCSV->cfg.devicecfg.strSuffix);
 
 		string path = pathRoot + "/" + filename;
 
@@ -45,8 +46,9 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 	// 导入2相机图像
 	vector<Mat> src2list;
 	for (i = 0; i < 13; i++) {
-		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C2S00P000.bmp
-		snprintf(filename, 512, "CSV_%03dC2S00P%03d.bmp", pPC->groupPointCloud, i+1);
+		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C2S00P000.bmp/.png
+		snprintf(filename, 512, "CSV_%03dC2S00P%03d%s", pPC->groupPointCloud, i+1, 
+			gCSV->cfg.devicecfg.strSuffix);
 
 		string path = pathRoot + "/" + filename;
 
@@ -58,8 +60,6 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 
 	imgGroupList.push_back(src2list);
 	log_debug("right image num : %d", src2list.size());
-
-	return;
 }
 
 
@@ -97,6 +97,8 @@ int csv_save_pointXYZ (Mat& out, vector<float> *point3D)
 
 int csv_3d_calc (void)
 {
+	int ret = -1;
+	bool d3calc = false;
 	uint64_t f_timestamp = 0;
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
@@ -113,13 +115,17 @@ int csv_3d_calc (void)
 	}
 
 	if (!pPC->initialized) {
-		csv_3d_init();
+		ret = csv_3d_init();
+		if (ret < 0) {
+			return -1;
+		}
 	}
 
 	vector<vector<Mat>> imgGroupList;
 	if (pPC->test_bmp) {
 		string imgRoot = string("data/test_bmps");
 		pPC->groupPointCloud = 1;
+		csv_img_generate_depth_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, pPC->outDepthImage);
 		loadSrcImageEx(imgRoot, imgGroupList);
 	} else {
 		string imgRoot = string(pPC->ImageSaveRoot);
@@ -143,11 +149,15 @@ int csv_3d_calc (void)
 	f_timestamp = utility_get_microsecond();
 	log_debug("create 3d @ %ld us.", f_timestamp);
 
-	CsvCreatePoint3D(imageGroups, depthImage, &point3D);
+	d3calc = CsvCreatePoint3D(imageGroups, depthImage, &point3D);
 
-	log_debug("create3d take %ld us.", utility_get_microsecond() - f_timestamp);
+	log_debug("create3d %d : take %ld us.", d3calc, utility_get_microsecond() - f_timestamp);
 
 	f_timestamp = utility_get_microsecond();
+
+	if (false == d3calc) {
+		return -1;
+	}
 
 	Mat out1;
 	ParseDepthImage2CVMat(depthImage, out1);
@@ -170,8 +180,6 @@ int csv_3d_calc (void)
 
 		log_debug("save pointcloud take %ld us.", utility_get_microsecond() - f_timestamp);
 	}
-
-	//pPC->groupPointCloud++;
 
 	return 0;
 }
@@ -205,6 +213,7 @@ int csv_3d_init (void)
 			csv_xml_write_PointCloudParameters();
 		} else {
 			log_info("ERROR : Create LUT failed.");
+			return -1;
 		}
 	}
 

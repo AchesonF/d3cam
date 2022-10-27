@@ -210,7 +210,7 @@ static int csv_gvcp_readreg_ack (struct gvcp_ask_t *pASK,
 		}
 
 		if (NULL != desc) {
-			log_debug("RD : %s", desc);
+//			log_debug("RD : %s", desc);
 		}
 
 		*pRegData++ = htonl(nTemp);
@@ -427,7 +427,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_CalibrateExpoTime1: {
-		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_DEMARCATE];
+		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB];
 		pDlpcfg->expoTime = (float)regData;
 		}
 		break;
@@ -445,7 +445,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_PointCloudExpoTime: {
-		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL];
+		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
 		pDlpcfg->expoTime = (float)regData;
 		}
 		break;
@@ -457,7 +457,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_DepthImageExpoTime: {
-		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL];
+		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
 		pDlpcfg->expoTime = (float)regData;
 		}
 		break;
@@ -518,7 +518,7 @@ static int csv_gvcp_writereg_ack (struct gvcp_ask_t *pASK,
 		}
 
 		if (NULL != desc) {
-			log_debug("WR : %s", desc);
+//			log_debug("WR : %s", desc);
 		}
 
 		ret = csv_gvcp_writereg_effective(reg_addr, reg_data);
@@ -619,7 +619,7 @@ static int csv_gvcp_readmem_ack (struct gvcp_ask_t *pASK,
 	}
 
 	if (NULL != desc) {
-		log_debug("MR : %s", desc);
+//		log_debug("MR : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_get(mem_addr, &info);
@@ -698,7 +698,7 @@ static int csv_gvcp_writemem_ack (struct gvcp_ask_t *pASK,
 	}
 
 	if (NULL != desc) {
-		log_debug("MW : %s", desc);
+//		log_debug("MW : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_set(mem_addr, info);
@@ -928,13 +928,13 @@ static void *csv_gvcp_ask_loop (void *data)
 
 			switch (pGVCP->grab_type) {
 			case GRAB_CALIB_PICS:
-				csv_gx_cams_demarcate(&gCSV->gx);
+				csv_gx_cams_calibrate(&gCSV->gx);
 				break;
 			case GRAB_POINTCLOUD_PICS:
-				csv_gx_cams_highspeed(&gCSV->gx);
+				csv_gx_cams_pointcloud(&gCSV->gx);
 				break;
 			case GRAB_DEPTHIMAGE_PICS:
-				csv_gx_cams_highspeed(&gCSV->gx);
+				csv_gx_cams_pointcloud(&gCSV->gx);
 				break;
 			case GRAB_HDRIMAGE_PICS:
 				break;

@@ -26,6 +26,8 @@ struct csv_tcp_t {
 	uint8_t				accepted;			///< 已建立连接
 	double				time_start;			///< 建链时刻 s
 
+	struct sockaddr_in	peer;
+
 	struct csv_beat_t	beat;
 
 	uint8_t				buf_recv[MAX_LEN_TCP_RCV];

@@ -457,7 +457,7 @@ int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
     Mat depthImg;
     int depthMatsize = 0;
 
-	ret = csv_gx_cams_highspeed(pGX);
+	ret = csv_gx_cams_pointcloud(pGX);
 
 	struct timeval now;
 	struct timespec timeo;

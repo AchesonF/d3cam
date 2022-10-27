@@ -11,44 +11,31 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 	pDevC->DeviceType = 0;
 	pDevC->SwitchCams = 0;
 	pDevC->CamImageType = 0;
-	pDevC->SaveImageFile = 0;
+	pDevC->SaveImageFile = 1;
 	pDevC->SaveImageFormat = SUFFIX_BMP;
 	pDevC->flip_left = 1;
 	pDevC->flip_right = 1;
+	pDevC->ftpupload = 1;
+	pDevC->exportCamsCfg = 0;
 	pDevC->strSuffix = ".bmp";
 
-	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_NORMAL];
-	strcpy(pDlpcfg->name, "采普通光图13对");
+	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_POINTCLOUD];
+	strcpy(pDlpcfg->name, "深度采图13对");
 	pDlpcfg->rate = 60.0f;
-	pDlpcfg->brightness = 700.0f;
-	pDlpcfg->expoTime = 10000.0f;
+	pDlpcfg->brightness = 1000.0f;
+	pDlpcfg->expoTime = 20000.0f;
 
-	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_DEMARCATE];
-	strcpy(pDlpcfg->name, "采标定图22对");
+	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_CALIB];
+	strcpy(pDlpcfg->name, "标定采图22对");
 	pDlpcfg->rate = 60.0f;
-	pDlpcfg->brightness = 700.0f;
-	pDlpcfg->expoTime = 10000.0f;
+	pDlpcfg->brightness = 1000.0f;
+	pDlpcfg->expoTime = 20000.0f;
 
 	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_BRIGHT];
-	strcpy(pDlpcfg->name, "采常亮图1对");
+	strcpy(pDlpcfg->name, "亮光采图1对");
 	pDlpcfg->rate = 60.0f;
-	pDlpcfg->brightness = 700.0f;
-	pDlpcfg->expoTime = 10000.0f;
-
-	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_HIGHSPEED];
-	strcpy(pDlpcfg->name, "采高速图13对");
-	pDlpcfg->rate = 60.0f;
-	pDlpcfg->brightness = 700.0f;
-	pDlpcfg->expoTime = 10000.0f;
-
-	return 0;
-}
-
-static int csv_cfg_depth (struct depthimg_cfg_t *pDepC)
-{
-	pDepC->NumDisparities = 816;
-	pDepC->BlockSize = 21;
-	pDepC->UniqRatio = 9;
+	pDlpcfg->brightness = 1000.0f;
+	pDlpcfg->expoTime = 20000.0f;
 
 	return 0;
 }
@@ -59,11 +46,9 @@ static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 	strcpy(pPC->ImageSaveRoot, "data/PointCloudImage");
 	strcpy(pPC->calibFile, "CSV_Cali_DaHengCamera.xml");
 	strcpy(pPC->outFileXYZ, "pointcloud.xyz");
-	strcpy(pPC->outDepthImage, "depthImage.png");
 	pPC->saveXYZ = 0;
 	pPC->saveDepthImage = 1;
 	pPC->groupPointCloud = 1;
-	pPC->enable = 0;
 	pPC->initialized = 0;
 	pPC->test_bmp = 0;
 
@@ -73,7 +58,7 @@ static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 static int csv_cfg_calib (struct calib_conf_t *pCALIB)
 {
 	strcpy(pCALIB->path, "data/calibImage");
-	pCALIB->groupDemarcate = 1;
+	pCALIB->groupCalibrate = 1;
 
 	return 0;
 }
@@ -167,7 +152,6 @@ int csv_cfg_init (void)
 	struct csv_cfg_t *pCFG = &gCSV->cfg;
 
 	csv_cfg_device(&pCFG->devicecfg);
-	csv_cfg_depth(&pCFG->depthimgcfg);
 	csv_cfg_pointcloud(&pCFG->pointcloudcfg);
 	csv_cfg_calib(&pCFG->calibcfg);
 	csv_cfg_gev(&pCFG->gigecfg);

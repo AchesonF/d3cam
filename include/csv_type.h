@@ -14,16 +14,29 @@ typedef enum {
 	CAMERA_DISCONNECT				= (0x00002001),	// 断开相机
 
 	CAMERA_GET_INFO					= (0x00003000),
-	CAMERA_GET_EXPOSURE				= (0x00003001),	// 获取曝光时间
+
 	CAMERA_GET_GAIN					= (0x00003002),	// 获取增益
 	CAMERA_GET_CALIB_FILE			= (0x00003003),	// 获取标定文件
 	CAMERA_GET_CAMERA_NAME			= (0x00003004),	// 获取相机名称
-
 	CAMERA_GET_RATE					= (0x00003010),	// 获取帧率
-	CAMERA_GET_BRIGHTNESS			= (0x00003011),	// 获取亮度
+
+	CAMERA_GET_EXPOSURE				= (0x00003001),	// 获取曝光时间(us),常亮图(0x05)(标定前/高速识图前适用)
+	CAMERA_GET_BRIGHTNESS			= (0x00003011),	// 获取亮度(标定条纹图用)
+	CAMERA_GET_BRIGHTNESS_PC		= (0x00003012),	// 获取亮度(高速识图用)
+	CAMERA_GET_EXPOSURE_CALIB		= (0x00003013),	// 获取曝光时间(us),(标定条纹图适用)
+	CAMERA_GET_EXPOSURE_PC			= (0x00003014),	// 获取曝光时间(us),(识图条纹图适用)
+
+	CAMERA_SET_EXPOSURE				= (0x00004001),	// 设置曝光时间(us)(4字节浮点),常亮图(0x05)(标定前/高速识图前适用)
+	CAMERA_SET_BRIGHTNESS			= (0x00004011),	// 设置亮度(标定条纹图用)(4字节浮点)
+	CAMERA_SET_BRIGHTNESS_PC		= (0x00004012),	// 设置亮度(高速识图用)(4字节浮点)
+	CAMERA_SET_EXPOSURE_CALIB		= (0x00004013),	// 设置曝光时间(us)(4字节浮点),(标定条纹图适用)
+	CAMERA_SET_EXPOSURE_PC			= (0x00004014),	// 设置曝光时间(us)(4字节浮点),(识图条纹图适用)
+
+	CAMERA_GET_CALIBRATE			= (0x00005009),	// 获取标定图 (1+22)*2
+	CAMERA_GET_POINTCLOUD			= (0x0000500A),	// 获取高速识图 1*2+1[13*2]
 
 	CAMERA_SET_INFO					= (0x00004000),	// 空值
-	CAMERA_SET_EXPOSURE				= (0x00004001),	// 设置相机曝光参数
+
 	CAMERA_SET_GAIN					= (0x00004002),	// 设置相机增益
 	CAMERA_SET_CALIB_FILE			= (0x00004003),	// 接收上位机传过来的标定文件
 	CAMERA_SET_CAMERA_NAME			= (0x00004004),	// 设置相机名称
@@ -32,10 +45,8 @@ typedef enum {
 	CAMERA_SET_LEFT_RIGHT_TYPE		= (0x00004007),	// 设置相机左右对调
 	CAMERA_SET_CONT_EXPOSURE		= (0x00004008),	// 设置相机曝光参数
 	CAMERA_SET_IMG_TYPE				= (0x00004009),	// 设置相机图像格式
-	CAMERA_PARAM_SAVE				= (0x00004100),	// 保存相机参数到配置文件里
-
 	CAMERA_SET_RATE					= (0x00004010),	// 设置帧率
-	CAMERA_SET_BRIGHTNESS			= (0x00004011),	// 设置亮度
+	CAMERA_PARAM_SAVE				= (0x00004100),	// 保存相机参数到配置文件里
 
 	CAMERA_GET_GRAB_FLASH			= (0x00005000),	// 获取带随机光的图像,闪动
 	CAMERA_GET_GRAB_LEFT			= (0x00005001),
@@ -46,6 +57,7 @@ typedef enum {
 	CAMERA_GET_GRAB_RGB				= (0x00005006),	// 取相机彩色图像,双图
 	CAMERA_GET_GRAB_RGB_LEFT		= (0x00005007),	// 取相机彩色图像,左图
 	CAMERA_GET_GRAB_RGB_RIGHT		= (0x00005008),	// 取相机彩色图像,右图
+
 
 	CAMERA_GET_STREAM				= (0x00006000),
 	CAMERA_GET_STREAM_LEFT			= (0x00006001),

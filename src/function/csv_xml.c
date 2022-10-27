@@ -496,7 +496,7 @@ static int csv_xml_DeviceConfiguration (
 {
 	int ret = 0;
 	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[10];
+	struct key_value_pair_t key_pair[16];
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	xml_strlcpy(key_pair[nums].key, "DeviceType", MAX_KEY_SIZE);
@@ -541,6 +541,18 @@ static int csv_xml_DeviceConfiguration (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
+	xml_strlcpy(key_pair[nums].key, "ftpupload", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDevC->ftpupload;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "exportCamsCfg", MAX_KEY_SIZE);
+	key_pair[nums].value = &pDevC->exportCamsCfg;
+	key_pair[nums].value_type = XML_VALUE_UINT8;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
 	if (mode == XML_GET) {
 		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
 			"DeviceConfiguration", key_pair, nums, 0);
@@ -578,52 +590,6 @@ static int csv_xml_DeviceConfiguration (
 	return 0;
 }
 
-static int csv_xml_DepthImageConfiguration (
-	struct csv_xml_t *pXML, uint8_t mode)
-{
-	int ret = 0;
-	uint32_t nums = 0;
-	struct key_value_pair_t key_pair[4];
-	struct depthimg_cfg_t *pDepC = &gCSV->cfg.depthimgcfg;
-
-	xml_strlcpy(key_pair[nums].key, "NumDisparities", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDepC->NumDisparities;
-	key_pair[nums].value_type = XML_VALUE_UINT32;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "BlockSize", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDepC->BlockSize;
-	key_pair[nums].value_type = XML_VALUE_UINT32;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "UniqRatio", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDepC->UniqRatio;
-	key_pair[nums].value_type = XML_VALUE_UINT32;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	if (mode == XML_GET) {
-		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
-			"DepthImageConfiguration", key_pair, nums, 0);
-	} else {
-		ret = xml_set_node_data(pXML->pDoc, pXML->pNode,
-			"DepthImageConfiguration", key_pair, nums, 0);
-	}
-
-	if (ret != 0) {
-		log_warn("ERROR : DepthImageConfiguration.");
-		return -1;
-	}
-
-	if (mode == XML_SET) {
-		pXML->SaveFile = true;
-	}
-
-	return 0;
-}
-
 static int csv_xml_PointCloudConfiguration (
 	struct csv_xml_t *pXML, uint8_t mode)
 {
@@ -650,12 +616,6 @@ static int csv_xml_PointCloudConfiguration (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
-	xml_strlcpy(key_pair[nums].key, "outDepthImage", MAX_KEY_SIZE);
-	key_pair[nums].value = &pPC->outDepthImage;
-	key_pair[nums].value_type = XML_VALUE_STRING;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
 	xml_strlcpy(key_pair[nums].key, "saveXYZ", MAX_KEY_SIZE);
 	key_pair[nums].value = &pPC->saveXYZ;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
@@ -670,12 +630,6 @@ static int csv_xml_PointCloudConfiguration (
 
 	xml_strlcpy(key_pair[nums].key, "groupPointCloud", MAX_KEY_SIZE);
 	key_pair[nums].value = &pPC->groupPointCloud;
-	key_pair[nums].value_type = XML_VALUE_UINT8;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "enable", MAX_KEY_SIZE);
-	key_pair[nums].value = &pPC->enable;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -726,8 +680,8 @@ static int csv_xml_CalibConfiguration (
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
 
-	xml_strlcpy(key_pair[nums].key, "groupDemarcate", MAX_KEY_SIZE);
-	key_pair[nums].value = &pCALIB->groupDemarcate;
+	xml_strlcpy(key_pair[nums].key, "groupCalibrate", MAX_KEY_SIZE);
+	key_pair[nums].value = &pCALIB->groupCalibrate;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -778,14 +732,6 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 		ret = csv_xml_DeviceConfiguration(pXML, XML_GET);
 		if (ret < 0) {
 			log_warn("ERROR : DeviceConfiguration GET.");
-		}
-	}
-
-	pXML->pNode = xml_get_node(pXML->pRoot, "CSVDepthImageConfiguration", 0);
-	if (pXML->pNode != NULL) {
-		ret = csv_xml_DepthImageConfiguration(pXML, XML_GET);
-		if (ret < 0) {
-			log_warn("ERROR : DepthImageConfiguration GET.");
 		}
 	}
 
@@ -856,33 +802,6 @@ int csv_xml_write_DeviceParameters (void)
 		ret = csv_xml_DeviceConfiguration(pXML, XML_SET);
 		if (ret < 0) {
 			log_warn("ERROR : DeviceConfiguration SET.");
-			goto xml_exit;
-		}
-	}
-
-  xml_exit:
-	xml_unload_file(pXML->pDoc);
-
-	return ret;
-}
-
-int csv_xml_write_DepthImgParameters (void)
-{
-	int ret = 0;
-	struct csv_xml_t *pXML = &gCSV->xml;
-
-	ret = xml_load_file(pXML);
-	if (ret < 0) {
-		log_warn("ERROR : xml file load.");
-		return -1;
-	}
-
-	/* node_index is 0, pNodePtr is pRootPtr */
-	pXML->pNode = xml_get_node(pXML->pRoot, "CSVDepthImageConfiguration", 0);
-	if (pXML->pNode != NULL) {
-		ret = csv_xml_DepthImageConfiguration(pXML, XML_SET);
-		if (ret < 0) {
-			log_warn("ERROR : DepthImageConfiguration SET.");
 			goto xml_exit;
 		}
 	}

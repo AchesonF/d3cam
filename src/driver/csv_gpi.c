@@ -54,7 +54,7 @@ int csv_gpi_trigger (struct csv_gpi_t *pGPI)
 				if (GPI_LOW == pGPI->value) {
 					pGPI->status[IDX_IN_1] = GPI_LOW;
 #if defined(USE_HK_CAMS)
-					gCSV->mvs.grab_type = GRAB_DEMARCATE;
+					gCSV->mvs.grab_type = GRAB_CALIBRATE;
 					pthread_cond_broadcast(&gCSV->mvs.cond_grab);	// 下降沿触发
 #endif
 				} else if (GPI_HIGH == pGPI->value) {
@@ -66,7 +66,7 @@ int csv_gpi_trigger (struct csv_gpi_t *pGPI)
 					// todo
 					pGPI->status[IDX_IN_2] = GPI_LOW;
 #if defined(USE_HK_CAMS)
-					gCSV->mvs.grab_type = GRAB_HIGHSPEED;
+					gCSV->mvs.grab_type = GRAB_POINTCLOUD;
 					pthread_cond_broadcast(&gCSV->mvs.cond_grab);	// 下降沿触发
 #endif
 				} else if (GPI_HIGH == pGPI->value) {

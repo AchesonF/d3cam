@@ -383,30 +383,6 @@ void utility_read_values (const char *buffer, const char *prefix, uint32_t *valu
 	}
 }
 
-/* *path : 路径
-group : 次数
-idx : 编号
-lr : 左右
-suffix : 后缀类型
-*img_file : 生成名
-*/
-int generate_image_filename (char *path, uint16_t group, 
-	int idx, int lr, char *img_file)
-{
-	if (idx == 0) {
-		snprintf(img_file, 128, "%s/CSV_%03dC%d%s", path, group, 
-			lr+1, gCSV->cfg.devicecfg.strSuffix);
-	} else {
-		snprintf(img_file, 128, "%s/CSV_%03dC%dS00P%03d%s", path, group, 
-			lr+1, idx, gCSV->cfg.devicecfg.strSuffix);
-	}
-
-	log_debug("img : '%s'", img_file);
-
-	return 0;
-}
-
-
 
 
 

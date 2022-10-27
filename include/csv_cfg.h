@@ -39,15 +39,11 @@ struct device_cfg_t {
 	uint8_t				SaveImageFormat;		///< 图像存储格式 SUFFIX_BMP
 	uint8_t				flip_left;				///< 左机 上下翻转
 	uint8_t				flip_right;				///< 右机 上下翻转
+	uint8_t				ftpupload;				///< 通过ftp送出
+	uint8_t				exportCamsCfg;			///< 导出相机配置
 	char				*strSuffix;
 
 	struct dlp_cfg_t	dlpcfg[TOTAL_DLP_CMDS];
-};
-
-struct depthimg_cfg_t {
-	int					NumDisparities;
-	int					BlockSize;
-	int					UniqRatio;
 };
 
 struct channel_cfg_t {
@@ -136,7 +132,6 @@ struct pointcloud_cfg_t {
 	uint8_t					saveXYZ;			///< 保存点云文件
 	uint8_t					saveDepthImage;		///< 保存深度图
 	uint8_t					groupPointCloud;	///< 点云次数
-	uint8_t					enable;				///< 使能计算
 	uint8_t					initialized;		///< 已初始化。执行一次即可
 
 	uint8_t					test_bmp;
@@ -145,13 +140,12 @@ struct pointcloud_cfg_t {
 // 标定
 struct calib_conf_t {
 	char					path[128];		///< 图片相对路径
-	uint8_t					groupDemarcate;	///< 标定次数, need to save for next boot
+	uint8_t					groupCalibrate;	///< 标定次数, need to save for next boot
 
 };
 
 struct csv_cfg_t {
 	struct device_cfg_t		devicecfg;
-	struct depthimg_cfg_t	depthimgcfg;
 	struct pointcloud_cfg_t	pointcloudcfg;
 
 	struct calib_conf_t		calibcfg;

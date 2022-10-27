@@ -6,21 +6,19 @@ extern "C" {
 
 static uint8_t csv_dlp_pick_code (uint8_t idx)
 {
-	uint8_t cmd = CMD_NORMAL;
+	uint8_t cmd = CMD_POINTCLOUD;
 
 	switch (idx) {
-	case DLP_CMD_DEMARCATE:
-		cmd = CMD_DEMARCATE;
+	case DLP_CMD_CALIB:
+		cmd = CMD_CALIB;
 		break;
 	case DLP_CMD_BRIGHT:
 		cmd = CMD_BRIGHT;
 		break;
-	case DLP_CMD_HIGHSPEED:
-		cmd = CMD_HIGH_SPEED;
-		break;
-	case DLP_CMD_NORMAL:
+
+	case DLP_CMD_POINTCLOUD:
 	default:
-		cmd = CMD_NORMAL;
+		cmd = CMD_POINTCLOUD;
 		break;
 	}
 
@@ -290,7 +288,7 @@ int csv_dlp_init (void)
 	int ret = 0;
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
 	struct csv_tty_param_t *pParam = &pDLP->param;
-	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL];
+	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
 
 	pDLP->dev = DEV_TTY_DLP;
 	pDLP->name = NAME_DEV_DLP;

@@ -112,10 +112,9 @@ int csv_tcp_local_accept (void)
 	int fd = -1, ret = 0;
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
 
-	struct sockaddr_in peer;
-	socklen_t sock_len = sizeof(peer);
+	socklen_t sock_len = sizeof(pTCPL->peer);
 
-	fd = accept(pTCPL->fd_listen, (struct sockaddr *)&peer, &sock_len);
+	fd = accept(pTCPL->fd_listen, (struct sockaddr *)&pTCPL->peer, &sock_len);
 	if (fd <= 0) {
 		log_err("ERROR : accept %s.", pTCPL->name_listen);
 		return fd;
@@ -157,7 +156,7 @@ int csv_tcp_local_accept (void)
 	pTCPL->fd = fd;
 
 	log_info("OK : %s accept '%s:%d' as fd(%d).", pTCPL->name,
-            inet_ntoa(peer.sin_addr), htons(peer.sin_port), fd);
+            inet_ntoa(pTCPL->peer.sin_addr), htons(pTCPL->peer.sin_port), fd);
 
 	pTCPL->time_start = utility_get_sec_since_boot();
 

@@ -9,8 +9,8 @@ extern "C" {
 #define NAME_THREAD_GRAB		("'thr_grab'")
 
 enum {
-	GRAB_DEMARCATE			= (0),
-	GRAB_HIGHSPEED			= (1),
+	GRAB_CALIBRATE			= (0),
+	GRAB_POINTCLOUD			= (1),
 
 	GRAB_END
 };

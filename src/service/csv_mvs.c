@@ -816,7 +816,7 @@ exit:
 	return ret;
 }
 
-static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
+static int csv_mvs_cams_calibrate (struct csv_mvs_t *pMVS)
 {
 	int ret = 0, i = 0;
 	int nRet = MV_OK;
@@ -857,7 +857,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 
 			if (pDevC->SaveImageFile) {
 				memset(img_name, 0, 256);
-				generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
+				csv_img_generate_filename(pCALIB->path, pCALIB->groupCalibrate, idx, i, img_name);
 				save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
 			}
 		} else {
@@ -875,7 +875,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 	idx++;
 
 	// 22 标定
-	ret = csv_dlp_just_write(DLP_CMD_DEMARCATE);
+	ret = csv_dlp_just_write(DLP_CMD_CALIB);
 
 	while (idx < nFrames) {
 		for (i = 0; i < pMVS->cnt_mvs; i++) {
@@ -900,7 +900,7 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 
 				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
-					generate_image_filename(pCALIB->path, pCALIB->groupDemarcate, idx, i, img_name);
+					csv_img_generate_filename(pCALIB->path, pCALIB->groupCalibrate, idx, i, img_name);
 					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
 				}
 			} else {
@@ -919,14 +919,14 @@ static int csv_mvs_cams_demarcate (struct csv_mvs_t *pMVS)
 	}
 
 	if (pDevC->SaveImageFile) {
-		pCALIB->groupDemarcate++;
+		pCALIB->groupCalibrate++;
 		csv_xml_write_CalibParameters();
 	}
 
 	return ret;
 }
 
-static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
+static int csv_mvs_cams_pointcloud (struct csv_mvs_t *pMVS)
 {
 	int ret = 0, i = 0;
 	int nRet = MV_OK;
@@ -940,7 +940,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
 	// 13 高速光
-	ret = csv_dlp_just_write(DLP_CMD_HIGHSPEED);
+	ret = csv_dlp_just_write(DLP_CMD_POINTCLOUD);
 
 	f_timestamp = utility_get_microsecond();
 
@@ -967,7 +967,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 
 				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
-					generate_image_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
+					csv_img_generate_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
 					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
 				}
 			} else {
@@ -986,7 +986,7 @@ static int csv_mvs_cams_highspeed (struct csv_mvs_t *pMVS)
 		idx++;
 	}
 
-	log_debug("highspeed 13 take %ld us.", utility_get_microsecond() - f_timestamp);
+	log_debug("pointcloud 13 take %ld us.", utility_get_microsecond() - f_timestamp);
 
 	if (pDevC->SaveImageFile) {
 	}
@@ -1014,11 +1014,11 @@ static void *csv_mvs_grab_loop (void *data)
 		}
 		ret = csv_mvs_cams_open(pMVS);
 		switch (pMVS->grab_type) {
-		case GRAB_DEMARCATE:
-			csv_mvs_cams_demarcate(pMVS);
+		case GRAB_CALIBRATE:
+			csv_mvs_cams_calibrate(pMVS);
 			break;
-		case GRAB_HIGHSPEED:
-			csv_mvs_cams_highspeed(pMVS);
+		case GRAB_POINTCLOUD:
+			csv_mvs_cams_pointcloud(pMVS);
 			break;
 		default:
 			break;

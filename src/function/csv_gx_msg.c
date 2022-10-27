@@ -75,8 +75,8 @@ static int gx_msg_cameras_exposure_get (struct msg_package_t *pMP, struct msg_ac
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].expoTime,
-		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].expoTime);
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_BRIGHT].expoTime,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_BRIGHT].expoTime);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
@@ -91,7 +91,76 @@ static int gx_msg_cameras_exposure_set (struct msg_package_t *pMP, struct msg_ac
 	float *ExpoTime = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].expoTime = *ExpoTime;
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_BRIGHT].expoTime = *ExpoTime;
+		csv_xml_write_DeviceParameters();
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+
+	return csv_msg_send(pACK);
+}
+
+static int gx_msg_cameras_exposure_calib_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int len_msg = 0;
+	char str_expo[1024] = {0};
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAMLEFT = &pGX->Cam[CAM_LEFT];
+	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
+
+	len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB].expoTime,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB].expoTime);
+
+	if (len_msg > 0) {
+		csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
+	}
+
+	return csv_msg_send(pACK);
+}
+
+static int gx_msg_cameras_exposure_calib_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int result = 0;
+	float *ExpoTime = (float *)pMP->payload;
+
+	if (pMP->hdr.length == sizeof(float)) {
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB].expoTime = *ExpoTime;
+		csv_xml_write_DeviceParameters();
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+
+	return csv_msg_send(pACK);
+}
+
+static int gx_msg_cameras_exposure_pc_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int len_msg = 0;
+	char str_expo[1024] = {0};
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAMLEFT = &pGX->Cam[CAM_LEFT];
+	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
+
+	len_msg = snprintf(str_expo, 1024, "%s:%f;%s:%f", 
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].expoTime,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].expoTime);
+
+	if (len_msg > 0) {
+		csv_msg_ack_package(pMP, pACK, str_expo, len_msg, 0);
+	}
+
+	return csv_msg_send(pACK);
+}
+
+static int gx_msg_cameras_exposure_pc_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int result = 0;
+	float *ExpoTime = (float *)pMP->payload;
+
+	if (pMP->hdr.length == sizeof(float)) {
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].expoTime = *ExpoTime;
+		csv_xml_write_DeviceParameters();
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
@@ -141,8 +210,8 @@ static int gx_msg_cameras_rate_get (struct msg_package_t *pMP, struct msg_ack_t 
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_rate, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate,
-		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate);
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].rate,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].rate);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_rate, len_msg, 0);
@@ -157,7 +226,8 @@ static int gx_msg_cameras_rate_set (struct msg_package_t *pMP, struct msg_ack_t 
 	float *rate = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].rate = *rate;
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].rate = *rate;
+		csv_xml_write_DeviceParameters();
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
@@ -174,8 +244,8 @@ static int gx_msg_cameras_brightness_get (struct msg_package_t *pMP, struct msg_
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	len_msg = snprintf(str_bright, 1024, "%s:%f;%s:%f", 
-		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness,
-		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness);
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB].brightness,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB].brightness);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_bright, len_msg, 0);
@@ -190,7 +260,42 @@ static int gx_msg_cameras_brightness_set (struct msg_package_t *pMP, struct msg_
 	float *bright = (float *)pMP->payload;
 
 	if (pMP->hdr.length == sizeof(float)) {
-		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_NORMAL].brightness = *bright;
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB].brightness = *bright;
+		csv_xml_write_DeviceParameters();
+	}
+
+	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
+
+	return csv_msg_send(pACK);
+}
+
+static int gx_msg_cameras_brightness_pc_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int len_msg = 0;
+	char str_bright[1024] = {0};
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAMLEFT = &pGX->Cam[CAM_LEFT];
+	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
+
+	len_msg = snprintf(str_bright, 1024, "%s:%f;%s:%f", 
+		pCAMLEFT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].brightness,
+		pCAMRIGHT->serial, gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].brightness);
+
+	if (len_msg > 0) {
+		csv_msg_ack_package(pMP, pACK, str_bright, len_msg, 0);
+	}
+
+	return csv_msg_send(pACK);
+}
+
+static int gx_msg_cameras_brightness_pc_set (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int result = 0;
+	float *bright = (float *)pMP->payload;
+
+	if (pMP->hdr.length == sizeof(float)) {
+		gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD].brightness = *bright;
+		csv_xml_write_DeviceParameters();
 	}
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, result);
@@ -235,12 +340,13 @@ static int gx_msg_cameras_rgb_exposure_set (struct msg_package_t *pMP, struct ms
 	return csv_msg_send(pACK);
 }
 
-static int gx_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int gx_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
 
-	ret = csv_gx_cams_demarcate(&gCSV->gx);
+	gCSV->gx.action_type = ACTION_CALIBRATION;
+	ret = csv_gx_cams_calibrate(&gCSV->gx);
 
 	if (ret == 0) {
 		result = 0;
@@ -251,12 +357,13 @@ static int gx_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t
 	return csv_msg_send(pACK);
 }
 
-static int gx_msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;
 	int result = -1;
 
-	ret = csv_gx_cams_highspeed(&gCSV->gx);
+	gCSV->gx.action_type = ACTION_POINTCLOUD;
+	ret = csv_gx_cams_pointcloud(&gCSV->gx);
 
 	if (ret == 0) {
 		result = 0;
@@ -275,12 +382,18 @@ void csv_gx_msg_cmd_enroll (void)
 	msg_command_add(CAMERA_DISCONNECT, toSTR(CAMERA_DISCONNECT), gx_msg_cameras_close);
 	msg_command_add(CAMERA_GET_EXPOSURE, toSTR(CAMERA_GET_EXPOSURE), gx_msg_cameras_exposure_get);
 	msg_command_add(CAMERA_SET_EXPOSURE, toSTR(CAMERA_SET_EXPOSURE), gx_msg_cameras_exposure_set);
+	msg_command_add(CAMERA_GET_EXPOSURE_CALIB, toSTR(CAMERA_GET_EXPOSURE_CALIB), gx_msg_cameras_exposure_calib_get);
+	msg_command_add(CAMERA_SET_EXPOSURE_CALIB, toSTR(CAMERA_SET_EXPOSURE_CALIB), gx_msg_cameras_exposure_calib_set);
+	msg_command_add(CAMERA_GET_EXPOSURE_PC, toSTR(CAMERA_GET_EXPOSURE_PC), gx_msg_cameras_exposure_pc_get);
+	msg_command_add(CAMERA_SET_EXPOSURE_PC, toSTR(CAMERA_SET_EXPOSURE_PC), gx_msg_cameras_exposure_pc_set);
 	msg_command_add(CAMERA_GET_GAIN, toSTR(CAMERA_GET_GAIN), gx_msg_cameras_gain_get);
 	msg_command_add(CAMERA_SET_GAIN, toSTR(CAMERA_SET_GAIN), gx_msg_cameras_gain_set);
 	msg_command_add(CAMERA_GET_RATE, toSTR(CAMERA_GET_RATE), gx_msg_cameras_rate_get);
 	msg_command_add(CAMERA_SET_RATE, toSTR(CAMERA_SET_RATE), gx_msg_cameras_rate_set);
 	msg_command_add(CAMERA_GET_BRIGHTNESS, toSTR(CAMERA_GET_BRIGHTNESS), gx_msg_cameras_brightness_get);
 	msg_command_add(CAMERA_SET_BRIGHTNESS, toSTR(CAMERA_SET_BRIGHTNESS), gx_msg_cameras_brightness_set);
+	msg_command_add(CAMERA_GET_BRIGHTNESS_PC, toSTR(CAMERA_GET_BRIGHTNESS_PC), gx_msg_cameras_brightness_pc_get);
+	msg_command_add(CAMERA_SET_BRIGHTNESS_PC, toSTR(CAMERA_SET_BRIGHTNESS_PC), gx_msg_cameras_brightness_pc_set);
 	msg_command_add(CAMERA_SET_CAMERA_NAME, toSTR(CAMERA_SET_CAMERA_NAME), gx_msg_cameras_name_set);
 	msg_command_add(CAMERA_SET_RGB_EXPOSURE, toSTR(CAMERA_SET_RGB_EXPOSURE), gx_msg_cameras_rgb_exposure_set);
 
@@ -291,8 +404,8 @@ void csv_gx_msg_cmd_enroll (void)
 	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), gx_msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), gx_msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), gx_msg_cameras_grab_rgb);
-	msg_command_add(0x00005009, toSTR(demarcate), gx_msg_cameras_demarcate);
-	msg_command_add(0x0000500A, toSTR(highspeed), gx_msg_cameras_highspeed);
+	msg_command_add(CAMERA_GET_CALIBRATE, toSTR(CAMERA_GET_CALIBRATE), gx_msg_cameras_calibrate);
+	msg_command_add(CAMERA_GET_POINTCLOUD, toSTR(CAMERA_GET_POINTCLOUD), gx_msg_cameras_pointcloud);
 
 }
 

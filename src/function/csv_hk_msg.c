@@ -306,11 +306,11 @@ static int hk_msg_cameras_name_set (struct msg_package_t *pMP, struct msg_ack_t 
 }
 
 
-static int hk_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
-	pMVS->grab_type = GRAB_DEMARCATE;
+	pMVS->grab_type = GRAB_CALIBRATE;
 	pthread_cond_broadcast(&pMVS->cond_grab);
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
@@ -318,11 +318,11 @@ static int hk_msg_cameras_demarcate (struct msg_package_t *pMP, struct msg_ack_t
 	return csv_msg_send(pACK);
 }
 
-static int hk_msg_cameras_highspeed (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+static int hk_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
-	pMVS->grab_type = GRAB_HIGHSPEED;
+	pMVS->grab_type = GRAB_POINTCLOUD;
 	pthread_cond_broadcast(&pMVS->cond_grab);
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
@@ -362,8 +362,8 @@ void csv_hk_msg_cmd_enroll (void)
 	msg_command_add(CAMERA_GET_GRAB_RGB, toSTR(CAMERA_GET_GRAB_RGB), hk_msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_GRAB_RGB_LEFT, toSTR(CAMERA_GET_GRAB_RGB_LEFT), hk_msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), hk_msg_cameras_grab_rgb);
-	msg_command_add(0x00005009, toSTR(demarcate), hk_msg_cameras_demarcate);
-	msg_command_add(0x0000500A, toSTR(highspeed), hk_msg_cameras_highspeed);
+	msg_command_add(CAMERA_GET_CALIBRATE, toSTR(CAMERA_GET_CALIBRATE), hk_msg_cameras_calibrate);
+	msg_command_add(CAMERA_GET_POINTCLOUD, toSTR(CAMERA_GET_POINTCLOUD), hk_msg_cameras_pointcloud);
 
 }
 

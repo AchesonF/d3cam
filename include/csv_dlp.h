@@ -21,18 +21,21 @@ extern "C" {
 #define DLP_HEAD_B			(0xAA)
 
 // 类别
-#define CMD_NORMAL			(0x01)	// 13 普通采图
-#define CMD_DEMARCATE		(0x02)	// 22 标定
-#define CMD_BRIGHT			(0x05)	// 1 亮光
-#define CMD_HIGH_SPEED		(0x0A)	// 13 高速采图
+#define CMD_POINTCLOUD		(0x01)	// NUM_PICS_POINTCLOUD 深度采图
+#define CMD_CALIB			(0x02)	// NUM_PICS_CALIB 标定条纹采图
+#define CMD_BRIGHT			(0x05)	// NUM_PICS_BRIGHT 常亮采图
+
+// 图数
+#define NUM_PICS_POINTCLOUD		(13)	// 深度采图
+#define NUM_PICS_CALIB			(22)	// 标定条纹采图
+#define NUM_PICS_BRIGHT			(1)		// 常亮采图
 
 enum {
-	DLP_CMD_NORMAL				= (0),
-	DLP_CMD_DEMARCATE			= (1),
+	DLP_CMD_POINTCLOUD			= (0),
+	DLP_CMD_CALIB				= (1),
 	DLP_CMD_BRIGHT				= (2),
-	DLP_CMD_HIGHSPEED			= (3),
 
-	TOTAL_DLP_CMDS				= (4)
+	TOTAL_DLP_CMDS
 };
 
 

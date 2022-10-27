@@ -32,6 +32,14 @@ enum {
 	GRAB_PICS_END
 };
 
+enum {
+	ACTION_NONE					= (0),
+	ACTION_CALIBRATION			= (1),
+	ACTION_POINTCLOUD			= (2),
+
+	ACTION_END
+};
+
 struct cam_gx_spec_t {
 	uint8_t					opened;			///< 已打开
 
@@ -68,6 +76,8 @@ struct csv_gx_t {
 	pthread_mutex_t			mutex_gx;		///< 锁
 	pthread_cond_t			cond_gx;		///< 条件
 
+	uint8_t					action_type;		///< 获取图像组类型 0: none 1:calib 2:pointcloud ...
+
 	pthread_mutex_t			mutex_wait_depth;
 	pthread_cond_t			cond_wait_depth;
 };
@@ -78,9 +88,9 @@ extern int csv_gx_cams_exposure_set (float fExposureTime);
 
 extern int csv_gx_cams_grab_both (struct csv_gx_t *pGX);
 
-extern int csv_gx_cams_demarcate (struct csv_gx_t *pGX);
+extern int csv_gx_cams_calibrate (struct csv_gx_t *pGX);
 
-extern int csv_gx_cams_highspeed (struct csv_gx_t *pGX);
+extern int csv_gx_cams_pointcloud (struct csv_gx_t *pGX);
 
 extern int csv_gx_init (void);
 
