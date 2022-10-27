@@ -183,7 +183,7 @@ static int csv_img_sender (char *path, uint16_t group)
 	return system(str_cmd);
 }
 
-int csv_img_clear (char *path)
+int csv_img_clear (char *path, uint16_t group)
 {
 	char str_cmd[256] = {0};
 
@@ -193,7 +193,7 @@ int csv_img_clear (char *path)
 
 	memset(str_cmd, 0, 256);
 
-	snprintf(str_cmd, 256, "rm -rf %s/*", path); // be careful for root directory "/"
+	snprintf(str_cmd, 256, "rm -rf !(%s/CSV_%03d*)", path, group); // be careful for root directory "/"
 
 	return system(str_cmd);
 }

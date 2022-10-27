@@ -1012,7 +1012,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	csv_img_clear(pCALIB->path);
+	csv_img_clear(pCALIB->path, pCALIB->groupCalibrate);
 
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
@@ -1140,7 +1140,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	csv_img_clear(pPC->ImageSaveRoot);
+	csv_img_clear(pPC->ImageSaveRoot, pPC->groupPointCloud);
 
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 

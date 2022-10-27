@@ -78,7 +78,7 @@ extern int csv_img_generate_filename (char *path, uint16_t group,
 
 extern int csv_img_generate_depth_filename (char *path, uint16_t group, char *img_file);
 
-extern int csv_img_clear (char *path);
+extern int csv_img_clear (char *path, uint16_t group);
 
 extern int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length, 
 	uint32_t nWidth, uint32_t nHeight, uint8_t pos, uint8_t action, uint8_t lastpic);
