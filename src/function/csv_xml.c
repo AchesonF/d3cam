@@ -598,8 +598,14 @@ static int csv_xml_PointCloudConfiguration (
 	struct key_value_pair_t key_pair[16];
 	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
 
-	xml_strlcpy(key_pair[nums].key, "ImageSaveRoot", MAX_KEY_SIZE);
-	key_pair[nums].value = &pPC->ImageSaveRoot;
+	xml_strlcpy(key_pair[nums].key, "ModelRoot", MAX_KEY_SIZE);
+	key_pair[nums].value = &pPC->ModelRoot;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	xml_strlcpy(key_pair[nums].key, "PCImageRoot", MAX_KEY_SIZE);
+	key_pair[nums].value = &pPC->PCImageRoot;
 	key_pair[nums].value_type = XML_VALUE_STRING;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -674,8 +680,8 @@ static int csv_xml_CalibConfiguration (
 	struct key_value_pair_t key_pair[4];
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
 
-	xml_strlcpy(key_pair[nums].key, "path", MAX_KEY_SIZE);
-	key_pair[nums].value = &pCALIB->path;
+	xml_strlcpy(key_pair[nums].key, "CalibImageRoot", MAX_KEY_SIZE);
+	key_pair[nums].value = &pCALIB->CalibImageRoot;
 	key_pair[nums].value_type = XML_VALUE_STRING;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -866,27 +872,14 @@ int csv_xml_write_CalibParameters (void)
 	return ret;
 }
 
-
-
 static int csv_xml_directories_prepare (void)
 {
 	int ret = 0;
 	struct csv_cfg_t *pCFG = &gCSV->cfg;
-	char str_cmd[512] = {0};
 
-	memset(str_cmd, 0, 512);
-
-	if ((NULL != pCFG->pointcloudcfg.ImageSaveRoot)
-	  &&(!csv_file_isExist(pCFG->pointcloudcfg.ImageSaveRoot))) {
-		snprintf(str_cmd, 512, "mkdir -p %s", pCFG->pointcloudcfg.ImageSaveRoot);
-		ret = system(str_cmd);
-	}
-
-	if ((NULL != pCFG->calibcfg.path)
-	  &&(!csv_file_isExist(pCFG->calibcfg.path))) {
-		snprintf(str_cmd, 512, "mkdir -p %s", pCFG->calibcfg.path);
-		ret = system(str_cmd);
-	}
+	ret = csv_file_mkdir(pCFG->pointcloudcfg.ModelRoot);
+	ret |= csv_file_mkdir(pCFG->pointcloudcfg.PCImageRoot);
+	ret |= csv_file_mkdir(pCFG->calibcfg.CalibImageRoot);
 
 	return ret;
 }

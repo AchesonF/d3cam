@@ -55,6 +55,8 @@ extern int file_write_data (char * buf, FILE * fp, uint32_t size);
 
 extern uint8_t csv_file_isExist (char *path);
 
+extern int csv_file_mkdir (char *dir);
+
 extern uint32_t csv_file_modify_time (char *path);
 
 extern int csv_file_init (void);

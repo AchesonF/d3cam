@@ -1006,9 +1006,8 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 		return -1;
 	}
 
-	if ((NULL == pCALIB->path)
-		||(!csv_file_isExist(pCALIB->path))) {
-		log_warn("ERROR : cali img path null.");
+	if (NULL == pCALIB->CalibImageRoot) {
+		log_warn("ERROR : Calib Image path not exist.");
 		return -1;
 	}
 
@@ -1018,7 +1017,8 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 
 	pGX->busying = true;
 
-	csv_img_clear(pCALIB->path);
+	csv_file_mkdir(pCALIB->CalibImageRoot);
+	csv_img_clear(pCALIB->CalibImageRoot);
 
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
@@ -1052,7 +1052,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 		if ((0 == ret)&&(pDevC->SaveImageFile)) {
 			memset(img_name, 0, 256);
-			csv_img_generate_filename(pCALIB->path, pCALIB->groupCalibrate, 0, i, img_name);
+			csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, 0, i, img_name);
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
 				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, 0);
 		}
@@ -1097,7 +1097,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 			if ((0 == ret)&&(pDevC->SaveImageFile)) {
 				memset(img_name, 0, 256);
-				csv_img_generate_filename(pCALIB->path, pCALIB->groupCalibrate, idx, i, img_name);
+				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, idx, i, img_name);
 				if ((NUM_PICS_CALIB == idx)&&(CAM_RIGHT == i)) {
 					lastpic = 1;
 				}
@@ -1147,13 +1147,19 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		return -1;
 	}
 
+	if (NULL == pPC->PCImageRoot) {
+		log_warn("ERROR : Point Cloud Image path not exist.");
+		return -1;
+	}
+
 	if (pGX->busying) {
 		return -2;
 	}
 
 	pGX->busying = true;
 
-	csv_img_clear(pPC->ImageSaveRoot);
+	csv_file_mkdir(pPC->PCImageRoot);
+	csv_img_clear(pPC->PCImageRoot);
 
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
@@ -1187,7 +1193,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 		if ((0 == ret)&&(pDevC->SaveImageFile)) {
 			memset(img_name, 0, 256);
-			csv_img_generate_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, 0, i, img_name);
+			csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, 0, i, img_name);
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
 				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, 0);
 		}
@@ -1232,10 +1238,10 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 			if ((0 == ret)&&(pDevC->SaveImageFile)) {
 				memset(img_name, 0, 256);
-				csv_img_generate_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
+				csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, idx, i, img_name);
 				if ((NUM_PICS_POINTCLOUD == idx)&&(CAM_RIGHT == i)) {
 					lastpic = 1;
-					csv_img_generate_depth_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, pPC->outDepthImage);
+					csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
 				}
 				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
 					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, lastpic);

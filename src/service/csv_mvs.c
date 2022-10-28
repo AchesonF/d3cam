@@ -827,8 +827,8 @@ static int csv_mvs_cams_calibrate (struct csv_mvs_t *pMVS)
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
-	if ((NULL == pCALIB->path)
-		||(!csv_file_isExist(pCALIB->path))) {
+	if ((NULL == pCALIB->CalibImageRoot)
+		||(!csv_file_isExist(pCALIB->CalibImageRoot))) {
 		log_warn("ERROR : cali img path null.");
 		return -1;
 	}
@@ -857,7 +857,7 @@ static int csv_mvs_cams_calibrate (struct csv_mvs_t *pMVS)
 
 			if (pDevC->SaveImageFile) {
 				memset(img_name, 0, 256);
-				csv_img_generate_filename(pCALIB->path, pCALIB->groupCalibrate, idx, i, img_name);
+				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, idx, i, img_name);
 				save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
 			}
 		} else {
@@ -900,7 +900,7 @@ static int csv_mvs_cams_calibrate (struct csv_mvs_t *pMVS)
 
 				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
-					csv_img_generate_filename(pCALIB->path, pCALIB->groupCalibrate, idx, i, img_name);
+					csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, idx, i, img_name);
 					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
 				}
 			} else {
@@ -967,7 +967,7 @@ static int csv_mvs_cams_pointcloud (struct csv_mvs_t *pMVS)
 
 				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
-					csv_img_generate_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, idx, i, img_name);
+					csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, idx, i, img_name);
 					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
 				}
 			} else {

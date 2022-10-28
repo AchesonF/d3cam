@@ -42,8 +42,8 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 
 static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 {
-
-	strcpy(pPC->ImageSaveRoot, "data/PointCloudImage");
+	strcpy(pPC->ModelRoot, "model");
+	strcpy(pPC->PCImageRoot, "data/PointCloudImage");
 	strcpy(pPC->calibFile, "CSV_Cali_DaHengCamera.xml");
 	strcpy(pPC->outFileXYZ, "pointcloud.xyz");
 	pPC->saveXYZ = 0;
@@ -57,7 +57,7 @@ static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 
 static int csv_cfg_calib (struct calib_conf_t *pCALIB)
 {
-	strcpy(pCALIB->path, "data/calibImage");
+	strcpy(pCALIB->CalibImageRoot, "data/calibImage");
 	pCALIB->groupCalibrate = 1;
 
 	return 0;

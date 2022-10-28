@@ -20,7 +20,7 @@ using namespace std::chrono;
 using namespace CSV;
 using namespace cv;
 
-void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
+int loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 {
 	int i = 0;
 	char filename[512] = {0};
@@ -35,9 +35,13 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 
 		string path = pathRoot + "/" + filename;
 
+		Mat im = imread(path, IMREAD_GRAYSCALE);
+		if (im.empty()) {
+			log_info("ERROR : Read Image : %s", path.c_str());
+			return -1;
+		}
 		log_debug("Read Image : %s", path.c_str());
 
-		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src1list.emplace_back(im);
 	}
 	imgGroupList.push_back(src1list);
@@ -52,14 +56,20 @@ void loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 
 		string path = pathRoot + "/" + filename;
 
+		Mat im = imread(path, IMREAD_GRAYSCALE);
+		if (im.empty()) {
+			log_info("ERROR : Read Image : %s", path.c_str());
+			return -1;
+		}
 		log_debug("Read Image : %s", path.c_str());
 
-		Mat im = imread(path, IMREAD_GRAYSCALE);
 		src2list.emplace_back(im);
 	}
 
 	imgGroupList.push_back(src2list);
 	log_debug("right image num : %d", src2list.size());
+
+	return 0;
 }
 
 
@@ -108,9 +118,9 @@ int csv_3d_calc (void)
 		return -1;
 	}
 
-	if ((NULL == pPC->ImageSaveRoot)
-		||(!csv_file_isExist(pPC->ImageSaveRoot))) {
-		log_warn("ERROR : ImageSaveRoot null.");
+	if ((NULL == pPC->PCImageRoot)
+		||(!csv_file_isExist(pPC->PCImageRoot))) {
+		log_warn("ERROR : Point Cloud Image Root not exist.");
 		return -1;
 	}
 
@@ -125,11 +135,16 @@ int csv_3d_calc (void)
 	if (pPC->test_bmp) {
 		string imgRoot = string("data/test_bmps");
 		pPC->groupPointCloud = 1;
-		csv_img_generate_depth_filename(pPC->ImageSaveRoot, pPC->groupPointCloud, pPC->outDepthImage);
-		loadSrcImageEx(imgRoot, imgGroupList);
+		csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
+		ret = loadSrcImageEx(imgRoot, imgGroupList);
 	} else {
-		string imgRoot = string(pPC->ImageSaveRoot);
-		loadSrcImageEx(imgRoot, imgGroupList);
+		string imgRoot = string(pPC->PCImageRoot);
+		ret = loadSrcImageEx(imgRoot, imgGroupList);
+	}
+
+	if (ret < 0) {
+		log_info("ERROR : loadSrcImageEx");
+		return -1;
 	}
 
 	vector<vector<CsvImageSimple>> imageGroups;
@@ -194,14 +209,14 @@ int csv_3d_init (void)
 		return -1;
 	}
 
-	if ((NULL == pPC->ImageSaveRoot)||(!csv_file_isExist(pPC->ImageSaveRoot))) {
-		log_warn("ERROR : ImageSaveRoot null.");
+	if ((NULL == pPC->PCImageRoot)||(!csv_file_isExist(pPC->PCImageRoot))) {
+		log_warn("ERROR : Point Cloud Image Root not exist.");
 		return -1;
 	}
 
 	CsvCreatePoint3DParam param;
 	param.calibXml = string(pPC->calibFile);
-	param.modelPathFolder = "./";
+	param.modelPathFolder = string(pPC->ModelRoot);
 	param.type = CSV_DataFormatType::FixPoint16bits;
 
 	if (!pPC->initialized) {
@@ -212,15 +227,24 @@ int csv_3d_init (void)
 			log_info("OK : Create LUT done.");
 			csv_xml_write_PointCloudParameters();
 		} else {
-			log_info("ERROR : Create LUT failed.");
+			log_info("ERROR : CsvCreateLUT.");
 			return -1;
 		}
 	}
 
-	CsvSetCreatePoint3DParam(param); //set params
+	ret = CsvSetCreatePoint3DParam(param); //set params
+	if (!ret) {
+		log_warn("ERROR : CsvSetCreatePoint3DParam");
+		return -1;
+	}
 
 	CsvCreatePoint3DParam param0;
-	CsvGetCreatePoint3DParam(param0);
+	ret = CsvGetCreatePoint3DParam(param0);
+	if (!ret) {
+		log_warn("ERROR : CsvGetCreatePoint3DParam");
+		return -1;
+	}
+
 	log_info("calib xml : %s", param0.calibXml.c_str());
 
 	return 0;

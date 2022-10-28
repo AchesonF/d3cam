@@ -125,7 +125,8 @@ struct gev_conf_t {
 };
 
 struct pointcloud_cfg_t {
-	char					ImageSaveRoot[128];	///< 图片存放路径
+	char					ModelRoot[128];		///< 模型存放路径
+	char					PCImageRoot[128];	///< 图片存放路径
 	char					calibFile[128];		///< 标定参数文件名
 	char					outFileXYZ[256];	///< 生成文件名
 	char					outDepthImage[256];	///< 生成深度图png
@@ -139,7 +140,7 @@ struct pointcloud_cfg_t {
 
 // 标定
 struct calib_conf_t {
-	char					path[128];		///< 图片相对路径
+	char					CalibImageRoot[128];///< 标定图片路径
 	uint8_t					groupCalibrate;	///< 标定次数, 1..255 need to save for next boot
 
 };

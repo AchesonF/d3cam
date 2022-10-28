@@ -298,7 +298,7 @@ static void *csv_img_loop (void *data)
 				switch (pIPK->action) {
 				case ACTION_CALIBRATION:
 					if (pDevC->ftpupload) {
-						csv_img_sender(pCALIB->path, pCALIB->groupCalibrate);
+						csv_img_sender(pCALIB->CalibImageRoot, pCALIB->groupCalibrate);
 					}
 
 					if (++pCALIB->groupCalibrate == 0) {
@@ -310,7 +310,7 @@ static void *csv_img_loop (void *data)
 					ret = csv_3d_calc();
 					if (0 == ret) {
 						if (pDevC->ftpupload) {
-							csv_img_sender(pPC->ImageSaveRoot, pPC->groupPointCloud);
+							csv_img_sender(pPC->PCImageRoot, pPC->groupPointCloud);
 						}
 
 						if (++pPC->groupPointCloud == 0) {

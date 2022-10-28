@@ -197,6 +197,21 @@ uint8_t csv_file_isExist (char *path)
 	return false;
 }
 
+int csv_file_mkdir (char *dir)
+{
+	int ret = -1;
+	char str_cmd[512] = {0};
+
+	memset(str_cmd, 0, 512);
+
+	if ((NULL != dir)&&(!csv_file_isExist(dir))) {
+		snprintf(str_cmd, 512, "mkdir -p %s", dir);
+		ret = system(str_cmd);
+	}
+
+	return ret;
+}
+
 uint32_t csv_file_modify_time (char *path)
 {
 	int ret = 0;
