@@ -20,80 +20,29 @@ using namespace std::chrono;
 using namespace CSV;
 using namespace cv;
 
-vector<Mat> c1list, c2list;
+vector<CsvImageSimple> leftCamList;
+vector<CsvImageSimple> rightCamList;
 
-int csv_3d_load_im (uint8_t rl, int rows, int cols, uint8_t *data)
+int csv_3d_load_img (uint8_t rl, int rows, int cols, uint8_t *data)
 {
-	Mat im(rows, cols, CV_8UC1, data);
+	CsvImageSimple img(rows, cols, 1, data);
 
 	if (CAM_LEFT == rl) {
-		c1list.emplace_back(im);
+		leftCamList.emplace_back(img);
 	} else if (CAM_RIGHT == rl) {
-		c2list.emplace_back(im);
+		rightCamList.emplace_back(img);
 	}
 
 	return 0;
 }
 
-int csv_3d_clear_im (uint8_t rl)
+int csv_3d_clear_img (uint8_t rl)
 {
 	if (CAM_LEFT == rl) {
-		c1list.clear();
+		leftCamList.clear();
 	} else if (CAM_RIGHT == rl) {
-		c2list.clear();
+		rightCamList.clear();
 	}
-
-	return 0;
-}
-
-int loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
-{
-	int i = 0;
-	char filename[512] = {0};
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
-
-	// 导入C1相机图像
-	vector<Mat> src1list;
-	for (i = 0; i < 13; i++) {
-		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C1S00P000.bmp/.png
-		snprintf(filename, 512, "CSV_%03dC1S00P%03d%s", pPC->groupPointCloud, i+1, 
-			gCSV->cfg.devicecfg.strSuffix);
-
-		string path = pathRoot + "/" + filename;
-
-		Mat im = imread(path, IMREAD_GRAYSCALE);
-		if (im.empty()) {
-			log_info("ERROR : Read Image : %s", path.c_str());
-			return -1;
-		}
-		log_debug("Read Image : %s", path.c_str());
-
-		src1list.emplace_back(im);
-	}
-	imgGroupList.push_back(src1list);
-	log_debug("left image num : %d", src1list.size());
-
-	// 导入2相机图像
-	vector<Mat> src2list;
-	for (i = 0; i < 13; i++) {
-		memset(filename, 0, 512); // CSV_%03dC%dS00P%03d%s -> CSV_000C2S00P000.bmp/.png
-		snprintf(filename, 512, "CSV_%03dC2S00P%03d%s", pPC->groupPointCloud, i+1, 
-			gCSV->cfg.devicecfg.strSuffix);
-
-		string path = pathRoot + "/" + filename;
-
-		Mat im = imread(path, IMREAD_GRAYSCALE);
-		if (im.empty()) {
-			log_info("ERROR : Read Image : %s", path.c_str());
-			return -1;
-		}
-		log_debug("Read Image : %s", path.c_str());
-
-		src2list.emplace_back(im);
-	}
-
-	imgGroupList.push_back(src2list);
-	log_debug("right image num : %d", src2list.size());
 
 	return 0;
 }
@@ -157,37 +106,12 @@ int csv_3d_calc (void)
 		}
 	}
 
-	vector<vector<Mat>> imgGroupList;
-	if (pPC->test_bmp) {
-		string imgRoot = string("data/test_bmps");
-		pPC->groupPointCloud = 1;
-		csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
-		ret = loadSrcImageEx(imgRoot, imgGroupList);
-	} else {
-		//string imgRoot = string(pPC->PCImageRoot);
-		//ret = loadSrcImageEx(imgRoot, imgGroupList);
-		imgGroupList.push_back(c1list);
-		imgGroupList.push_back(c2list);
-	}
-
-	if (ret < 0) {
-		log_info("ERROR : loadSrcImageEx");
-		return -1;
-	}
-
 	vector<vector<CsvImageSimple>> imageGroups;
 	CsvImageSimple depthImage;
 	vector<float> point3D;
 
-	int rows = imgGroupList[0][0].rows, cols = imgGroupList[0][0].cols;
-	for (unsigned int g = 0; g < imgGroupList.size(); g++) {
-		vector<CsvImageSimple> imgs;
-		for (unsigned int i = 0; i < imgGroupList[g].size(); i++) {
-			CsvImageSimple img(rows, cols, 1, imgGroupList[g][i].data);
-			imgs.emplace_back(img);
-		}
-		imageGroups.emplace_back(imgs);
-	}
+	imageGroups.emplace_back(leftCamList);
+	imageGroups.emplace_back(rightCamList);
 
 	f_timestamp = utility_get_microsecond();
 	log_debug("create 3d @ %ld us.", f_timestamp);
@@ -248,10 +172,9 @@ int csv_3d_init (void)
 	param.type = CSV_DataFormatType::FixPoint16bits;
 
 	if (!pPC->initialized) {
-		pPC->initialized = 1;
-
 		ret = CsvCreateLUT(param);
 		if (ret) {
+			pPC->initialized = 1;
 			log_info("OK : Create LUT done.");
 			csv_xml_write_PointCloudParameters();
 		} else {

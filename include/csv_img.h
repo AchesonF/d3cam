@@ -83,6 +83,7 @@ extern int csv_img_clear (char *path);
 extern int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length, 
 	uint32_t nWidth, uint32_t nHeight, uint8_t pos, uint8_t action, uint8_t lastpic);
 
+extern void csv_img_list_release (struct csv_img_t *pIMG);
 
 extern int csv_img_init (void);
 

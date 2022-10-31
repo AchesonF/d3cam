@@ -307,17 +307,15 @@ static void *csv_img_loop (void *data)
 					csv_xml_write_CalibParameters();
 					break;
 				case ACTION_POINTCLOUD:
-					//ret = csv_3d_calc();
-					if (0 == ret) {
-						if (pDevC->ftpupload) {
-							csv_img_sender(pPC->PCImageRoot, pPC->groupPointCloud);
-						}
-
-						if (++pPC->groupPointCloud == 0) {
-							pPC->groupPointCloud = 1;
-						}
-						csv_xml_write_PointCloudParameters();
+					if (pDevC->ftpupload) {
+						usleep(500000); //wait for 3d calc
+						csv_img_sender(pPC->PCImageRoot, pPC->groupPointCloud);
 					}
+
+					if (++pPC->groupPointCloud == 0) {
+						pPC->groupPointCloud = 1;
+					}
+					csv_xml_write_PointCloudParameters();
 					break;
 				}
 
@@ -386,7 +384,7 @@ static int csv_img_thread (struct csv_img_t *pIMG)
 	return ret;
 }
 
-static void csv_img_list_release (struct csv_img_t *pIMG)
+void csv_img_list_release (struct csv_img_t *pIMG)
 {
 	struct list_head *pos = NULL, *n = NULL;
 	struct img_list_t *task = NULL;
