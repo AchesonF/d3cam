@@ -20,6 +20,32 @@ using namespace std::chrono;
 using namespace CSV;
 using namespace cv;
 
+vector<Mat> c1list, c2list;
+
+int csv_3d_load_im (uint8_t rl, int rows, int cols, uint8_t *data)
+{
+	Mat im(rows, cols, CV_8UC1, data);
+
+	if (CAM_LEFT == rl) {
+		c1list.emplace_back(im);
+	} else if (CAM_RIGHT == rl) {
+		c2list.emplace_back(im);
+	}
+
+	return 0;
+}
+
+int csv_3d_clear_im (uint8_t rl)
+{
+	if (CAM_LEFT == rl) {
+		c1list.clear();
+	} else if (CAM_RIGHT == rl) {
+		c2list.clear();
+	}
+
+	return 0;
+}
+
 int loadSrcImageEx(string &pathRoot, vector<vector<Mat>> &imgGroupList)
 {
 	int i = 0;
@@ -138,8 +164,10 @@ int csv_3d_calc (void)
 		csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
 		ret = loadSrcImageEx(imgRoot, imgGroupList);
 	} else {
-		string imgRoot = string(pPC->PCImageRoot);
-		ret = loadSrcImageEx(imgRoot, imgGroupList);
+		//string imgRoot = string(pPC->PCImageRoot);
+		//ret = loadSrcImageEx(imgRoot, imgGroupList);
+		imgGroupList.push_back(c1list);
+		imgGroupList.push_back(c2list);
 	}
 
 	if (ret < 0) {

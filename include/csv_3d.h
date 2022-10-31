@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+extern int csv_3d_load_im (uint8_t rl, int rows, int cols, uint8_t *data);
+
+extern int csv_3d_clear_im (uint8_t rl);
+
 extern int csv_3d_calc (void);
 
 extern int csv_3d_init (void);

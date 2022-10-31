@@ -1160,6 +1160,8 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 
 	csv_file_mkdir(pPC->PCImageRoot);
 	csv_img_clear(pPC->PCImageRoot);
+	csv_3d_clear_im(CAM_LEFT);
+	csv_3d_clear_im(CAM_RIGHT);
 
 	ret = csv_gx_acquisition(GX_ACQUISITION_START);
 
@@ -1191,7 +1193,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		}
 
 		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-		if ((0 == ret)&&(pDevC->SaveImageFile)) {
+		if (0 == ret) {
 			memset(img_name, 0, 256);
 			csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, 0, i, img_name);
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
@@ -1236,15 +1238,19 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 			}
 
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-			if ((0 == ret)&&(pDevC->SaveImageFile)) {
-				memset(img_name, 0, 256);
-				csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, idx, i, img_name);
-				if ((NUM_PICS_POINTCLOUD == idx)&&(CAM_RIGHT == i)) {
-					lastpic = 1;
-					csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
+			if (0 == ret) {
+				csv_3d_load_im(i, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, pCAM->pMonoImageBuf);
+
+				if (pDevC->SaveImageFile) {
+					memset(img_name, 0, 256);
+					csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, idx, i, img_name);
+					if ((NUM_PICS_POINTCLOUD == idx)&&(CAM_RIGHT == i)) {
+						lastpic = 1;
+						csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
+					}
+					csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
+						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, lastpic);
 				}
-				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, lastpic);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1268,6 +1274,8 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 	if (0 != errNum) {
 		pGX->busying = false;
 		return -1;
+	} else {
+		csv_3d_calc();
 	}
 
 	return ret;

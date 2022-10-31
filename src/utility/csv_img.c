@@ -307,7 +307,7 @@ static void *csv_img_loop (void *data)
 					csv_xml_write_CalibParameters();
 					break;
 				case ACTION_POINTCLOUD:
-					ret = csv_3d_calc();
+					//ret = csv_3d_calc();
 					if (0 == ret) {
 						if (pDevC->ftpupload) {
 							csv_img_sender(pPC->PCImageRoot, pPC->groupPointCloud);
