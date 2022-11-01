@@ -247,6 +247,18 @@ int hk_msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 
 #elif defined(USE_GX_CAMS)
 
+bool csv_img_save (uint32_t height, uint32_t width, void *imgData, char *out_file)
+{
+	Mat img(height, width, CV_8UC1, imgData);
+
+	if (img.empty()) {
+		log_warn("ERROR : empty image. %d", out_file);
+		return false;
+	}
+
+	return imwrite(out_file, img);
+}
+
 int gx_msg_cameras_grab_gray (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
 	int ret = -1;

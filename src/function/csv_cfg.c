@@ -50,7 +50,6 @@ static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 	pPC->saveDepthImage = 1;
 	pPC->groupPointCloud = 1;
 	pPC->initialized = 0;
-	pPC->test_bmp = 0;
 
 	return 0;
 }

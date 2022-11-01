@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-static int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, uint8_t flip, char *pBmpName)
+int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, uint8_t flip, char *pBmpName)
 {
 	struct bitmap_file_header_t file_h;
 	struct bitmap_info_header_t info_h;
@@ -72,7 +72,7 @@ static int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, u
     return 0;
 }
 
-static int gray_raw2png(void *image, size_t length, uint32_t width, 
+int gray_raw2png(void *image, size_t length, uint32_t width, 
 	uint32_t height, int bit_depth, char *out_file)
 {
     int fmt;
@@ -284,6 +284,8 @@ static void *csv_img_loop (void *data)
 
 			pIPK = &task->ipk;
 
+			csv_img_save(pIPK->height, pIPK->width, pIPK->payload, pIPK->filename);
+/*
 			switch (pDevC->SaveImageFormat) {
 			case SUFFIX_PNG:
 				gray_raw2png(pIPK->payload, pIPK->length, pIPK->width, pIPK->height, 8, pIPK->filename);
@@ -292,7 +294,7 @@ static void *csv_img_loop (void *data)
 			default:
 				gray_raw2bmp(pIPK->payload, pIPK->width, pIPK->height, pIPK->flip, pIPK->filename);
 				break;
-			}
+			}*/
 
 			if (pIPK->lastPic) {
 				switch (pIPK->action) {

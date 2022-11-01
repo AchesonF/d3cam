@@ -370,11 +370,7 @@ static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_
 
 	gCSV->gx.action_type = ACTION_POINTCLOUD;
 
-	if (!gCSV->cfg.pointcloudcfg.test_bmp) {
-		ret = csv_gx_cams_pointcloud(&gCSV->gx);
-	} else {
-		csv_3d_calc();
-	}
+	ret = csv_gx_cams_pointcloud(&gCSV->gx);
 
 	if (ret == 0) {
 		csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
