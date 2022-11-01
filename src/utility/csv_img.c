@@ -4,135 +4,6 @@
 extern "C" {
 #endif
 
-int gray_raw2bmp (uint8_t *pRawData, uint32_t nWidth, uint32_t nHeight, uint8_t flip, char *pBmpName)
-{
-	struct bitmap_file_header_t file_h;
-	struct bitmap_info_header_t info_h;
-	uint32_t dwBmpSize = 0,dwRawSize = 0, dwLine = 0;
-	int lCount = 0, i = 0;
-	FILE *fp = NULL;
-	struct rgbquad_t rgbPal[256];
-
-    fp = fopen(pBmpName, "wb");
-	if (fp == NULL) {
-		log_err("ERROR : open '%s'.", pBmpName);
-
-		return -1;
-	}
- 
-    file_h.bfType = 0x4D42;
-    file_h.bfReserved1 = 0;
-    file_h.bfReserved2 = 0;
-    file_h.bfOffBits = sizeof(rgbPal) + sizeof(file_h) + sizeof(info_h);
-    info_h.biSize = sizeof(struct bitmap_info_header_t);
-    info_h.biWidth = nWidth;
-    info_h.biHeight = nHeight;
-    info_h.biPlanes = 1;
-    info_h.biBitCount = 8;
-    info_h.biCompression = 0;
-    info_h.biXPelsPerMeter = 0;
-    info_h.biYPelsPerMeter = 0;
-    info_h.biClrUsed = 0;
-    info_h.biClrImportant = 0;
-
-    dwLine = ((((info_h.biWidth * info_h.biBitCount) + 31) & ~31) >> 3);
-    dwBmpSize = dwLine * info_h.biHeight;
-    info_h.biSizeImage = dwBmpSize;
-    file_h.bfSize = dwBmpSize + file_h.bfOffBits + 2;
-
-    dwRawSize = info_h.biWidth * info_h.biHeight;
-
-    if (pRawData) {
-        for (i = 0; i < 256; i++) {
-            rgbPal[i].rgbRed = (uint8_t)(i % 256);
-            rgbPal[i].rgbGreen = rgbPal[i].rgbRed;
-            rgbPal[i].rgbBlue = rgbPal[i].rgbRed;
-            rgbPal[i].rgbReserved = 0;
-        }
-
-        fwrite((char*)&file_h, 1, sizeof(file_h), fp);
-        fwrite((char*)&info_h, 1, sizeof(info_h), fp);
-        fwrite((char*)rgbPal, 1, sizeof(rgbPal), fp);
-
-		if (flip) {
-			// 上下颠倒
-	        lCount = dwRawSize;
-	        for (lCount -= (long)info_h.biWidth; lCount >= 0; lCount -= (long)info_h.biWidth) {
-				fwrite((pRawData + lCount), 1, (long)dwLine, fp);
-	        }
-		} else {
-	        for (lCount = 0; lCount < dwRawSize; lCount += info_h.biWidth) {
-				fwrite((pRawData + lCount), 1, (long)dwLine, fp);
-	        }
-		}
-    }
-
-    fclose(fp);
-
-    return 0;
-}
-
-int gray_raw2png(void *image, size_t length, uint32_t width, 
-	uint32_t height, int bit_depth, char *out_file)
-{
-    int fmt;
-    int ret = 0;
-    spng_ctx *ctx = NULL;
-    struct spng_ihdr ihdr = {0}; /* zero-initialize to set valid defaults */
-
-    /* Creating an encoder context requires a flag */
-    ctx = spng_ctx_new(SPNG_CTX_ENCODER);
-
-    /* Encode to internal buffer managed by the library */
-    spng_set_option(ctx, SPNG_ENCODE_TO_BUFFER, 1);
-
-    /* Alternatively you can set an output FILE* or stream with spng_set_png_file() or spng_set_png_stream() */
-
-    /* Set image properties, this determines the destination image format */
-    ihdr.width = width;
-    ihdr.height = height;
-    ihdr.color_type = 0;//color_type;
-    ihdr.bit_depth = bit_depth;
-    /* Valid color type, bit depth combinations: https://www.w3.org/TR/2003/REC-PNG-20031110/#table111 */
-
-    spng_set_ihdr(ctx, &ihdr);
-
-    /* When encoding fmt is the source format */
-    /* SPNG_FMT_PNG is a special value that matches the format in ihdr */
-    fmt = SPNG_FMT_PNG;
-
-    /* SPNG_ENCODE_FINALIZE will finalize the PNG with the end-of-file marker */
-    ret = spng_encode_image(ctx, image, length, fmt, SPNG_ENCODE_FINALIZE);
-
-    if(ret)
-    {
-        printf("spng_encode_image() error: %s\n", spng_strerror(ret));
-        goto encode_error;
-    }
-
-    size_t png_size;
-    void *png_buf = NULL;
-
-    /* Get the internal buffer of the finished PNG */
-    png_buf = spng_get_png_buffer(ctx, &png_size, &ret);
-
-    if(png_buf == NULL)
-    {
-        printf("spng_get_png_buffer() error: %s\n", spng_strerror(ret));
-    } else {
-		csv_file_write_data(out_file, png_buf, png_size);
-    }
-
-    /* User owns the buffer after a successful call */
-    free(png_buf);
-
-encode_error:
-
-    spng_ctx_free(ctx);
-
-    return ret;
-}
-
 /* *path : 路径
 group : 次数
 idx : 编号
@@ -206,8 +77,6 @@ int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length,
 	}
 
 	struct csv_img_t *pIMG = &gCSV->img;
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
-
 	struct img_list_t *cur = NULL;
 	struct img_package_t *pIPK = NULL;
 
@@ -223,19 +92,9 @@ int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length,
 	pIPK->width = width;
 	pIPK->height = height;
 	pIPK->length = length;
-	pIPK->position = pos;
 	pIPK->action = action;
+	pIPK->position = pos;
 	pIPK->lastPic = lastpic;
-
-	if (CAM_LEFT == pos) {
-		if (pDevC->flip_left) {
-			pIPK->flip = 1;
-		}
-	} else {
-		if (pDevC->flip_right) {
-			pIPK->flip = 1;
-		}
-	}
 
 	if (length > 0) {
 		pIPK->payload = (uint8_t *)malloc(length);
@@ -284,17 +143,7 @@ static void *csv_img_loop (void *data)
 
 			pIPK = &task->ipk;
 
-			csv_img_save(pIPK->height, pIPK->width, pIPK->payload, pIPK->filename);
-/*
-			switch (pDevC->SaveImageFormat) {
-			case SUFFIX_PNG:
-				gray_raw2png(pIPK->payload, pIPK->length, pIPK->width, pIPK->height, 8, pIPK->filename);
-				break;
-			case SUFFIX_BMP:
-			default:
-				gray_raw2bmp(pIPK->payload, pIPK->width, pIPK->height, pIPK->flip, pIPK->filename);
-				break;
-			}*/
+			csv_mat_img_save(pIPK->height, pIPK->width, pIPK->payload, pIPK->filename);
 
 			if (pIPK->lastPic) {
 				switch (pIPK->action) {

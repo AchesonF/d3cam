@@ -78,7 +78,6 @@ extern "C" {
 #include "list.h"
 #include "queue.h"
 #include "crc.h"
-#include "spng.h"
 
 #include "csv_utility.h"
 #include "csv_type.h"

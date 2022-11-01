@@ -20,6 +20,7 @@ enum {
 enum {
 	SUFFIX_BMP		= 0,
 	SUFFIX_PNG		= 1,
+	SUFFIX_JPEG		= 2,
 
 	END_SUFFIX
 };
@@ -32,13 +33,9 @@ struct dlp_cfg_t {
 };
 
 struct device_cfg_t {
-	int					DeviceType;				///< 设备类型 0:2cams
 	uint8_t				SwitchCams;				///< 左右相机互换 1:互换
-	uint8_t				CamImageType;			///< 图像类型 0:灰度图 1:RGB图
 	uint8_t				SaveImageFile;			///< 保存图像
 	uint8_t				SaveImageFormat;		///< 图像存储格式 SUFFIX_BMP
-	uint8_t				flip_left;				///< 左机 上下翻转
-	uint8_t				flip_right;				///< 右机 上下翻转
 	uint8_t				ftpupload;				///< 通过ftp送出
 	uint8_t				exportCamsCfg;			///< 导出相机配置
 	char				*strSuffix;

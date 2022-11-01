@@ -21,21 +21,11 @@ static int hk_msg_cameras_enum (struct msg_package_t *pMP, struct msg_ack_t *pAC
 		csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
 	} else {
 		memset(str_enums, 0, 1024);
-		switch (gCSV->cfg.devicecfg.DeviceType) {
-		case CAM1_LIGHT2:
+
+		if (1 == ret) {
 			len_msg = snprintf(str_enums, 1024, "%s", pCAMLEFT->sn);
-			break;
-/*
-		case CAM4_LIGHT1:
-			len_msg = snprintf(str_enums, 1024, "%s,%s,%s,%s", pCAMLEFT->sn, 
-				pCAMRIGHT->sn, pCAMFRONT->sn, pCAMBACK->sn);
-			break;
-*/
-		case CAM2_LIGHT1:
-		case RDM_LIGHT:
+		} else {
 			len_msg = snprintf(str_enums, 1024, "%s,%s", pCAMLEFT->sn, pCAMRIGHT->sn);
-		default:
-			break;
 		}
 
 		if (len_msg > 0) {

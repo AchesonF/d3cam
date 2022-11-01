@@ -8,13 +8,9 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 {
 	struct dlp_cfg_t *pDlpcfg = NULL;
 
-	pDevC->DeviceType = 0;
 	pDevC->SwitchCams = 0;
-	pDevC->CamImageType = 0;
 	pDevC->SaveImageFile = 1;
 	pDevC->SaveImageFormat = SUFFIX_BMP;
-	pDevC->flip_left = 1;
-	pDevC->flip_right = 1;
 	pDevC->ftpupload = 1;
 	pDevC->exportCamsCfg = 0;
 	pDevC->strSuffix = ".bmp";

@@ -998,7 +998,6 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 	uint8_t lastpic = 0;
 	struct cam_gx_spec_t *pCAM = NULL;
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 	int errNum = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 
@@ -1033,8 +1032,6 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		//memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
-
 		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 		if (GX_STATUS_SUCCESS != emStatus) {
 			log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
@@ -1050,7 +1047,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 		}
 
 		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-		if ((0 == ret)&&(pDevC->SaveImageFile)) {
+		if (0 == ret) {
 			memset(img_name, 0, 256);
 			csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, 0, i, img_name);
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
@@ -1078,8 +1075,6 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 				continue;
 			}
 
-			//memset(pCAM->pMonoImageBuf, 0x00, pCAM->PayloadSize);
-
 			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 			if (GX_STATUS_SUCCESS != emStatus) {
 				log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
@@ -1095,7 +1090,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 			}
 
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-			if ((0 == ret)&&(pDevC->SaveImageFile)) {
+			if (0 == ret) {
 				memset(img_name, 0, 256);
 				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, idx, i, img_name);
 				if ((NUM_PICS_CALIB == idx)&&(CAM_RIGHT == i)) {

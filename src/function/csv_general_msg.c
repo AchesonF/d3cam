@@ -107,8 +107,8 @@ static int msg_sys_info_get (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	int len_msg = 0;
 	char str_info[1024] = {0};
 
-	len_msg = snprintf(str_info, 1024, "gcc:%s, buildtime:%s %s, devicetype=%d",
-		COMPILER_VERSION, BUILD_DATE, BUILD_TIME, gCSV->cfg.devicecfg.DeviceType);
+	len_msg = snprintf(str_info, 1024, "gcc:%s, buildtime:%s %s, devicetype=0",
+		COMPILER_VERSION, BUILD_DATE, BUILD_TIME);
 
 	if (len_msg > 0) {
 		csv_msg_ack_package(pMP, pACK, str_info, len_msg, 0);

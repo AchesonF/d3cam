@@ -499,20 +499,8 @@ static int csv_xml_DeviceConfiguration (
 	struct key_value_pair_t key_pair[16];
 	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
 
-	xml_strlcpy(key_pair[nums].key, "DeviceType", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->DeviceType;
-	key_pair[nums].value_type = XML_VALUE_UINT8;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
 	xml_strlcpy(key_pair[nums].key, "SwitchCams", MAX_KEY_SIZE);
 	key_pair[nums].value = &pDevC->SwitchCams;
-	key_pair[nums].value_type = XML_VALUE_UINT8;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "CamImageType", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->CamImageType;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -525,18 +513,6 @@ static int csv_xml_DeviceConfiguration (
 
 	xml_strlcpy(key_pair[nums].key, "SaveImageFormat", MAX_KEY_SIZE);
 	key_pair[nums].value = &pDevC->SaveImageFormat;
-	key_pair[nums].value_type = XML_VALUE_UINT8;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "FlipLeftCam", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->flip_left;
-	key_pair[nums].value_type = XML_VALUE_UINT8;
-	key_pair[nums].nodeType = XML_ELEMENT_NODE;
-	nums++;
-
-	xml_strlcpy(key_pair[nums].key, "FlipRightCam", MAX_KEY_SIZE);
-	key_pair[nums].value = &pDevC->flip_right;
 	key_pair[nums].value_type = XML_VALUE_UINT8;
 	key_pair[nums].nodeType = XML_ELEMENT_NODE;
 	nums++;
@@ -561,9 +537,13 @@ static int csv_xml_DeviceConfiguration (
 		case SUFFIX_PNG:
 			pDevC->strSuffix = ".png";
 			break;
+		case SUFFIX_JPEG:
+			pDevC->strSuffix = ".jpeg";
+			break;
 		case SUFFIX_BMP:
 		default:
 			pDevC->strSuffix = ".bmp";
+			pDevC->SaveImageFormat = SUFFIX_BMP;
 			break;
 		}
 	} else {

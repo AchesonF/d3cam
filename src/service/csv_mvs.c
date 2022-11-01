@@ -855,11 +855,11 @@ static int csv_mvs_cams_calibrate (struct csv_mvs_t *pMVS)
 			log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
 				pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-			if (pDevC->SaveImageFile) {
-				memset(img_name, 0, 256);
-				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, idx, i, img_name);
-				save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
-			}
+
+			memset(img_name, 0, 256);
+			csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, idx, i, img_name);
+			save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
+
 		} else {
 			log_warn("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
 				pCAM->sn, idx, i, nRet, strMsg(nRet));
@@ -898,11 +898,9 @@ static int csv_mvs_cams_calibrate (struct csv_mvs_t *pMVS)
 				log_info("OK : CAM '%s' [%d_%02d]: GetOneFrame[%d] %d x %d.", pCAM->sn, idx, i, 
 					pCAM->imgInfo.nFrameNum, pCAM->imgInfo.nWidth, pCAM->imgInfo.nHeight);
 
-				if (pDevC->SaveImageFile) {
-					memset(img_name, 0, 256);
-					csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, idx, i, img_name);
-					save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
-				}
+				memset(img_name, 0, 256);
+				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, idx, i, img_name);
+				save_image_to_bmp(&pCAM->imgInfo, pCAM->pHandle, pCAM->imgData, img_name);
 			} else {
 				log_warn("ERROR : CAM '%s' [%d_%02d]: GetOneFrameTimeout, errcode[0x%08X]:'%s'.", 
 					pCAM->sn, idx, i, nRet, strMsg(nRet));
@@ -987,9 +985,6 @@ static int csv_mvs_cams_pointcloud (struct csv_mvs_t *pMVS)
 	}
 
 	log_debug("pointcloud 13 take %ld us.", utility_get_microsecond() - f_timestamp);
-
-	if (pDevC->SaveImageFile) {
-	}
 
 	return ret;
 }
