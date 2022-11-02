@@ -80,7 +80,7 @@ int csv_save_pointXYZ (Mat& out, vector<float> *point3D)
 	return -1;
 }
 
-int csv_3d_calc (void)
+int csv_3d_calc (uint8_t what)
 {
 	int ret = -1;
 	bool d3calc = false;
@@ -131,21 +131,40 @@ int csv_3d_calc (void)
 
 	log_debug("depthimage take %ld us.", utility_get_microsecond() - f_timestamp);
 
-	if (pPC->saveDepthImage) {
-		Mat vdisp;
-		string outfilepng = string(pPC->outDepthImage);
-		normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
-		imwrite(outfilepng, vdisp);
+	switch (what) {
+	case DEPTH_TO_FILE:
+		if (pPC->saveDepthImage) {
+			Mat vdisp;
+			string outfilepng = string(pPC->outDepthImage);
+			normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
+			imwrite(outfilepng, vdisp);
 
-		pthread_cond_broadcast(&gCSV->gx.cond_wait_depth);
-	}
+			pthread_cond_broadcast(&gCSV->gx.cond_wait_depth);
+		}
 
-	if (pPC->saveXYZ) {
-		f_timestamp = utility_get_microsecond();
+		if (pPC->saveXYZ) {
+			f_timestamp = utility_get_microsecond();
 
-		csv_save_pointXYZ(out1, &point3D);
+			csv_save_pointXYZ(out1, &point3D);
 
-		log_debug("save pointcloud take %ld us.", utility_get_microsecond() - f_timestamp);
+			log_debug("save pointcloud take %ld us.", utility_get_microsecond() - f_timestamp);
+		}
+		break;
+
+	case DEPTH_TO_STREAM: {
+			struct gvsp_stream_t *pStream = &gCSV->gvsp.stream[CAM_DEPTH];
+			Mat vdisp;
+			GX_FRAME_BUFFER FrameBuffer;
+			normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
+			FrameBuffer.nPixelFormat = GX_PIXEL_FORMAT_MONO8;
+			FrameBuffer.nHeight = vdisp.rows;
+			FrameBuffer.nWidth = vdisp.cols;
+			FrameBuffer.nOffsetX = 0;
+			FrameBuffer.nOffsetY = 0;
+			csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, vdisp.data, 
+				vdisp.rows*vdisp.cols, &FrameBuffer, NULL);
+		}
+		break;
 	}
 
 	return 0;

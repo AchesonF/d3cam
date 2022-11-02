@@ -300,7 +300,7 @@ static int hk_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
-	pMVS->grab_type = GRAB_CALIBRATE;
+	pMVS->mvs_grab_type = MVS_CALIBRATE;
 	pthread_cond_broadcast(&pMVS->cond_grab);
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
@@ -312,7 +312,7 @@ static int hk_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_
 {
 	struct csv_mvs_t *pMVS = &gCSV->mvs;
 
-	pMVS->grab_type = GRAB_POINTCLOUD;
+	pMVS->mvs_grab_type = MVS_POINTCLOUD;
 	pthread_cond_broadcast(&pMVS->cond_grab);
 
 	csv_msg_ack_package(pMP, pACK, NULL, 0, 0);

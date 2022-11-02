@@ -1008,11 +1008,11 @@ static void *csv_mvs_grab_loop (void *data)
 			break;
 		}
 		ret = csv_mvs_cams_open(pMVS);
-		switch (pMVS->grab_type) {
-		case GRAB_CALIBRATE:
+		switch (pMVS->mvs_grab_type) {
+		case MVS_CALIBRATE:
 			csv_mvs_cams_calibrate(pMVS);
 			break;
-		case GRAB_POINTCLOUD:
+		case MVS_POINTCLOUD:
 			csv_mvs_cams_pointcloud(pMVS);
 			break;
 		default:

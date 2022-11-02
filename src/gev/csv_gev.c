@@ -407,24 +407,65 @@ static void csv_gev_reg_general_enroll (void)
 	csv_gev_reg_add(REG_MessageChannelSourcePort, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->MessageSourcePort, NULL, toSTR(REG_MessageChannelSourcePort));
 
+	// left channel stream
 	csv_gev_reg_add(REG_StreamChannelPort0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->Channel.Port, NULL, toSTR(REG_StreamChannelPort0));
+		4, pGC->Channel[CAM_LEFT].Port, NULL, toSTR(REG_StreamChannelPort0));
 	csv_gev_reg_add(REG_StreamChannelPacketSize0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->Channel.Cfg_PacketSize, NULL, toSTR(REG_StreamChannelPacketSize0));
+		4, pGC->Channel[CAM_LEFT].Cfg_PacketSize, NULL, toSTR(REG_StreamChannelPacketSize0));
 	csv_gev_reg_add(REG_StreamChannelPacketDelay0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->Channel.PacketDelay, NULL, toSTR(REG_StreamChannelPacketDelay0));
+		4, pGC->Channel[CAM_LEFT].PacketDelay, NULL, toSTR(REG_StreamChannelPacketDelay0));
 	csv_gev_reg_add(REG_StreamChannelDestinationAddress0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->Channel.Address, NULL, toSTR(REG_StreamChannelDestinationAddress0));
+		4, pGC->Channel[CAM_LEFT].Address, NULL, toSTR(REG_StreamChannelDestinationAddress0));
 	csv_gev_reg_add(REG_StreamChannelSourcePort0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGC->Channel.SourcePort, NULL, toSTR(REG_StreamChannelSourcePort0));
+		4, pGC->Channel[CAM_LEFT].SourcePort, NULL, toSTR(REG_StreamChannelSourcePort0));
 	csv_gev_reg_add(REG_StreamChannelCapability0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGC->Channel.Capability, NULL, toSTR(REG_StreamChannelCapability0));
+		4, pGC->Channel[CAM_LEFT].Capability, NULL, toSTR(REG_StreamChannelCapability0));
 	csv_gev_reg_add(REG_StreamChannelConfiguration0, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
-		4, pGC->Channel.Configuration, NULL, toSTR(REG_StreamChannelConfiguration0));
+		4, pGC->Channel[CAM_LEFT].Configuration, NULL, toSTR(REG_StreamChannelConfiguration0));
 	csv_gev_reg_add(REG_StreamChannelZone0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGC->Channel.Zone, NULL, toSTR(REG_StreamChannelZone0));
+		4, pGC->Channel[CAM_LEFT].Zone, NULL, toSTR(REG_StreamChannelZone0));
 	csv_gev_reg_add(REG_StreamChannelZoneDirection0, GEV_REG_TYPE_REG, GEV_REG_READ, 
-		4, pGC->Channel.ZoneDirection, NULL, toSTR(REG_StreamChannelZoneDirection0));
+		4, pGC->Channel[CAM_LEFT].ZoneDirection, NULL, toSTR(REG_StreamChannelZoneDirection0));
+
+	// right channel stream
+	csv_gev_reg_add(REG_StreamChannelPort1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_RIGHT].Port, NULL, toSTR(REG_StreamChannelPort1));
+	csv_gev_reg_add(REG_StreamChannelPacketSize1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_RIGHT].Cfg_PacketSize, NULL, toSTR(REG_StreamChannelPacketSize1));
+	csv_gev_reg_add(REG_StreamChannelPacketDelay1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_RIGHT].PacketDelay, NULL, toSTR(REG_StreamChannelPacketDelay1));
+	csv_gev_reg_add(REG_StreamChannelDestinationAddress1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_RIGHT].Address, NULL, toSTR(REG_StreamChannelDestinationAddress1));
+	csv_gev_reg_add(REG_StreamChannelSourcePort1, GEV_REG_TYPE_REG, GEV_REG_READ, 
+		4, pGC->Channel[CAM_RIGHT].SourcePort, NULL, toSTR(REG_StreamChannelSourcePort1));
+	csv_gev_reg_add(REG_StreamChannelCapability1, GEV_REG_TYPE_REG, GEV_REG_READ, 
+		4, pGC->Channel[CAM_RIGHT].Capability, NULL, toSTR(REG_StreamChannelCapability1));
+	csv_gev_reg_add(REG_StreamChannelConfiguration1, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_RIGHT].Configuration, NULL, toSTR(REG_StreamChannelConfiguration1));
+	csv_gev_reg_add(REG_StreamChannelZone1, GEV_REG_TYPE_REG, GEV_REG_READ, 
+		4, pGC->Channel[CAM_RIGHT].Zone, NULL, toSTR(REG_StreamChannelZone1));
+	csv_gev_reg_add(REG_StreamChannelZoneDirection1, GEV_REG_TYPE_REG, GEV_REG_READ, 
+		4, pGC->Channel[CAM_RIGHT].ZoneDirection, NULL, toSTR(REG_StreamChannelZoneDirection1));
+
+	// depth channel stream
+	csv_gev_reg_add(REG_StreamChannelPort2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_DEPTH].Port, NULL, toSTR(REG_StreamChannelPort2));
+	csv_gev_reg_add(REG_StreamChannelPacketSize2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_DEPTH].Cfg_PacketSize, NULL, toSTR(REG_StreamChannelPacketSize2));
+	csv_gev_reg_add(REG_StreamChannelPacketDelay2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_DEPTH].PacketDelay, NULL, toSTR(REG_StreamChannelPacketDelay2));
+	csv_gev_reg_add(REG_StreamChannelDestinationAddress2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_DEPTH].Address, NULL, toSTR(REG_StreamChannelDestinationAddress2));
+	csv_gev_reg_add(REG_StreamChannelSourcePort2, GEV_REG_TYPE_REG, GEV_REG_READ, 
+		4, pGC->Channel[CAM_DEPTH].SourcePort, NULL, toSTR(REG_StreamChannelSourcePort2));
+	csv_gev_reg_add(REG_StreamChannelCapability2, GEV_REG_TYPE_REG, GEV_REG_READ, 
+		4, pGC->Channel[CAM_DEPTH].Capability, NULL, toSTR(REG_StreamChannelCapability2));
+	csv_gev_reg_add(REG_StreamChannelConfiguration2, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+		4, pGC->Channel[CAM_DEPTH].Configuration, NULL, toSTR(REG_StreamChannelConfiguration2));
+	csv_gev_reg_add(REG_StreamChannelZone2, GEV_REG_TYPE_REG, GEV_REG_READ, 
+		4, pGC->Channel[CAM_DEPTH].Zone, NULL, toSTR(REG_StreamChannelZone2));
+	csv_gev_reg_add(REG_StreamChannelZoneDirection2, GEV_REG_TYPE_REG, GEV_REG_READ, 
+		4, pGC->Channel[CAM_DEPTH].ZoneDirection, NULL, toSTR(REG_StreamChannelZoneDirection2));
 
 	//  add more stream
 

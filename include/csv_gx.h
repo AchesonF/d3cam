@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #define NAME_THREAD_GX			("'thr_gx'")
+#define NAME_THREAD_GRAB		("'thr_grab'")
 #define SIZE_CAM_STR			(64)
 
 #define ACQ_BUFFER_NUM			(5)			///< Acquisition Buffer Qty.
@@ -25,9 +26,8 @@ enum {
 enum {
 	GRAB_NONE					= (0),
 	GRAB_CALIB_PICS				= (1),
-	GRAB_POINTCLOUD_PICS		= (2),
-	GRAB_DEPTHIMAGE_PICS		= (3),
-	GRAB_HDRIMAGE_PICS			= (4),
+	GRAB_DEPTHIMAGE_PICS		= (2),
+	GRAB_HDRIMAGE_PICS			= (3),
 
 	GRAB_PICS_END
 };
@@ -71,7 +71,7 @@ struct csv_gx_t {
 
 	struct cam_gx_spec_t	Cam[TOTAL_CAMS];
 
-	const char				*name_gx;		///< 消息
+	const char				*name_gx;		///< 
 	pthread_t				thr_gx;			///< ID
 	pthread_mutex_t			mutex_gx;		///< 锁
 	pthread_cond_t			cond_gx;		///< 条件
@@ -81,6 +81,11 @@ struct csv_gx_t {
 
 	pthread_mutex_t			mutex_wait_depth;
 	pthread_cond_t			cond_wait_depth;
+
+	const char				*name_grab;		///< 取图
+	pthread_t				thr_grab;		///< ID
+	pthread_mutex_t			mutex_grab;		///< 锁
+	pthread_cond_t			cond_grab;		///< 条件
 };
 
 extern int csv_gx_acquisition (uint8_t state);

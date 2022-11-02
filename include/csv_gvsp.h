@@ -5,8 +5,12 @@
 extern "C" {
 #endif
 
-#define NAME_SOCKET_STREAM					"'udp_stream'"
-#define NAME_THREAD_STREAM					"'thr_stream'"
+#define NAME_SOCKET_STREAM_CH0				"'stream_left'"
+#define NAME_THREAD_STREAM_CH0				"'thr_left'"
+#define NAME_SOCKET_STREAM_CH1				"'stream_right'"
+#define NAME_THREAD_STREAM_CH1				"'thr_right'"
+#define NAME_SOCKET_STREAM_CH2				"'stream_depth'"
+#define NAME_THREAD_STREAM_CH2				"'thr_depth'"
 
 #define GVSP_PACKET_MAX_SIZE		(9000)
 #define GVSP_PACKET_MIN_SIZE		(1500)
@@ -57,16 +61,10 @@ struct gvsp_stream_t {
 	pthread_t				thr_stream;
 	pthread_mutex_t			mutex_stream;
 	pthread_cond_t			cond_stream;
-
-
-	uint8_t					enable_test;
-	pthread_t				thr_test;
-	pthread_mutex_t			mutex_test;
-	pthread_cond_t			cond_test;
 };
 
 struct csv_gvsp_t {
-	struct gvsp_stream_t	stream;
+	struct gvsp_stream_t	stream[TOTAL_CHANNELS];
 };
 
 extern int csv_gvsp_data_fetch (struct gvsp_stream_t *pStream, uint16_t type,

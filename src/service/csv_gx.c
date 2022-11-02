@@ -1267,12 +1267,349 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 
 	ret = -1;
 	if (0 == errNum) {
-		ret = csv_3d_calc();
+		ret = csv_3d_calc(DEPTH_TO_FILE);
 		pthread_cond_broadcast(&gCSV->img.cond_img);
 	} else {
 		pGX->busying = false;
 		csv_img_list_release(&gCSV->img);
 	}
+
+	return ret;
+}
+
+int csv_gx_grab_calibrate (struct csv_gx_t *pGX)
+{
+	int ret = 0, i = 0;
+	int idx = 1;
+	struct cam_gx_spec_t *pCAM = NULL;
+	struct gvsp_stream_t *pStream = NULL;
+	int errNum = 0;
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if ((!libInit)||(pGX->cnt_gx < 2)) {
+		return -1;
+	}
+
+	if (pGX->busying) {
+		return -2;
+	}
+
+	pGX->busying = true;
+
+	ret = csv_gx_acquisition(GX_ACQUISITION_START);
+
+	// 1 常亮
+	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+			errNum++;
+			continue;
+		}
+
+		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
+			GxErrStr(emStatus);
+			errNum++;
+			break;
+		}
+
+		if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+			log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+			errNum++;
+			continue;
+		}
+
+		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+		if (0 == ret) {
+			pStream = &gCSV->gvsp.stream[i];
+			csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, pCAM->pMonoImageBuf, 
+				pCAM->PayloadSize, pCAM->pFrameBuffer, NULL);
+		}
+
+		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			GxErrStr(emStatus);
+			errNum++;
+			continue;
+		}
+
+	}
+
+	// 22 标定条纹
+	ret = csv_dlp_just_write(DLP_CMD_CALIB);
+
+	while (idx <= NUM_PICS_CALIB) {
+		for (i = 0; i < pGX->cnt_gx; i++) {
+			pCAM = &pGX->Cam[i];
+
+			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+				errNum++;
+				continue;
+			}
+
+			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
+				GxErrStr(emStatus);
+				errNum++;
+				break;
+			}
+
+			if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+				log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+				errNum++;
+				continue;
+			}
+
+			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+			if (0 == ret) {
+				pStream = &gCSV->gvsp.stream[i];
+				csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, pCAM->pMonoImageBuf, 
+					pCAM->PayloadSize, pCAM->pFrameBuffer, NULL);
+			}
+
+			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				GxErrStr(emStatus);
+				errNum++;
+				continue;
+			}
+		}
+
+		if (errNum) {
+			break;
+		}
+
+		idx++;
+	}
+
+	if (0 != errNum) {
+		pGX->busying = false;
+		return -1;
+	}
+
+	return ret;
+}
+
+int csv_gx_grab_pointcloud (struct csv_gx_t *pGX)
+{
+	int ret = 0, i = 0;
+	int idx = 1;
+	struct cam_gx_spec_t *pCAM = NULL;
+	struct gvsp_stream_t *pStream = NULL;
+	int errNum = 0;
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+
+	if ((!libInit)||(pGX->cnt_gx < 2)) {
+		return -1;
+	}
+
+	if (pGX->busying) {
+		return -2;
+	}
+
+	pGX->busying = true;
+
+	csv_3d_clear_img(CAM_LEFT);
+	csv_3d_clear_img(CAM_RIGHT);
+
+	ret = csv_gx_acquisition(GX_ACQUISITION_START);
+
+	// 1 常亮
+	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+
+		if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+			errNum++;
+			continue;
+		}
+
+		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
+			GxErrStr(emStatus);
+			errNum++;
+			break;
+		}
+
+		if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+			log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+			errNum++;
+			continue;
+		}
+
+		ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+		if (0 == ret) {
+			pStream = &gCSV->gvsp.stream[i];
+			csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, pCAM->pMonoImageBuf, 
+				pCAM->PayloadSize, pCAM->pFrameBuffer, NULL);
+		}
+
+		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			GxErrStr(emStatus);
+			errNum++;
+			continue;
+		}
+
+	}
+
+	// 13 条纹
+	ret = csv_dlp_just_write(DLP_CMD_POINTCLOUD);
+
+	while (idx <= NUM_PICS_POINTCLOUD) {
+		for (i = 0; i < pGX->cnt_gx; i++) {
+			pCAM = &pGX->Cam[i];
+
+			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+				errNum++;
+				continue;
+			}
+
+			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
+				GxErrStr(emStatus);
+				errNum++;
+				break;
+			}
+
+			if (GX_FRAME_STATUS_SUCCESS != pCAM->pFrameBuffer->nStatus) {
+				log_warn("ERROR : Abnormal Acquisition %d", pCAM->pFrameBuffer->nStatus);
+				errNum++;
+				continue;
+			}
+
+			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+			if (0 == ret) {
+				csv_3d_load_img(i, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, pCAM->pMonoImageBuf);
+			}
+
+			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				GxErrStr(emStatus);
+				errNum++;
+				continue;
+			}
+		}
+
+		if (errNum) {
+			break;
+		}
+
+		idx++;
+	}
+
+	ret = -1;
+	if (0 == errNum) {
+		ret = csv_3d_calc(DEPTH_TO_STREAM);
+	} else {
+		pGX->busying = false;
+		csv_img_list_release(&gCSV->img);
+	}
+
+	return ret;
+}
+
+static void *csv_gx_grab_loop (void *data)
+{
+	if (NULL == data) {
+		log_warn("ERROR : critical failed.");
+		return NULL;
+	}
+
+	int ret = 0;
+	struct timeval now;
+	struct timespec timeo;
+	struct csv_gx_t *pGX = (struct csv_gx_t *)data;
+
+	while (gCSV->running) {
+		gettimeofday(&now, NULL);
+		timeo.tv_sec = now.tv_sec + 3;
+		timeo.tv_nsec = now.tv_usec * 1000;
+		ret = pthread_cond_timedwait(&pGX->cond_grab, &pGX->mutex_grab, &timeo);
+		if (ret == ETIMEDOUT) {
+			continue;
+		}
+
+		switch (gCSV->gvcp.grab_type) {
+		case GRAB_CALIB_PICS:
+			csv_gx_grab_calibrate(pGX);
+			break;
+		case GRAB_DEPTHIMAGE_PICS:
+			csv_gx_grab_pointcloud(pGX);
+			break;
+		case GRAB_HDRIMAGE_PICS:
+			break;
+		}
+
+		gCSV->gvcp.grab_type = GRAB_NONE;
+	}
+
+	log_alert("ALERT : exit pthread %s.", pGX->name_grab);
+
+	pGX->thr_grab = 0;
+
+	pthread_exit(NULL);
+
+	return NULL;
+}
+
+static int csv_gx_grab_thread (struct csv_gx_t *pGX)
+{
+	int ret = -1;
+
+	pthread_attr_t attr;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    if (pthread_mutex_init(&pGX->mutex_grab, NULL) != 0) {
+		log_err("ERROR : mutex %s.", pGX->name_grab);
+        return -1;
+    }
+
+    if (pthread_cond_init(&pGX->cond_grab, NULL) != 0) {
+		log_err("ERROR : cond %s.", pGX->name_grab);
+        return -1;
+    }
+
+	ret = pthread_create(&pGX->thr_grab, &attr, csv_gx_grab_loop, (void *)pGX);
+	if (ret < 0) {
+		log_err("ERROR : create pthread %s.", pGX->name_grab);
+		return -1;
+	} else {
+		log_info("OK : create pthread %s @ (%p).", pGX->name_grab, pGX->thr_grab);
+	}
+
+	return ret;
+}
+
+static int csv_gx_grab_thread_cancel (struct csv_gx_t *pGX)
+{
+	int ret = 0;
+	void *retval = NULL;
+
+	if (pGX->thr_grab <= 0) {
+		return 0;
+	}
+
+	ret = pthread_cancel(pGX->thr_grab);
+	if (ret != 0) {
+		log_err("ERROR : pthread_cancel %s.", pGX->name_grab);
+	} else {
+		log_info("OK : cancel pthread %s (%p).", pGX->name_grab, pGX->thr_grab);
+	}
+
+	ret = pthread_join(pGX->thr_grab, &retval);
+
+	pGX->thr_grab = 0;
 
 	return ret;
 }
@@ -1419,6 +1756,7 @@ int csv_gx_init (void)
 	pGX->busying = false;
 
 	ret = csv_gx_thread(pGX);
+	ret |= csv_gx_grab_thread(pGX);
 
 	return ret;
 }
@@ -1430,6 +1768,7 @@ int csv_gx_deinit (void)
 	struct csv_gx_t *pGX = &gCSV->gx;
 
 	ret = csv_gx_thread_cancel(pGX);
+	ret |= csv_gx_grab_thread_cancel(pGX);
 
 	return ret;
 }

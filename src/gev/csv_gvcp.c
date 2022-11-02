@@ -246,7 +246,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 	int ret = 0;
 
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
-	struct gvsp_stream_t *pStream = &gCSV->gvsp.stream;
+	struct gvsp_stream_t *pStream = NULL;
 
 	switch (regAddr) {
 	case REG_NetworkInterfaceConfiguration0:
@@ -341,7 +341,8 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelPort0:
-		pGC->Channel.Port = swap16((uint16_t)regData);
+		pStream = &gCSV->gvsp.stream[CAM_LEFT];
+		pGC->Channel[CAM_LEFT].Port = swap16((uint16_t)regData);
 		pStream->peer_addr.sin_port = swap16((uint16_t)regData);
 		if (0 != regData) {
 			pStream->block_id = 1;
@@ -367,19 +368,20 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 				regData &= ~SCPS_F;
 			}
 
-			pGC->Channel.Cfg_PacketSize = regData;
+			pGC->Channel[CAM_LEFT].Cfg_PacketSize = regData;
 		} else {
 			ret = -1;
 		}
 		break;
 
 	case REG_StreamChannelPacketDelay0:
-		pGC->Channel.PacketDelay = regData;
+		pGC->Channel[CAM_LEFT].PacketDelay = regData;
 		break;
 
 	case REG_StreamChannelDestinationAddress0:
 		if (0 != regData) {
-			pGC->Channel.Address = swap32(regData);
+			pStream = &gCSV->gvsp.stream[CAM_LEFT];
+			pGC->Channel[CAM_LEFT].Address = swap32(regData);
 			pStream->peer_addr.sin_addr.s_addr = swap32(regData);
 		} else {
 			ret = -1;
@@ -387,11 +389,115 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_StreamChannelConfiguration0:
-		pGC->Channel.Configuration = regData;
+		pGC->Channel[CAM_LEFT].Configuration = regData;
 		break;
 
 
-	// stream 2-3 to add more
+	case REG_StreamChannelPort1:
+		pStream = &gCSV->gvsp.stream[CAM_RIGHT];
+		pGC->Channel[CAM_RIGHT].Port = swap16((uint16_t)regData);
+		pStream->peer_addr.sin_port = swap16((uint16_t)regData);
+		if (0 != regData) {
+			pStream->block_id = 1;
+			pStream->block_id64 = 1;
+		}
+		break;
+
+	case REG_StreamChannelPacketSize1:
+		if ((0 < (regData&0xFFFF))&&((regData&0xFFFF) < GVSP_PACKET_MAX_SIZE)) {
+			if (regData & SCPS_F) {
+				// GVCPCap_TD
+				uint8_t *data = NULL;
+				uint16_t length = regData&0xFFFF;
+				data = malloc(length);
+				if (NULL == data) {
+					log_err("ERROR : malloc test packet");
+					return -1;
+				}
+				csv_gvsp_lfsr_generator(data, length);
+				//csv_gvsp_packet_test(&pGVCP->stream[CAM_RIGHT], data, length);
+				free(data);
+
+				regData &= ~SCPS_F;
+			}
+
+			pGC->Channel[CAM_RIGHT].Cfg_PacketSize = regData;
+		} else {
+			ret = -1;
+		}
+		break;
+
+	case REG_StreamChannelPacketDelay1:
+		pGC->Channel[CAM_RIGHT].PacketDelay = regData;
+		break;
+
+	case REG_StreamChannelDestinationAddress1:
+		if (0 != regData) {
+			pStream = &gCSV->gvsp.stream[CAM_RIGHT];
+			pGC->Channel[CAM_RIGHT].Address = swap32(regData);
+			pStream->peer_addr.sin_addr.s_addr = swap32(regData);
+		} else {
+			ret = -1;
+		}
+		break;
+
+	case REG_StreamChannelConfiguration1:
+		pGC->Channel[CAM_RIGHT].Configuration = regData;
+		break;
+
+
+	case REG_StreamChannelPort2:
+		pStream = &gCSV->gvsp.stream[CAM_DEPTH];
+		pGC->Channel[CAM_DEPTH].Port = swap16((uint16_t)regData);
+		pStream->peer_addr.sin_port = swap16((uint16_t)regData);
+		if (0 != regData) {
+			pStream->block_id = 1;
+			pStream->block_id64 = 1;
+		}
+		break;
+
+	case REG_StreamChannelPacketSize2:
+		if ((0 < (regData&0xFFFF))&&((regData&0xFFFF) < GVSP_PACKET_MAX_SIZE)) {
+			if (regData & SCPS_F) {
+				// GVCPCap_TD
+				uint8_t *data = NULL;
+				uint16_t length = regData&0xFFFF;
+				data = malloc(length);
+				if (NULL == data) {
+					log_err("ERROR : malloc test packet");
+					return -1;
+				}
+				csv_gvsp_lfsr_generator(data, length);
+				//csv_gvsp_packet_test(&pGVCP->stream[CAM_DEPTH], data, length);
+				free(data);
+
+				regData &= ~SCPS_F;
+			}
+
+			pGC->Channel[CAM_DEPTH].Cfg_PacketSize = regData;
+		} else {
+			ret = -1;
+		}
+		break;
+
+	case REG_StreamChannelPacketDelay2:
+		pGC->Channel[CAM_DEPTH].PacketDelay = regData;
+		break;
+
+	case REG_StreamChannelDestinationAddress2:
+		if (0 != regData) {
+			pStream = &gCSV->gvsp.stream[CAM_DEPTH];
+			pGC->Channel[CAM_DEPTH].Address = swap32(regData);
+			pStream->peer_addr.sin_addr.s_addr = swap32(regData);
+		} else {
+			ret = -1;
+		}
+		break;
+
+	case REG_StreamChannelConfiguration2:
+		pGC->Channel[CAM_DEPTH].Configuration = regData;
+		break;
+
 
 	case REG_ActionGroupKey0:
 		break;
@@ -404,19 +510,26 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	case REG_AcquisitionStart:
 		if (1<<31 & regData) {
-			pStream->enable_test = 1;
-			pthread_cond_broadcast(&pStream->cond_test);
+			//pStream = &gCSV->gvsp.stream[CAM_LEFT];
+
 		}
 		break;
 
 	case REG_AcquisitionStop:
-		pStream->enable_test = 0;
-		pthread_cond_broadcast(&pStream->cond_test);
+
 		break;
 
 	case REG_Calibrate:
 		if (regData & (1<<31)) {
-			gCSV->gvcp.grab_type = GRAB_CALIB_PICS;
+			if ((pGC->Channel[CAM_LEFT].Port > 0)
+			  &&(pGC->Channel[CAM_RIGHT].Port > 0)) {
+				if (GRAB_NONE != gCSV->gvcp.grab_type) {
+					ret = -1;
+				} else {
+					gCSV->gvcp.grab_type = GRAB_CALIB_PICS;
+					pthread_cond_broadcast(&gCSV->gx.cond_grab);
+				}
+			}
 		}
 		break;
 
@@ -434,12 +547,10 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	case REG_PointCloud:
 		if (regData & (1<<31)) {
-			gCSV->gvcp.grab_type = GRAB_POINTCLOUD_PICS;
+			if ((pGC->Channel[CAM_LEFT].Port > 0)
+			  &&(pGC->Channel[CAM_RIGHT].Port > 0)
+			  &&(pGC->Channel[CAM_DEPTH].Port > 0)) {
 
-			{
-				log_debug("csv_gvsp_data_fetch file.");
-				csv_gvsp_data_fetch(pStream, GVSP_PT_FILE, 
-					gCSV->cfg.gigecfg.xmlData, gCSV->cfg.gigecfg.xmlLength, NULL, "csv_xml.zip");
 			}
 		}
 		break;
@@ -452,7 +563,16 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	case REG_DepthImage:
 		if (regData & (1<<31)) {
-			gCSV->gvcp.grab_type = GRAB_DEPTHIMAGE_PICS;
+			if ((pGC->Channel[CAM_LEFT].Port > 0)
+			  &&(pGC->Channel[CAM_RIGHT].Port > 0)
+			  &&(pGC->Channel[CAM_DEPTH].Port > 0)) {
+				if (GRAB_NONE != gCSV->gvcp.grab_type) {
+					ret = -1;
+				} else {
+					gCSV->gvcp.grab_type = GRAB_DEPTHIMAGE_PICS;
+					pthread_cond_broadcast(&gCSV->gx.cond_grab);
+				}
+			}
 		}
 		break;
 
@@ -943,23 +1063,6 @@ static void *csv_gvcp_ask_loop (void *data)
 
 			csv_gvcp_ask_deal(&task->ask);
 
-			switch (pGVCP->grab_type) {
-			case GRAB_CALIB_PICS:
-				csv_gx_cams_calibrate(&gCSV->gx);
-				break;
-			case GRAB_POINTCLOUD_PICS:
-				csv_gx_cams_pointcloud(&gCSV->gx);
-				break;
-			case GRAB_DEPTHIMAGE_PICS:
-				csv_gx_cams_pointcloud(&gCSV->gx);
-				break;
-			case GRAB_HDRIMAGE_PICS:
-				break;
-			default:
-				break;
-			}
-
-			pGVCP->grab_type = GRAB_NONE;
 			list_del(&task->list);
 			free(task);
 			task = NULL;

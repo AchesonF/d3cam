@@ -9,8 +9,8 @@ extern "C" {
 #define NAME_THREAD_GRAB		("'thr_grab'")
 
 enum {
-	GRAB_CALIBRATE			= (0),
-	GRAB_POINTCLOUD			= (1),
+	MVS_CALIBRATE			= (0),
+	MVS_POINTCLOUD			= (1),
 
 	GRAB_END
 };
@@ -40,7 +40,7 @@ struct csv_mvs_t {
 	pthread_mutex_t			mutex_mvs;		///< 锁
 	pthread_cond_t			cond_mvs;		///< 条件
 
-	uint8_t					grab_type;		///< 获取图像组类型 0:calib 1:pointcloud ...
+	uint8_t					mvs_grab_type;		///< 获取图像组类型 0:calib 1:pointcloud ...
 	const char				*name_grab;		///< 消息
 	pthread_t				thr_grab;		///< ID
 	pthread_mutex_t			mutex_grab;		///< 锁

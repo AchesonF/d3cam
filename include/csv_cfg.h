@@ -7,14 +7,12 @@ extern "C" {
 
 #define DEFAULT_GVSP_PACKETSIZE			(1500)//(8164)
 
-enum {
-	CAM_LEFT				= (0),
-	CAM_RIGHT				= (1),
-//	CAM_FRONT				= (2),
-//	CAM_BACK				= (3),
+#define TOTAL_CAMS				(2)		///< 实际相机总数
+#define CAM_LEFT				(0)		///< left cam  -> 流通道0
+#define CAM_RIGHT				(1)		///< right cam	-> 流通道1
+#define CAM_DEPTH				(2)		///< 虚拟相机 传输深度图 流通道2
 
-	TOTAL_CAMS
-};
+#define TOTAL_CHANNELS			(3)		///< 总流通道数
 
 // 存储图片后缀
 enum {
@@ -45,6 +43,7 @@ struct device_cfg_t {
 
 struct channel_cfg_t {
 	uint32_t				Address;
+	uint16_t				idx;
 	uint16_t				Port;
 	uint32_t				Cfg_PacketSize;
 	uint32_t				PacketDelay;		// ns
@@ -118,7 +117,7 @@ struct gev_conf_t {
 	uint32_t				MessageRetryCount;
 	uint32_t				MessageSourcePort;
 
-	struct channel_cfg_t	Channel;
+	struct channel_cfg_t	Channel[TOTAL_CHANNELS];
 };
 
 struct pointcloud_cfg_t {

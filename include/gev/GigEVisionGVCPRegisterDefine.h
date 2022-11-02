@@ -713,8 +713,41 @@ extern "C" {
 
 //0x0D70 Reserved - - -
 
+//(SCP2) O R/W 4 Third stream channel, if supported.
+#define REG_StreamChannelPort2								(0x0D80)
+
+//(SCPS2)O R/W 4 Third stream channel, if supported.
+#define REG_StreamChannelPacketSize2						(0x0D84)
+
+//(SCPD2)O R/W 4 Third stream channel, if supported.
+#define REG_StreamChannelPacketDelay2						(0x0D88)
+
+//0x0D8C Reserved - - -
+
+//(SCDA2)O R/W 4 Third stream channel, if supported.
+#define REG_StreamChannelDestinationAddress2				(0x0D98)
+
+//(SCSP2)O R 4 Third stream channel, if supported.
+#define REG_StreamChannelSourcePort2						(0x0D9C)
+
+//(SCC2)O R 4 Third stream channel, if supported.
+#define REG_StreamChannelCapability2						(0x0DA0)
+
+//(SCCFG2)O R/W 4 Third stream channel, if supported.
+#define REG_StreamChannelConfiguration2						(0x0DA4)
+
+//(SCZ2) O R 4 Third stream channel, if supported.
+#define REG_StreamChannelZone2								(0x0DA8)
+
+//(SCZD2) O R 4 Third stream channel, if supported.
+#define REG_StreamChannelZoneDirection2						(0x0DAC)
+
+//0x0DB0 Reserved - - -
+
+
+
 //O R/W - Each stream channel is allocated a section of 64 bytes(0x40). Only supported channels are available.
-#define REG_OtherStreamChannelsRegisters					(0x0D80)
+#define REG_OtherStreamChannelsRegisters					(0x0DC0)
 
 //(SCP511)O R/W 4 512th stream channel, if supported.
 #define REG_StreamChannelPort511							(0x8CC0)
