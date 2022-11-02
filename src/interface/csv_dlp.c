@@ -334,8 +334,8 @@ int csv_dlp_deinit (void)
 			return -1;
 		}
 
-		pDLP->fd = -1;
 		log_info("OK : close %s : fd(%d).", pDLP->name, pDLP->fd);
+		pDLP->fd = -1;
 	}
 
 	return ret;

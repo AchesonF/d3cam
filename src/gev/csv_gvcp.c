@@ -638,7 +638,7 @@ static int csv_gvcp_writereg_ack (struct gvcp_ask_t *pASK,
 		}
 
 		if (NULL != desc) {
-//			log_debug("WR : %s", desc);
+			log_debug("WR : %s", desc);
 		}
 
 		ret = csv_gvcp_writereg_effective(reg_addr, reg_data);
@@ -818,7 +818,7 @@ static int csv_gvcp_writemem_ack (struct gvcp_ask_t *pASK,
 	}
 
 	if (NULL != desc) {
-//		log_debug("MW : %s", desc);
+		log_debug("MW : %s", desc);
 	}
 
 	ret = csv_gev_mem_info_set(mem_addr, info);

@@ -1767,6 +1767,7 @@ int csv_gx_deinit (void)
 	int ret = 0;
 	struct csv_gx_t *pGX = &gCSV->gx;
 
+	pthread_cond_broadcast(&pGX->cond_gx);
 	ret = csv_gx_thread_cancel(pGX);
 	ret |= csv_gx_grab_thread_cancel(pGX);
 
