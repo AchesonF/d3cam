@@ -1285,6 +1285,8 @@ static void *csv_gx_loop (void *data)
 	}
 
 	int ret = 0, timeo = 0;
+	struct timeval now;
+	struct timespec timeout;
 	struct csv_gx_t *pGX = (struct csv_gx_t *)data;
 
 	csv_3d_init();
@@ -1293,10 +1295,17 @@ static void *csv_gx_loop (void *data)
 
 	while (gCSV->running) {
 		do {
-			sleep(GX_WAIT_PERIOD);
-			ret = csv_gx_search(pGX);
-			if (ret < TOTAL_CAMS) {
-				log_info("Search times[%d] not enough cams.", timeo+1);
+			gettimeofday(&now, NULL);
+			timeout.tv_sec = now.tv_sec + GX_WAIT_PERIOD;
+			timeout.tv_nsec = now.tv_usec * 1000;
+
+			ret = pthread_cond_timedwait(&pGX->cond_gx, &pGX->mutex_gx, &timeout);
+			if (ret == ETIMEDOUT) {
+				// use timeo as a block and than retry.
+				ret = csv_gx_search(pGX);
+				if (ret < TOTAL_CAMS) {
+					log_info("Search times[%d] not enough cams.", timeo+1);
+				}
 			}
 		} while ((ret < TOTAL_CAMS)&&(++timeo < GX_WAIT_TIMEO));
 
@@ -1310,9 +1319,9 @@ static void *csv_gx_loop (void *data)
 			csv_gx_cams_init(pGX);
 		}
 
-		pthread_mutex_lock(&pGX->mutex_gx);
+		//pthread_mutex_lock(&pGX->mutex_gx);
 		ret = pthread_cond_wait(&pGX->cond_gx, &pGX->mutex_gx);
-		pthread_mutex_unlock(&pGX->mutex_gx);
+		//pthread_mutex_unlock(&pGX->mutex_gx);
 		if (ret != 0) {
 			log_err("ERROR : pthread_cond_wait.");
 			break;
