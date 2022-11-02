@@ -903,6 +903,23 @@ int csv_gvcp_recv_trigger (struct csv_gvcp_t *pGVCP)
 	return csv_gvcp_ask_push(pGVCP);
 }
 
+static void csv_gvcp_ask_list_release (struct csv_gvcp_t *pGVCP)
+{
+	struct list_head *pos = NULL, *n = NULL;
+	struct gvcp_ask_list_t *task = NULL;
+
+	list_for_each_safe(pos, n, &pGVCP->head_gvcpask.list) {
+		task = list_entry(pos, struct gvcp_ask_list_t, list);
+		if (task == NULL) {
+			break;
+		}
+
+		list_del(&task->list);
+		free(task);
+		task = NULL;
+	}
+}
+
 static void *csv_gvcp_ask_loop (void *data)
 {
 	if (NULL == data) {
@@ -917,7 +934,7 @@ static void *csv_gvcp_ask_loop (void *data)
 	struct timeval now;
 	struct timespec timeo;
 
-	while (1) {
+	while (gCSV->running) {
 		list_for_each_safe(pos, n, &pGVCP->head_gvcpask.list) {
 			task = list_entry(pos, struct gvcp_ask_list_t, list);
 			if (task == NULL) {
@@ -960,6 +977,8 @@ static void *csv_gvcp_ask_loop (void *data)
 
 	log_alert("ALERT : exit pthread %s", pGVCP->name_gvcpask);
 
+	csv_gvcp_ask_list_release(pGVCP);
+
 	pGVCP->thr_gvcpask = 0;
 
 	pthread_exit(NULL);
@@ -995,23 +1014,6 @@ static int csv_gvcp_ask_thread (struct csv_gvcp_t *pGVCP)
 	}
 
 	return ret;
-}
-
-static void csv_gvcp_ask_list_release (struct csv_gvcp_t *pGVCP)
-{
-	struct list_head *pos = NULL, *n = NULL;
-	struct gvcp_ask_list_t *task = NULL;
-
-	list_for_each_safe(pos, n, &pGVCP->head_gvcpask.list) {
-		task = list_entry(pos, struct gvcp_ask_list_t, list);
-		if (task == NULL) {
-			break;
-		}
-
-		list_del(&task->list);
-		free(task);
-		task = NULL;
-	}
 }
 
 static int csv_gvcp_ask_thread_cancel (struct csv_gvcp_t *pGVCP)

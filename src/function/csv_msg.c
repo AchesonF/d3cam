@@ -206,6 +206,27 @@ static int csv_msg_execute (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return -1;
 }
 
+static void csv_msg_list_release (struct csv_msg_t *pMSG)
+{
+	struct list_head *pos = NULL, *n = NULL;
+	struct msglist_t *task = NULL;
+
+	list_for_each_safe(pos, n, &pMSG->head_msg.list) {
+		task = list_entry(pos, struct msglist_t, list);
+		if (task == NULL) {
+			break;
+		}
+
+		if (NULL != task->mp.payload) {
+			free(task->mp.payload);
+		}
+
+		list_del(&task->list);
+		free(task);
+		task = NULL;
+	}
+}
+
 static void *csv_msg_loop (void *data)
 {
 	if (NULL == data) {
@@ -222,7 +243,7 @@ static void *csv_msg_loop (void *data)
 	struct timespec timeo;
 	struct msg_package_t *pMP = NULL;
 
-	while (1) {
+	while (gCSV->running) {
 		list_for_each_safe(pos, n, &pMSG->head_msg.list) {
 			task = list_entry(pos, struct msglist_t, list);
 			if (task == NULL) {
@@ -258,6 +279,8 @@ static void *csv_msg_loop (void *data)
 	}
 
 	log_alert("ALERT : exit pthread %s", pMSG->name_msg);
+
+	csv_msg_list_release(pMSG);
 
 	pMSG->thr_msg = 0;
 
@@ -296,27 +319,6 @@ static int csv_msg_thread (struct csv_msg_t *pMSG)
 	//pthread_attr_destory(&attr);
 
 	return ret;
-}
-
-static void csv_msg_list_release (struct csv_msg_t *pMSG)
-{
-	struct list_head *pos = NULL, *n = NULL;
-	struct msglist_t *task = NULL;
-
-	list_for_each_safe(pos, n, &pMSG->head_msg.list) {
-		task = list_entry(pos, struct msglist_t, list);
-		if (task == NULL) {
-			break;
-		}
-
-		if (NULL != task->mp.payload) {
-			free(task->mp.payload);
-		}
-
-		list_del(&task->list);
-		free(task);
-		task = NULL;
-	}
 }
 
 static int csv_msg_thread_cancel (struct csv_msg_t *pMSG)

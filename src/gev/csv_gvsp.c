@@ -384,6 +384,7 @@ static int csv_gvsp_client_close (struct gvsp_stream_t *pStream)
 			log_err("ERROR : close %s.", pStream->name);
 			return -1;
 		}
+		log_info("OK : close %s fd(%d).", pStream->name, pStream->fd);
 		pStream->fd = -1;
 	}
 
@@ -413,7 +414,7 @@ static void *csv_gvsp_client_loop (void *data)
 	struct stream_list_t *task = NULL;
 	struct payload_data_t *pPD = NULL;
 
-	while (1) {
+	while (gCSV->running) {
 		list_for_each_safe(pos, n, &pStream->head_stream.list) {
 			task = list_entry(pos, struct stream_list_t, list);
 			if (task == NULL) {
@@ -436,7 +437,6 @@ static void *csv_gvsp_client_loop (void *data)
 			task = NULL;
 		}
 
-
 		gettimeofday(&now, NULL);
 		timeo.tv_sec = now.tv_sec + 5;
 		timeo.tv_nsec = now.tv_usec * 1000;
@@ -451,8 +451,9 @@ exit_thr:
 
 	log_alert("ALERT : exit pthread %s.", pStream->name_stream);
 
-	pStream->thr_stream = 0;
 	csv_gvsp_client_close(pStream);
+
+	pStream->thr_stream = 0;
 
 	pthread_exit(NULL);
 
@@ -497,11 +498,11 @@ static int csv_gvsp_client_thread_cancel (struct gvsp_stream_t *pStream)
 	int ret = 0;
 	void *retval = NULL;
 
+	csv_gvsp_client_close(pStream);
+
 	if (pStream->thr_stream <= 0) {
 		return 0;
 	}
-
-	csv_gvsp_client_close(pStream);
 
 	ret = pthread_cancel(pStream->thr_stream);
 	if (ret != 0) {
@@ -547,7 +548,7 @@ static void *gvsp_image_test_loop (void *data)
 		goto exit_thr;
 	}
 
-	while (1) {
+	while (gCSV->running) {
 		pthread_cond_wait(&pStream->cond_test, &pStream->mutex_test);
 
 		while (pStream->enable_test) {

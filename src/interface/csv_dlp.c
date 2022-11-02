@@ -207,7 +207,7 @@ static void *csv_dlp_loop (void *data)
 
 	struct csv_dlp_t *pDLP = (struct csv_dlp_t *)data;
 
-	while (1) {
+	while (gCSV->running) {
 		ret = csv_dlp_read(pDLP);
 
 		if (ret <= 0) {

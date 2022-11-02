@@ -25,6 +25,8 @@ struct csv_product_t gPdct = {
 
 static void csv_deinit (void)
 {
+	gCSV->running = false;
+
 	csv_cfg_deinit();
 
 	csv_gev_deinit();
@@ -101,10 +103,6 @@ static void csv_trace (int signum)
 
 	csv_deinit();
 
-	if (gCSV != NULL) {
-		free(gCSV);
-	}
-
 	log_alert("ALERT : crash process pid[%d] via signum[%d]=%s.", 
 		getpid(), signum, strSIG);
 	csv_hb_close(gPdct.hb.pipefd[1]);
@@ -157,6 +155,8 @@ static struct csv_info_t *csv_global_init (void)
 	}
 
 	memset(pCSV, 0, sizeof(struct csv_info_t));
+
+	pCSV->running = true;
 
 	return pCSV;
 }
@@ -327,7 +327,7 @@ int csv_init (void)
 	csv_gx_init();
 #endif
 
-	csv_stat_init();
+	//csv_stat_init();
 
 	csv_web_init();
 

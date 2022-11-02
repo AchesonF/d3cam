@@ -1291,7 +1291,7 @@ static void *csv_gx_loop (void *data)
 
 	csv_gx_lib(GX_LIB_OPEN);
 
-	while (1) {
+	while (gCSV->running) {
 		do {
 			sleep(GX_WAIT_PERIOD);
 			ret = csv_gx_search(pGX);
@@ -1325,6 +1325,10 @@ static void *csv_gx_loop (void *data)
 	}
 
 	log_alert("ALERT : exit pthread %s.", pGX->name_gx);
+
+	csv_gx_cams_deinit(pGX);
+	csv_gx_close(pGX);
+	csv_gx_lib(GX_LIB_CLOSE);
 
 	pGX->thr_gx = 0;
 
@@ -1371,13 +1375,13 @@ static int csv_gx_thread_cancel (struct csv_gx_t *pGX)
 	int ret = 0;
 	void *retval = NULL;
 
-	if (pGX->thr_gx <= 0) {
-		return 0;
-	}
-
 	csv_gx_cams_deinit(pGX);
 	csv_gx_close(pGX);
 	csv_gx_lib(GX_LIB_CLOSE);
+
+	if (pGX->thr_gx <= 0) {
+		return 0;
+	}
 
 	ret = pthread_cancel(pGX->thr_gx);
 	if (ret != 0) {

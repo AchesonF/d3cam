@@ -47,6 +47,7 @@ struct csv_product_t {
 };
 
 struct csv_info_t {
+	uint8_t				running;
 	struct csv_file_t	file;					///< 外部配置文件
 	struct csv_xml_t	xml;					///< config file using xml
 	struct csv_cfg_t	cfg;

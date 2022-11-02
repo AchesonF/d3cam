@@ -114,6 +114,27 @@ int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length,
 	return 0;
 }
 
+void csv_img_list_release (struct csv_img_t *pIMG)
+{
+	struct list_head *pos = NULL, *n = NULL;
+	struct img_list_t *task = NULL;
+
+	list_for_each_safe(pos, n, &pIMG->head_img.list) {
+		task = list_entry(pos, struct img_list_t, list);
+		if (task == NULL) {
+			break;
+		}
+
+		if (NULL != task->ipk.payload) {
+			free(task->ipk.payload);
+		}
+
+		list_del(&task->list);
+		free(task);
+		task = NULL;
+	}
+}
+
 
 static void *csv_img_loop (void *data)
 {
@@ -134,7 +155,7 @@ static void *csv_img_loop (void *data)
 	struct timespec timeo;
 	struct img_package_t *pIPK = NULL;
 
-	while (1) {
+	while (gCSV->running) {
 		list_for_each_safe(pos, n, &pIMG->head_img.list) {
 			task = list_entry(pos, struct img_list_t, list);
 			if (task == NULL) {
@@ -196,6 +217,8 @@ static void *csv_img_loop (void *data)
 
 	log_warn("WARN : exit pthread %s.", pIMG->name_img);
 
+	csv_img_list_release(pIMG);
+
 	pIMG->thr_img = 0;
 
 	pthread_exit(NULL);
@@ -233,27 +256,6 @@ static int csv_img_thread (struct csv_img_t *pIMG)
 	//pthread_attr_destory(&attr);
 
 	return ret;
-}
-
-void csv_img_list_release (struct csv_img_t *pIMG)
-{
-	struct list_head *pos = NULL, *n = NULL;
-	struct img_list_t *task = NULL;
-
-	list_for_each_safe(pos, n, &pIMG->head_img.list) {
-		task = list_entry(pos, struct img_list_t, list);
-		if (task == NULL) {
-			break;
-		}
-
-		if (NULL != task->ipk.payload) {
-			free(task->ipk.payload);
-		}
-
-		list_del(&task->list);
-		free(task);
-		task = NULL;
-	}
 }
 
 static int csv_img_thread_cancel (struct csv_img_t *pIMG)
