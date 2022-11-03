@@ -245,6 +245,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 {
 	int ret = 0;
 
+	struct csv_gx_t *pGX = &gCSV->gx;
 	struct gev_conf_t *pGC = &gCSV->cfg.gigecfg;
 	struct gvsp_stream_t *pStream = NULL;
 
@@ -523,11 +524,11 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		if (regData & (1<<31)) {
 			if ((pGC->Channel[CAM_LEFT].Port > 0)
 			  &&(pGC->Channel[CAM_RIGHT].Port > 0)) {
-				if (GRAB_NONE != gCSV->gvcp.grab_type) {
+				if (pGX->busying) {
 					ret = -1;
 				} else {
-					gCSV->gvcp.grab_type = GRAB_CALIB_PICS;
-					pthread_cond_broadcast(&gCSV->gx.cond_grab);
+					pGX->grab_type = GRAB_CALIB_PICS;
+					pthread_cond_broadcast(&pGX->cond_grab);
 				}
 			}
 		}
@@ -566,11 +567,11 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 			if ((pGC->Channel[CAM_LEFT].Port > 0)
 			  &&(pGC->Channel[CAM_RIGHT].Port > 0)
 			  &&(pGC->Channel[CAM_DEPTH].Port > 0)) {
-				if (GRAB_NONE != gCSV->gvcp.grab_type) {
+				if (pGX->busying) {
 					ret = -1;
 				} else {
-					gCSV->gvcp.grab_type = GRAB_DEPTHIMAGE_PICS;
-					pthread_cond_broadcast(&gCSV->gx.cond_grab);
+					pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
+					pthread_cond_broadcast(&pGX->cond_grab);
 				}
 			}
 		}
@@ -1216,7 +1217,6 @@ int csv_gvcp_init (void)
 	pGVCP->port = GVCP_PUBLIC_PORT;
 	pGVCP->ReqId = GVCP_REQ_ID_INIT;
 	pGVCP->rxlen = 0;
-	pGVCP->grab_type = GRAB_NONE;
 
 	pGVCP->name_gvcpask = NAME_THREAD_GVCP_ASK;
 	INIT_LIST_HEAD(&pGVCP->head_gvcpask.list);

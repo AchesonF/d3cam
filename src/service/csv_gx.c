@@ -578,17 +578,17 @@ static int PixelFormatConvert (PGX_FRAME_BUFFER pFrameBuffer, uint8_t *ImageBuf,
 	return 0;
 }
 
-static int csv_gx_lib (uint8_t action)
+static int csv_gx_lib (uint8_t open)
 {
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 
-	if (GX_LIB_OPEN == action) {
+	if (GX_LIB_OPEN == open) {
 		emStatus = GXInitLib();
 		if (GX_STATUS_SUCCESS == emStatus) {
 			libInit = true;
 		}
 		log_info("Galaxy library version : '%s'", GXGetLibVersion());
-	} else if (GX_LIB_CLOSE == action) {
+	} else if (GX_LIB_CLOSE == open) {
 		emStatus = GXCloseLib();
 		if (GX_STATUS_SUCCESS == emStatus) {
 			libInit = false;
@@ -818,10 +818,10 @@ int csv_gx_acquisition (uint8_t state)
 			continue;
 		}
 
-		if (GX_ACQUISITION_START == state) {
+		if (GX_START_ACQ == state) {
 			//emStatus = GXStreamOn(pCAM->hDevice);
 			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_START);
-		} else if (GX_ACQUISITION_STOP == state) {
+		} else if (GX_STOP_ACQ == state) {
 			//emStatus = GXStreamOff(pCAM->hDevice);
 			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_STOP);
 		}
@@ -834,6 +834,144 @@ int csv_gx_acquisition (uint8_t state)
 	}
 
 	return ret;
+}
+
+int csv_gx_acquisition_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+{
+	GX_STATUS emStatus = GX_STATUS_ERROR;
+
+	switch (type) {
+	case GX_START_ACQ:
+		emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_START);
+		break;
+	case GX_STOP_ACQ:
+		emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_STOP);
+		break;
+	}
+
+	if (GX_STATUS_SUCCESS != emStatus) {
+		GxErrStr(emStatus);
+		return -1;
+	}
+
+	return 0;
+}
+
+// 停采后设置
+int csv_gx_trigger_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+{
+	switch (type) {
+	case GX_TRI_USE_HW_S:
+		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
+		// GX_TRIGGER_MODE_ENTRY
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
+		// GX_TRIGGER_ACTIVATION_ENTRY
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
+		// GX_TRIGGER_SOURCE_ENTRY
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);
+		break;
+	case GX_TRI_USE_SW_S:
+		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_SOFTWARE);
+		break;
+	case GX_TRI_USE_SW_C:
+		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_SOFTWARE);
+		break;
+	case GX_TRI_nUSE_S:
+		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
+		break;
+	case GX_TRI_nUSE_C:
+		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
+		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
+		break;
+
+	}
+
+	return 0;
+}
+
+int csv_gx_exposure_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+{
+	// GX_EXPOSURE_MODE_ENTRY
+	SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TIMED);
+
+	switch (type) {
+	case GX_EXPOTIME_USE:
+		// GX_EXPOSURE_AUTO_ENTRY
+		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_OFF);
+		SetFloat(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, pCAM->expoTime);
+		break;
+
+	case GX_EXPOTIME_nUSE_S:
+		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_ONCE);
+		break;
+
+	case GX_EXPOTIME_nUSE_C:
+		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_CONTINUOUS);
+		break;
+	}
+
+	return 0;
+}
+
+int csv_gx_gain_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+{
+	switch (type) {
+	case GX_GAIN_USE:
+		// GX_GAIN_AUTO_ENTRY
+		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_OFF);
+		SetFloat(pCAM->hDevice, GX_FLOAT_GAIN, pCAM->gain);
+		break;
+
+	case GX_GAIN_nUSE_S:
+		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_ONCE);
+		break;
+
+	case GX_GAIN_nUSE_C:
+		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_CONTINUOUS);
+		break;
+	}
+
+	return 0;
+}
+
+int csv_gx_throughput_limit_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+{
+	switch (type) {
+	case GX_THR_PUT_LIMIT:	// on
+		// GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ENTRY
+		SetEnum(pCAM->hDevice, GX_ENUM_DEVICE_LINK_THROUGHPUT_LIMIT_MODE, GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ON);
+		SetInt(pCAM->hDevice, GX_INT_DEVICE_LINK_THROUGHPUT_LIMIT, pCAM->LinkThroughputLimit);
+		break;
+
+	case GX_THR_PUT_nLIMIT:	// off
+		SetEnum(pCAM->hDevice, GX_ENUM_DEVICE_LINK_THROUGHPUT_LIMIT_MODE, GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_OFF);
+		break;
+	}
+
+	return 0;
+}
+
+int csv_gx_acq_frame_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+{
+	switch (type) {
+	case GX_FRAME_LIMIT:	// on
+		// 使能采集帧率调节模式
+		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_FRAME_RATE_MODE, GX_ACQUISITION_FRAME_RATE_MODE_ON);
+		// 设置采集帧率
+		SetFloat(pCAM->hDevice, GX_FLOAT_ACQUISITION_FRAME_RATE, pCAM->FrameRate);
+		break;
+
+	case GX_FRAME_nLIMIT:	// off
+		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_FRAME_RATE_MODE, GX_ACQUISITION_FRAME_RATE_MODE_OFF);
+		break;
+	}
+
+	return 0;
 }
 
 static int csv_gx_cams_init (struct csv_gx_t *pGX)
@@ -855,38 +993,14 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		// GX_ACQUISITION_MODE_ENTRY
-		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
-
-		// GX_TRIGGER_MODE_ENTRY
-		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
-		// GX_TRIGGER_ACTIVATION_ENTRY
-		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
-		// GX_TRIGGER_SOURCE_ENTRY
-		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);
-
-		// GX_EXPOSURE_MODE_ENTRY
-		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TIMED);
-		// GX_EXPOSURE_AUTO_ENTRY
-		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_OFF);
-		SetFloat(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, pCAM->expoTime);
-
-		// GX_GAIN_AUTO_ENTRY
-		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_OFF);
-		SetFloat(pCAM->hDevice, GX_FLOAT_GAIN, pCAM->gain);
+		csv_gx_trigger_type(pCAM, GX_TRI_USE_HW_S);
+		csv_gx_exposure_type(pCAM, GX_EXPOTIME_USE);
+		csv_gx_gain_type(pCAM, GX_GAIN_USE);
+		csv_gx_throughput_limit_type(pCAM, GX_THR_PUT_LIMIT);
+		csv_gx_acq_frame_type(pCAM, GX_FRAME_LIMIT);
 
 		SetBool(pCAM->hDevice, GX_BOOL_CHUNKMODE_ACTIVE, false);
 		SetBool(pCAM->hDevice, GX_BOOL_CHUNK_ENABLE, false);
-
-		// GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ENTRY
-		SetEnum(pCAM->hDevice, GX_ENUM_DEVICE_LINK_THROUGHPUT_LIMIT_MODE, GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ON);
-		//GetInt(pCAM->hDevice, GX_INT_DEVICE_LINK_CURRENT_THROUGHPUT, &nLinkThroughputVal);
-		SetInt(pCAM->hDevice, GX_INT_DEVICE_LINK_THROUGHPUT_LIMIT, pCAM->LinkThroughputLimit);
-
-		// 使能采集帧率调节模式
-		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_FRAME_RATE_MODE, GX_ACQUISITION_FRAME_RATE_MODE_ON);
-		// 设置采集帧率
-		SetFloat(pCAM->hDevice, GX_FLOAT_ACQUISITION_FRAME_RATE, pCAM->FrameRate);
 	}
 
 	return ret;
@@ -1019,7 +1133,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 	csv_file_mkdir(pCALIB->CalibImageRoot);
 	csv_img_clear(pCALIB->CalibImageRoot);
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_START);
+	ret = csv_gx_acquisition(GX_START_ACQ);
 
 	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1051,7 +1165,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 			memset(img_name, 0, 256);
 			csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, 0, i, img_name);
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, 0);
+				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, 0);
 		}
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1097,7 +1211,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 					lastpic = 1;
 				}
 				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, lastpic);
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1115,7 +1229,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 		idx++;
 	}
 
-//	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
+//	ret = csv_gx_acquisition(GX_STOP_ACQ);
 	pthread_cond_broadcast(&gCSV->img.cond_img);
 
 	if (0 != errNum) {
@@ -1158,7 +1272,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 	csv_3d_clear_img(CAM_LEFT);
 	csv_3d_clear_img(CAM_RIGHT);
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_START);
+	ret = csv_gx_acquisition(GX_START_ACQ);
 
 	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1192,7 +1306,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 			memset(img_name, 0, 256);
 			csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, 0, i, img_name);
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, 0);
+				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, 0);
 		}
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1244,7 +1358,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 						csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
 					}
 					csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->action_type, lastpic);
+						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
 				}
 			}
 
@@ -1263,7 +1377,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		idx++;
 	}
 
-//	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
+//	ret = csv_gx_acquisition(GX_STOP_ACQ);
 
 	ret = -1;
 	if (0 == errNum) {
@@ -1296,7 +1410,7 @@ int csv_gx_grab_calibrate (struct csv_gx_t *pGX)
 
 	pGX->busying = true;
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_START);
+	ret = csv_gx_acquisition(GX_START_ACQ);
 
 	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1417,7 +1531,7 @@ int csv_gx_grab_pointcloud (struct csv_gx_t *pGX)
 	csv_3d_clear_img(CAM_LEFT);
 	csv_3d_clear_img(CAM_RIGHT);
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_START);
+	ret = csv_gx_acquisition(GX_START_ACQ);
 
 	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1517,6 +1631,16 @@ int csv_gx_grab_pointcloud (struct csv_gx_t *pGX)
 	return ret;
 }
 
+int csv_gx_grab_hdrimage (struct csv_gx_t *pGX)
+{
+	int ret = 0;
+
+
+
+
+	return ret;
+}
+
 static void *csv_gx_grab_loop (void *data)
 {
 	if (NULL == data) {
@@ -1538,7 +1662,7 @@ static void *csv_gx_grab_loop (void *data)
 			continue;
 		}
 
-		switch (gCSV->gvcp.grab_type) {
+		switch (pGX->grab_type) {
 		case GRAB_CALIB_PICS:
 			csv_gx_grab_calibrate(pGX);
 			break;
@@ -1546,10 +1670,12 @@ static void *csv_gx_grab_loop (void *data)
 			csv_gx_grab_pointcloud(pGX);
 			break;
 		case GRAB_HDRIMAGE_PICS:
+			csv_gx_grab_hdrimage(pGX);
 			break;
 		}
 
-		gCSV->gvcp.grab_type = GRAB_NONE;
+		pGX->grab_type = GRAB_NONE;
+		pGX->busying = false;
 	}
 
 	log_alert("ALERT : exit pthread %s.", pGX->name_grab);
@@ -1752,7 +1878,7 @@ int csv_gx_init (void)
 	libInit = false;
 	pGX->cnt_gx = 0;
 	pGX->name_gx = NAME_THREAD_GX;
-	pGX->action_type = ACTION_NONE;
+	pGX->grab_type = GRAB_NONE;
 	pGX->busying = false;
 
 	ret = csv_gx_thread(pGX);

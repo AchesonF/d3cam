@@ -14,31 +14,52 @@ extern "C" {
 #define ACQ_TRANSFER_NUMBER_URB	(64)		///< Qty. of data transfer block
 
 enum {
-	GX_LIB_OPEN,
-	GX_LIB_CLOSE
+	GX_LIB_OPEN,				///< 打开gx库
+	GX_LIB_CLOSE				///< 关闭gx库
 };
 
 enum {
-	GX_ACQUISITION_START,
-	GX_ACQUISITION_STOP
+	GX_START_ACQ,				///< 开采
+	GX_STOP_ACQ					///< 停采
+};
+
+enum {
+	GX_TRI_USE_HW_S,			///< 硬触发2上升沿 单帧
+	GX_TRI_USE_SW_S,			///< 软触发 单帧
+	GX_TRI_USE_SW_C,			///< 软触发 连续
+	GX_TRI_nUSE_S,				///< 无触发 单帧
+	GX_TRI_nUSE_C				///< 无触发 连续
+};
+
+enum {
+	GX_EXPOTIME_USE,			///< 关闭自动曝光->定时
+	GX_EXPOTIME_nUSE_S,			///< 一次自动曝光
+	GX_EXPOTIME_nUSE_C			///< 连续自动曝光
+};
+
+enum {
+	GX_GAIN_USE,				///< 关闭自动增益->指定增益
+	GX_GAIN_nUSE_S,				///< 一次自动增益
+	GX_GAIN_nUSE_C,				///< 连续自动增益
+};
+
+enum {
+	GX_THR_PUT_LIMIT,			///< 限制带宽
+	GX_THR_PUT_nLIMIT			///< 无限制带宽
+};
+
+enum {
+	GX_FRAME_LIMIT,				///< 限制帧率
+	GX_FRAME_nLIMIT				///< 无限制帧率
 };
 
 enum {
 	GRAB_NONE					= (0),
 	GRAB_CALIB_PICS				= (1),
 	GRAB_DEPTHIMAGE_PICS		= (2),
-	GRAB_HDRIMAGE_PICS			= (3),
-
-	GRAB_PICS_END
+	GRAB_HDRIMAGE_PICS			= (3)
 };
 
-enum {
-	ACTION_NONE					= (0),
-	ACTION_CALIBRATION			= (1),
-	ACTION_POINTCLOUD			= (2),
-
-	ACTION_END
-};
 
 struct cam_gx_spec_t {
 	uint8_t					opened;			///< 已打开
@@ -76,7 +97,7 @@ struct csv_gx_t {
 	pthread_mutex_t			mutex_gx;		///< 锁
 	pthread_cond_t			cond_gx;		///< 条件
 
-	uint8_t					action_type;		///< 获取图像组类型 0: none 1:calib 2:pointcloud ...
+	uint8_t					grab_type;		///< 获取图像组类型 0: none 1:calib 2:pointcloud/depth ...
 	uint8_t					busying;		///< 忙于处理图像
 
 	pthread_mutex_t			mutex_wait_depth;

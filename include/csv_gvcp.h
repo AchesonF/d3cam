@@ -39,8 +39,6 @@ struct csv_gvcp_t {
 	struct gvcp_ask_list_t	head_gvcpask;	///< gvcp消息链
 	struct gvcp_ack_t		gvcp_ack;
 
-	uint16_t				grab_type;
-
 	const char				*name_gvcpask;	///< 消息处理
 	pthread_t				thr_gvcpask;
 	pthread_mutex_t			mutex_gvcpask;

@@ -70,7 +70,7 @@ int csv_img_clear (char *path)
 }
 
 int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length, 
-	uint32_t width, uint32_t height, uint8_t pos, uint8_t action, uint8_t lastpic)
+	uint32_t width, uint32_t height, uint8_t pos, uint8_t grabtype, uint8_t lastpic)
 {
 	if ((NULL == pRawData)||(NULL == filename)) {
 		return -1;
@@ -92,7 +92,7 @@ int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length,
 	pIPK->width = width;
 	pIPK->height = height;
 	pIPK->length = length;
-	pIPK->action = action;
+	pIPK->grabtype = grabtype;
 	pIPK->position = pos;
 	pIPK->lastPic = lastpic;
 
@@ -167,8 +167,8 @@ static void *csv_img_loop (void *data)
 			csv_mat_img_save(pIPK->height, pIPK->width, pIPK->payload, pIPK->filename);
 
 			if (pIPK->lastPic) {
-				switch (pIPK->action) {
-				case ACTION_CALIBRATION:
+				switch (pIPK->grabtype) {
+				case GRAB_CALIB_PICS:
 					if (pDevC->ftpupload) {
 						csv_img_sender(pCALIB->CalibImageRoot, pCALIB->groupCalibrate);
 					}
@@ -178,7 +178,7 @@ static void *csv_img_loop (void *data)
 					}
 					csv_xml_write_CalibParameters();
 					break;
-				case ACTION_POINTCLOUD:
+				case GRAB_DEPTHIMAGE_PICS:
 					if (pDevC->ftpupload) {
 						usleep(500000); //wait for 3d calc
 						csv_img_sender(pPC->PCImageRoot, pPC->groupPointCloud);

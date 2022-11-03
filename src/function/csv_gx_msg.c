@@ -41,7 +41,7 @@ static int gx_msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pAC
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	if (pCAMLEFT->opened && pCAMRIGHT->opened) {
-		ret = csv_gx_acquisition(GX_ACQUISITION_START);
+		ret = csv_gx_acquisition(GX_START_ACQ);
 		if (0 == ret) {
 			result = 0;
 		}
@@ -56,7 +56,7 @@ static int gx_msg_cameras_close (struct msg_package_t *pMP, struct msg_ack_t *pA
 {
 	int ret = -1, result = -1;
 
-	ret = csv_gx_acquisition(GX_ACQUISITION_STOP);
+	ret = csv_gx_acquisition(GX_STOP_ACQ);
 	if (0 == ret) {
 		result = 0;
 	}
@@ -345,9 +345,14 @@ static int gx_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t
 	int ret = -1;
     char str_err[128] = {0};
     int len_err = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
 
-	gCSV->gx.action_type = ACTION_CALIBRATION;
-	ret = csv_gx_cams_calibrate(&gCSV->gx);
+	if (pGX->busying) {
+		ret = -2;
+	} else {
+		pGX->grab_type = GRAB_CALIB_PICS;
+		ret = csv_gx_cams_calibrate(pGX);
+	}
 
 	if (ret == 0) {
 		csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
@@ -367,10 +372,14 @@ static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_
 	int ret = -1;
     char str_err[128] = {0};
     int len_err = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
 
-	gCSV->gx.action_type = ACTION_POINTCLOUD;
-
-	ret = csv_gx_cams_pointcloud(&gCSV->gx);
+	if (pGX->busying) {
+		ret = -2;
+	} else {
+		pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
+		ret = csv_gx_cams_pointcloud(pGX);
+	}
 
 	if (ret == 0) {
 		csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
