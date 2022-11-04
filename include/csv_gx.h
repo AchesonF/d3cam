@@ -13,6 +13,9 @@ extern "C" {
 #define ACQ_TRANSFER_SIZE		(64 * 1024)	///< Size of data transfer block
 #define ACQ_TRANSFER_NUMBER_URB	(64)		///< Qty. of data transfer block
 
+#define DEFAULT_WIDTH			(2048)
+#define DEFAULT_HEIGHT			(1536)
+
 enum {
 	GX_LIB_OPEN,				///< 打开gx库
 	GX_LIB_CLOSE				///< 关闭gx库
@@ -60,6 +63,9 @@ enum {
 	GRAB_HDRIMAGE_PICS			= (3)
 };
 
+struct img_payload_t {
+	uint8_t						data[DEFAULT_WIDTH*DEFAULT_HEIGHT];
+};
 
 struct cam_gx_spec_t {
 	uint8_t					opened;			///< 已打开
@@ -77,6 +83,11 @@ struct cam_gx_spec_t {
 	int64_t					PixelFormat;
 	double					FrameRate;
 
+	int64_t					nWidth;
+	int64_t					nHeight;
+	GX_INT_RANGE			widthRange;
+	GX_INT_RANGE			heightRange;
+
 	double					expoTime;		// GX_FLOAT_EXPOSURE_TIME
 	GX_FLOAT_RANGE			expoTimeRange;
 
@@ -91,6 +102,9 @@ struct csv_gx_t {
 	uint8_t					cnt_gx;
 
 	struct cam_gx_spec_t	Cam[TOTAL_CAMS];
+
+	uint8_t					*pImgPCRawData;		///< 深度图计算素材总缓冲区(限定只支持2048*1536的图)
+	struct img_payload_t	*pImgPayload;		///< 总缓冲区以此分区域管理
 
 	const char				*name_gx;		///< 
 	pthread_t				thr_gx;			///< ID

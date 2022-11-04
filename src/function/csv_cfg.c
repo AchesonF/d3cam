@@ -43,7 +43,6 @@ static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 	strcpy(pPC->calibFile, "CSV_Cali_DaHengCamera.xml");
 	strcpy(pPC->outFileXYZ, "pointcloud.xyz");
 	pPC->saveXYZ = 0;
-	pPC->saveDepthImage = 1;
 	pPC->groupPointCloud = 1;
 	pPC->initialized = 0;
 

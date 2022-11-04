@@ -127,7 +127,6 @@ struct pointcloud_cfg_t {
 	char					outFileXYZ[256];	///< 生成文件名
 	char					outDepthImage[256];	///< 生成深度图png
 	uint8_t					saveXYZ;			///< 保存点云文件
-	uint8_t					saveDepthImage;		///< 保存深度图
 	uint8_t					groupPointCloud;	///< 点云次数 1..255
 	uint8_t					initialized;		///< 已初始化。执行一次即可
 };

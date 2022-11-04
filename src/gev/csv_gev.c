@@ -502,9 +502,9 @@ static void csv_gev_reg_custom_inq_enroll (void)
 	csv_gev_reg_add(REG_ReverseInq, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_ReverseInq));
 	csv_gev_reg_add(REG_WidthMin, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 2048, NULL, toSTR(REG_WidthMin));
+		4, DEFAULT_WIDTH, NULL, toSTR(REG_WidthMin));
 	csv_gev_reg_add(REG_HeightMin, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 1536, NULL, toSTR(REG_HeightMin));
+		4, DEFAULT_HEIGHT, NULL, toSTR(REG_HeightMin));
 	csv_gev_reg_add(REG_BinningMax, GEV_REG_TYPE_REG, GEV_REG_READ,
 		4, 0, NULL, toSTR(REG_BinningMax));
 	csv_gev_reg_add(REG_Hunit, GEV_REG_TYPE_REG, GEV_REG_READ,
@@ -733,17 +733,17 @@ static void csv_gev_reg_genicam_enroll (void)
 	csv_gev_reg_add(REG_SensorDigitizationTaps, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_SensorDigitizationTaps));
 	csv_gev_reg_add(REG_WidthMax, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 2048, NULL, toSTR(REG_WidthMax));
+		4, DEFAULT_WIDTH, NULL, toSTR(REG_WidthMax));
 	csv_gev_reg_add(REG_HeightMax, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 1536, NULL, toSTR(REG_HeightMax));
+		4, DEFAULT_HEIGHT, NULL, toSTR(REG_HeightMax));
 	csv_gev_reg_add(REG_RegionMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_RegionMode));
 	csv_gev_reg_add(REG_RegionDestination, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_RegionDestination));
 	csv_gev_reg_add(REG_Width, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 2048, NULL, toSTR(REG_Width));
+		4, DEFAULT_WIDTH, NULL, toSTR(REG_Width));
 	csv_gev_reg_add(REG_Height, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 1536, NULL, toSTR(REG_Height));
+		4, DEFAULT_HEIGHT, NULL, toSTR(REG_Height));
 	csv_gev_reg_add(REG_OffsetX, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_OffsetX));
 	csv_gev_reg_add(REG_OffsetY, GEV_REG_TYPE_REG, GEV_REG_RDWR,
@@ -866,12 +866,12 @@ static void csv_gev_reg_genicam_enroll (void)
 		4, 0, NULL, toSTR(REG_UserSetDefaultSelector));
 
 	csv_gev_reg_add(REG_PayloadSize, GEV_REG_TYPE_REG, GEV_REG_READ,
-		4, 2048*1536, NULL, toSTR(REG_PayloadSize));
+		4, DEFAULT_WIDTH*DEFAULT_HEIGHT, NULL, toSTR(REG_PayloadSize));
 
 
 
 	csv_gev_reg_add(REG_CounterResetSource, GEV_REG_TYPE_REG, GEV_REG_RDWR,
-		4, 2048*1536, NULL, toSTR(REG_CounterResetSource));
+		4, DEFAULT_WIDTH*DEFAULT_HEIGHT, NULL, toSTR(REG_CounterResetSource));
 
 
 

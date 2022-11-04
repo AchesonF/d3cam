@@ -8,30 +8,25 @@
 | 返回值 | 无 |
 
 
-| bool CsvSetCreatePoint3DParam(const CsvCreatePoint3DParam &param) | 读取XML同时启动初始化 |
+| int CsvSetCreatePoint3DParam(const CsvCreatePoint3DParam &param) | 读取XML同时启动初始化 |
 | --------------------- | ---- |
 | param | CsvCreatePoint3DParam参数类的引用输入 |
-| bool返回值 | true：设置成功；false：设置失败 |
 
 
-| bool CsvGetCreatePoint3DParam(CsvCreatePoint3DParam &param) | 读出参数类 |
+| int CsvGetCreatePoint3DParam(CsvCreatePoint3DParam &param) | 读出参数类 |
 | --------------------- | ---- |
 | param	| CsvCreatePoint3DParam参数类的引用输出 |
-| bool返回值 | true：读出成功；false：读出失败 |
 
 
-| bool CsvCreateLUT(const CsvCreatePoint3DParam &param) | 生成算法流程需要的模型。需要第一个运行且运行一次 |
+| int CsvCreateLUT(const CsvCreatePoint3DParam &param) | 生成算法流程需要的模型。需要第一个运行且运行一次 |
 | --------------------- | ---- |
 | param	| CsvCreatePoint3DParam参数类的引用输入 |
-| bool返回值 | true：创建模型成功；false：创建模型失败 |
 
 
-| bool CsvCreatePoint3D(const std::vector<std::vector<CsvImageSimple>>& inImages, CsvImageSimple &depthImage, std::vector<float> *point3D) | 传入结构光图像组，传出深度图和点云 |
+| int CsvCreatePoint3D(const std::vector<std::vector<CsvImageSimple>>& inImages, CsvImageSimple &depthImage, std::vector<float> *point3D) | 传入结构光图像组，传出深度图和点云 |
 | --------------------- | ---- |
 | inImages	| CsvImageSimple类型的图像组。左右眼图像分两组存放，每组13张图片（亮暗图，7个格雷码图，4个相移图） |
 | depthImage | 传出的ushort型深度图，以左眼坐标系为参考坐标系 |
-| point3D | 传出的float型点云图。如果为空指针，则无输出 |
-| bool返回值 | true：计算点云成功；false：计算点云失败 |
 
 
 ### 小工具
@@ -43,11 +38,32 @@
 | bool返回值 | true：成功；false：失败 |
 
 
+| 接口返回值 | 说明 |
+| ---- | ---- |
+| CSV_OK | 正确返回 |
+| CSV_WARNING | 发出警告 |
+| CSV_ERR_UNKNOWN | 未定义错误 |
+| CSV_ERR_IS_RUNNING | 运行时错误 |
+| CSV_ERR_READ_LUT_FILE | 没读到LUT表 |
+| CSV_ERR_LOAD_MODEL | 加载XML错误 |
+| CSV_ERR_MODEL_NOT_READY | 没有加载XML |
+| CSV_ERR_NEW_MEMORY | CPU无法分配内存 |
+| CSV_ERR_LOAD_IMAGE | 加载图像错误 |
+| CSV_ERR_CHECK_GPU | GPU挂掉 |
+| CSV_ERR_RELOAD_GPU | GPU重新初始化错误 |
 
 
 
 ## 版本说明
 
+| empty.221103B |
+| ---- |
+| 1、提供一个GPU空负载用于测试。（参考main.cpp中的EMPTY_LOAD_GPU）；|
+
+| 3.4.0.221103B |
+| ---- |
+| 1、GPU自己管理全部内存，一次分配，多次使用，直到释放； |
+| 2、定义接口返回错误码，全部接口都按照错误码返回； |
 
 | V3.1.0.221026B |
 | ------------- |

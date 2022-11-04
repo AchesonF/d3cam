@@ -735,6 +735,25 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 
 		pCAM->opened = true;
 
+		GetIntRange(pCAM->hDevice, GX_INT_WIDTH, &pCAM->widthRange);
+		GetIntRange(pCAM->hDevice, GX_INT_HEIGHT, &pCAM->heightRange);
+
+		GetInt(pCAM->hDevice, GX_INT_WIDTH, &pCAM->nWidth);
+		GetInt(pCAM->hDevice, GX_INT_HEIGHT, &pCAM->nHeight);
+		if (DEFAULT_WIDTH != pCAM->nWidth) {
+			if ((pCAM->widthRange.nMin <= DEFAULT_WIDTH)&&(pCAM->widthRange.nMax >= DEFAULT_WIDTH)) {
+				SetInt(pCAM->hDevice, GX_INT_WIDTH, DEFAULT_WIDTH);
+			} else {
+				log_warn("ERROR : width not support.");
+			}
+		}
+		if (DEFAULT_HEIGHT != pCAM->nHeight) {
+			if ((pCAM->heightRange.nMin <= DEFAULT_HEIGHT)&&(pCAM->heightRange.nMax >= DEFAULT_HEIGHT)) {
+				SetInt(pCAM->hDevice, GX_INT_HEIGHT, DEFAULT_HEIGHT);
+			} else {
+				log_warn("ERROR : height not support.");
+			}
+		}
 
 		GetFloatRange(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, &pCAM->expoTimeRange);
 		GetFloatRange(pCAM->hDevice, GX_FLOAT_GAIN, &pCAM->gainRange);
@@ -1325,7 +1344,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		for (i = 0; i < pGX->cnt_gx; i++) {
 			pCAM = &pGX->Cam[i];
 
-			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pGX->pImgPayload)) {
 				errNum++;
 				continue;
 			}
@@ -1346,9 +1365,9 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 				continue;
 			}
 
-			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+			ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pGX->pImgPayload[idx-1], pCAM->PayloadSize);
 			if (0 == ret) {
-				csv_3d_load_img(i, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, pCAM->pMonoImageBuf);
+				csv_3d_load_img(i, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, (uint8_t *)&pGX->pImgPayload[idx-1]);
 
 				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
@@ -1357,7 +1376,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 						lastpic = 1;
 						csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
 					}
-					csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
+					csv_img_push(img_name, (uint8_t *)&pGX->pImgPayload[idx-1], pCAM->PayloadSize, 
 						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
 				}
 			}
@@ -1581,7 +1600,7 @@ int csv_gx_grab_pointcloud (struct csv_gx_t *pGX)
 		for (i = 0; i < pGX->cnt_gx; i++) {
 			pCAM = &pGX->Cam[i];
 
-			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pGX->pImgPayload)) {
 				errNum++;
 				continue;
 			}
@@ -1600,9 +1619,9 @@ int csv_gx_grab_pointcloud (struct csv_gx_t *pGX)
 				continue;
 			}
 
-			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+			ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pGX->pImgPayload[idx-1], pCAM->PayloadSize);
 			if (0 == ret) {
-				csv_3d_load_img(i, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, pCAM->pMonoImageBuf);
+				csv_3d_load_img(i, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, (uint8_t *)&pGX->pImgPayload[idx-1]);
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1874,12 +1893,21 @@ int csv_gx_init (void)
 {
 	int ret = 0;
 	struct csv_gx_t *pGX = &gCSV->gx;
+	uint32_t len_malloc = DEFAULT_WIDTH*DEFAULT_HEIGHT*NUM_PICS_POINTCLOUD*TOTAL_CAMS+4096;
 
 	libInit = false;
 	pGX->cnt_gx = 0;
 	pGX->name_gx = NAME_THREAD_GX;
 	pGX->grab_type = GRAB_NONE;
 	pGX->busying = false;
+	pGX->pImgPCRawData = malloc(len_malloc);
+	if (NULL == pGX->pImgPCRawData) {
+		log_err("ERROR : malloc pImgPCRawData");
+		return -1;
+	}
+	memset(pGX->pImgPCRawData, 0, len_malloc);
+
+	pGX->pImgPayload = (struct img_payload_t *)pGX->pImgPCRawData;
 
 	ret = csv_gx_thread(pGX);
 	ret |= csv_gx_grab_thread(pGX);
@@ -1896,6 +1924,11 @@ int csv_gx_deinit (void)
 	pthread_cond_broadcast(&pGX->cond_gx);
 	ret = csv_gx_thread_cancel(pGX);
 	ret |= csv_gx_grab_thread_cancel(pGX);
+
+	if (NULL != pGX->pImgPCRawData) {
+		free(pGX->pImgPCRawData);
+		pGX->pImgPCRawData = NULL;
+	}
 
 	return ret;
 }
