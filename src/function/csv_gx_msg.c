@@ -394,6 +394,33 @@ static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_
 	return csv_msg_send(pACK);
 }
 
+static int gx_msg_camera_hdrimage (struct msg_package_t *pMP, struct msg_ack_t *pACK)
+{
+	int ret = -1;
+    char str_err[128] = {0};
+    int len_err = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+
+	if (pGX->busying) {
+		ret = -2;
+	} else {
+		pGX->grab_type = GRAB_HDRIMAGE_PICS;
+		ret = csv_gx_cams_hdrimage(pGX);
+	}
+
+	if (ret == 0) {
+		csv_msg_ack_package(pMP, pACK, NULL, 0, 0);
+	} else if (-2 == ret) {
+		len_err = snprintf(str_err, 128, "Cams busy now.");
+		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
+	} else {
+		len_err = snprintf(str_err, 128, "Cams grab failed.");
+		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
+	}
+
+	return csv_msg_send(pACK);
+}
+
 
 void csv_gx_msg_cmd_enroll (void)
 {
@@ -426,6 +453,7 @@ void csv_gx_msg_cmd_enroll (void)
 	msg_command_add(CAMERA_GET_GRAB_RGB_RIGHT, toSTR(CAMERA_GET_GRAB_RGB_RIGHT), gx_msg_cameras_grab_rgb);
 	msg_command_add(CAMERA_GET_CALIBRATE, toSTR(CAMERA_GET_CALIBRATE), gx_msg_cameras_calibrate);
 	msg_command_add(CAMERA_GET_POINTCLOUD, toSTR(CAMERA_GET_POINTCLOUD), gx_msg_cameras_pointcloud);
+	msg_command_add(CAMERA_GET_HDRIMAGE, toSTR(CAMERA_GET_HDRIMAGE), gx_msg_camera_hdrimage);
 
 }
 

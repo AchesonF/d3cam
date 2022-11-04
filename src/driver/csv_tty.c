@@ -239,18 +239,19 @@ int csv_tty_init (char *tty_name, struct csv_tty_param_t *pPARAM)
 	return fd;
 }
 
-int csv_tty_deinit (int fd)
+int csv_tty_deinit (int fd, char *tty_name)
 {
 	if (fd > 0) {
 		if (close(fd) < 0) {
-			log_err("ERROR : close tty fd(fd).", fd);
+			log_err("ERROR : close '%s' fd(fd).", tty_name, fd);
 			return -1;
 		}
 
-		log_info("OK : close fd(%d).", fd);
+		log_info("OK : close '%s' fd(%d).", tty_name, fd);
+		return 0;
 	}
 
-	return 0;
+	return 1;
 }
 
 #ifdef __cplusplus

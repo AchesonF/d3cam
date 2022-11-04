@@ -52,7 +52,7 @@ extern int csv_tty_write (int fd, uint8_t *buf, int nbytes);
 
 extern int csv_tty_init (char *tty_name, struct csv_tty_param_t *pPARAM);
 
-extern int csv_tty_deinit (int fd);
+extern int csv_tty_deinit (int fd, char *tty_name);
 
 
 

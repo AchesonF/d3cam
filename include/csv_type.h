@@ -34,6 +34,7 @@ typedef enum {
 
 	CAMERA_GET_CALIBRATE			= (0x00005009),	// 获取标定图 (1+22)*2
 	CAMERA_GET_POINTCLOUD			= (0x0000500A),	// 获取高速识图 1*2+1[13*2]
+	CAMERA_GET_HDRIMAGE				= (0x0000500B),	// 获取HDRI图
 
 	CAMERA_SET_INFO					= (0x00004000),	// 空值
 

@@ -103,7 +103,7 @@ struct csv_gx_t {
 
 	struct cam_gx_spec_t	Cam[TOTAL_CAMS];
 
-	uint8_t					*pImgPCRawData;		///< 深度图计算素材总缓冲区(限定只支持2048*1536的图)
+	uint8_t					*pImgPCRawData;		///< 深度图计算素材总缓冲区(限定只支持26*2048*1536的图)
 	struct img_payload_t	*pImgPayload;		///< 总缓冲区以此分区域管理
 
 	const char				*name_gx;		///< 
@@ -132,6 +132,8 @@ extern int csv_gx_cams_grab_both (struct csv_gx_t *pGX);
 extern int csv_gx_cams_calibrate (struct csv_gx_t *pGX);
 
 extern int csv_gx_cams_pointcloud (struct csv_gx_t *pGX);
+
+extern int csv_gx_cams_hdrimage (struct csv_gx_t *pGX);
 
 extern int csv_gx_init (void);
 

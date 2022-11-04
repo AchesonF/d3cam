@@ -189,6 +189,9 @@ static void *csv_img_loop (void *data)
 					}
 					csv_xml_write_PointCloudParameters();
 					break;
+				case GRAB_HDRIMAGE_PICS:
+					csv_img_sender("data", 111);
+					break;
 				}
 
 				gCSV->gx.busying = false;
@@ -212,6 +215,7 @@ static void *csv_img_loop (void *data)
 		ret = pthread_cond_timedwait(&pIMG->cond_img, &pIMG->mutex_img, &timeo);
 		if (ret == ETIMEDOUT) {
 			// use timeo as a block and than retry.
+			gCSV->gx.busying = false;
 		}
 	}
 

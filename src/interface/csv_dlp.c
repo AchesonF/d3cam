@@ -82,7 +82,14 @@ int csv_dlp_just_write (uint8_t idx)
 	ret = csv_tty_write(pDLP->fd, pDLP->tbuf, pDLP->tlen);
 	if (ret < 0) {
 		log_err("ERROR : %s write failed.", pDLP->name);
-		return -1;
+		ret = csv_tty_deinit(pDLP->fd, pDLP->name);
+		pDLP->fd = -1;
+		ret = csv_tty_init(pDLP->dev, &pDLP->param);
+		if (ret <= 0) {
+			return -1;
+		}
+		pDLP->fd = ret;
+		ret = csv_tty_write(pDLP->fd, pDLP->tbuf, pDLP->tlen);
 	}
 
 	if (ret > 0) {
@@ -285,7 +292,7 @@ static int csv_dlp_thread_cancel (struct csv_dlp_t *pDLP)
 
 int csv_dlp_init (void)
 {
-	int ret = 0;
+	int fd = 0;
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
 	struct csv_tty_param_t *pParam = &pDLP->param;
 	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
@@ -307,13 +314,13 @@ int csv_dlp_init (void)
 	pDLP->brightness = pDlpcfg->brightness;
 	pDLP->expoTime = pDlpcfg->expoTime;
 
-	ret = csv_tty_init(pDLP->dev, pParam);
-	if (ret <= 0) {
+	fd = csv_tty_init(pDLP->dev, pParam);
+	if (fd <= 0) {
 		log_warn("ERROR : init %s.", pDLP->name);
 		return -1;
 	}
 
-	pDLP->fd = ret;
+	pDLP->fd = fd;
 
 	log_info("OK : init %s as fd(%d).", pDLP->name, pDLP->fd);
 
@@ -327,14 +334,9 @@ int csv_dlp_deinit (void)
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
 
 	ret = csv_dlp_thread_cancel(pDLP);
+	ret = csv_tty_deinit(pDLP->fd, pDLP->name);
 
-	if (pDLP->fd > 0) {
-		if (close(pDLP->fd) < 0) {
-			log_err("ERROR : close %s : fd(%d) failed.", pDLP->name, pDLP->fd);
-			return -1;
-		}
-
-		log_info("OK : close %s : fd(%d).", pDLP->name, pDLP->fd);
+	if (0 == ret) {
 		pDLP->fd = -1;
 	}
 
