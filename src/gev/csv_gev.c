@@ -829,6 +829,8 @@ static void csv_gev_reg_genicam_enroll (void)
 	csv_gev_reg_add(REG_HDRImage, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_HDRImage));
 
+
+
 	csv_gev_reg_add(REG_LineMode, GEV_REG_TYPE_REG, GEV_REG_RDWR,
 		4, 0, NULL, toSTR(REG_LineMode));
 

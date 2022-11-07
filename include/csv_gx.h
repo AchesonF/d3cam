@@ -121,9 +121,9 @@ struct csv_gx_t {
 	pthread_cond_t			cond_grab;		///< 条件
 };
 
-extern int csv_gx_acquisition (uint8_t state);
+extern int csv_gx_cams_acquisition (uint8_t mode);
 
-extern int csv_gx_cams_exposure_set (float fExposureTime);
+extern int csv_gx_cams_exposure_time_selector (float expoT);
 
 extern int csv_gx_cams_grab_both (struct csv_gx_t *pGX);
 

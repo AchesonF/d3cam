@@ -33,6 +33,12 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 	pDlpcfg->brightness = 1000.0f;
 	pDlpcfg->expoTime = 20000.0f;
 
+	pDlpcfg = &pDevC->dlpcfg[DLP_CMD_HDRI];
+	strcpy(pDlpcfg->name, "HDRI采多图");
+	pDlpcfg->rate = 60.0f;
+	pDlpcfg->brightness = 1000.0f;
+	pDlpcfg->expoTime = 3000000.0f;
+
 	return 0;
 }
 

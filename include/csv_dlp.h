@@ -24,6 +24,7 @@ extern "C" {
 #define CMD_POINTCLOUD		(0x01)	// NUM_PICS_POINTCLOUD 深度采图
 #define CMD_CALIB			(0x02)	// NUM_PICS_CALIB 标定条纹采图
 #define CMD_BRIGHT			(0x05)	// NUM_PICS_BRIGHT 常亮采图
+#define CMD_HDRI			(0x05)	// 常亮采多图
 
 // 图数
 #define NUM_PICS_POINTCLOUD		(13)	// 深度采图
@@ -34,6 +35,7 @@ enum {
 	DLP_CMD_POINTCLOUD			= (0),
 	DLP_CMD_CALIB				= (1),
 	DLP_CMD_BRIGHT				= (2),
+	DLP_CMD_HDRI				= (3),
 
 	TOTAL_DLP_CMDS
 };

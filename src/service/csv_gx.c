@@ -758,6 +758,12 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		GetFloatRange(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, &pCAM->expoTimeRange);
 		GetFloatRange(pCAM->hDevice, GX_FLOAT_GAIN, &pCAM->gainRange);
 		GetEnum(pCAM->hDevice, GX_ENUM_PIXEL_FORMAT, &pCAM->PixelFormat);
+		log_debug("width[%ld, %ld], height[%ld, %ld], expoTime[%f, %f], gain[%f, %f], pixel:%08X", 
+			pCAM->widthRange.nMin, pCAM->widthRange.nMax,
+			pCAM->heightRange.nMin, pCAM->heightRange.nMax,
+			pCAM->expoTimeRange.dMin, pCAM->expoTimeRange.dMax,
+			pCAM->gainRange.dMin, pCAM->gainRange.dMax,
+			pCAM->PixelFormat);
 
 		if (gCSV->cfg.devicecfg.exportCamsCfg) {
 			memset(cfg_name, 0, 256);
@@ -820,46 +826,11 @@ static int csv_gx_close (struct csv_gx_t *pGX)
 	return ret;
 }
 
-int csv_gx_acquisition (uint8_t state)
-{
-	int i = 0, ret = 0;
-	GX_STATUS emStatus = GX_STATUS_SUCCESS;
-	struct csv_gx_t *pGX = &gCSV->gx;
-	struct cam_gx_spec_t *pCAM = NULL;
-
-	if (!libInit) {
-		return -1;
-	}
-
-	for (i = 0; i < pGX->cnt_gx; i++) {
-		pCAM = &pGX->Cam[i];
-		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
-			continue;
-		}
-
-		if (GX_START_ACQ == state) {
-			//emStatus = GXStreamOn(pCAM->hDevice);
-			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_START);
-		} else if (GX_STOP_ACQ == state) {
-			//emStatus = GXStreamOff(pCAM->hDevice);
-			emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_STOP);
-		}
-
-		if (GX_STATUS_SUCCESS != emStatus) {
-			GxErrStr(emStatus);
-			//ret = -1;
-			continue;
-		}
-	}
-
-	return ret;
-}
-
-int csv_gx_acquisition_do (struct cam_gx_spec_t *pCAM, uint8_t type)
+int csv_gx_acquisition_set (struct cam_gx_spec_t *pCAM, uint8_t mode)
 {
 	GX_STATUS emStatus = GX_STATUS_ERROR;
 
-	switch (type) {
+	switch (mode) {
 	case GX_START_ACQ:
 		emStatus = SendCommand(pCAM->hDevice, GX_COMMAND_ACQUISITION_START);
 		break;
@@ -876,10 +847,33 @@ int csv_gx_acquisition_do (struct cam_gx_spec_t *pCAM, uint8_t type)
 	return 0;
 }
 
-// 停采后设置
-int csv_gx_trigger_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+int csv_gx_cams_acquisition (uint8_t mode)
 {
-	switch (type) {
+	int i = 0, ret = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
+			continue;
+		}
+
+		ret |= csv_gx_acquisition_set(pCAM, mode);
+	}
+
+	return ret;
+}
+
+
+// 停采后设置
+int csv_gx_trigger_mode (struct cam_gx_spec_t *pCAM, uint8_t mode)
+{
+	switch (mode) {
 	case GX_TRI_USE_HW_C:
 		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
 		// GX_TRIGGER_MODE_ENTRY
@@ -898,18 +892,41 @@ int csv_gx_trigger_type (struct cam_gx_spec_t *pCAM, uint8_t type)
 		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
 		break;
-
+	default:
+		return -1;
 	}
 
 	return 0;
 }
 
-int csv_gx_exposure_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+int csv_gx_cams_trigger_selector (uint8_t mode)
+{
+	int i = 0, ret = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
+			continue;
+		}
+
+		ret |= csv_gx_trigger_mode(pCAM, mode);
+	}
+
+	return ret;
+}
+
+int csv_gx_exposure_mode (struct cam_gx_spec_t *pCAM, uint8_t mode)
 {
 	// GX_EXPOSURE_MODE_ENTRY
 	SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_MODE, GX_EXPOSURE_MODE_TIMED);
 
-	switch (type) {
+	switch (mode) {
 	case GX_EXPOTIME_USE:
 		// GX_EXPOSURE_AUTO_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_OFF);
@@ -928,9 +945,60 @@ int csv_gx_exposure_type (struct cam_gx_spec_t *pCAM, uint8_t type)
 	return 0;
 }
 
-int csv_gx_gain_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+int csv_gx_cams_exposure_mode_selector (uint8_t mode)
 {
-	switch (type) {
+	int i = 0, ret = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
+			continue;
+		}
+
+		ret |= csv_gx_exposure_mode(pCAM, mode);
+	}
+
+	return ret;
+}
+
+int csv_gx_exposure_time (struct cam_gx_spec_t *pCAM, float expoT)
+{
+	SetFloat(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, (double)expoT);
+
+	return 0;
+}
+
+int csv_gx_cams_exposure_time_selector (float expoT)
+{
+	int i = 0, ret = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
+			continue;
+		}
+
+		ret |= csv_gx_exposure_time(pCAM, expoT);
+	}
+
+	return ret;
+}
+
+int csv_gx_gain_mode (struct cam_gx_spec_t *pCAM, uint8_t mode)
+{
+	switch (mode) {
 	case GX_GAIN_USE:
 		// GX_GAIN_AUTO_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_GAIN_AUTO,GX_GAIN_AUTO_OFF);
@@ -949,9 +1017,31 @@ int csv_gx_gain_type (struct cam_gx_spec_t *pCAM, uint8_t type)
 	return 0;
 }
 
-int csv_gx_throughput_limit_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+int csv_gx_cams_gain_mode_selector (uint8_t mode)
 {
-	switch (type) {
+	int i = 0, ret = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
+			continue;
+		}
+
+		ret |= csv_gx_gain_mode(pCAM, mode);
+	}
+
+	return ret;
+}
+
+int csv_gx_throughput_limit_mode (struct cam_gx_spec_t *pCAM, uint8_t mode)
+{
+	switch (mode) {
 	case GX_THR_PUT_LIMIT:	// on
 		// GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_DEVICE_LINK_THROUGHPUT_LIMIT_MODE, GX_DEVICE_LINK_THROUGHPUT_LIMIT_MODE_ON);
@@ -966,9 +1056,31 @@ int csv_gx_throughput_limit_type (struct cam_gx_spec_t *pCAM, uint8_t type)
 	return 0;
 }
 
-int csv_gx_acq_frame_type (struct cam_gx_spec_t *pCAM, uint8_t type)
+int csv_gx_cams_throughput_limit_selector (uint8_t mode)
 {
-	switch (type) {
+	int i = 0, ret = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
+			continue;
+		}
+
+		ret |= csv_gx_throughput_limit_mode(pCAM, mode);
+	}
+
+	return ret;
+}
+
+int csv_gx_acquisition_frame_mode (struct cam_gx_spec_t *pCAM, uint8_t mode)
+{
+	switch (mode) {
 	case GX_FRAME_LIMIT:	// on
 		// 使能采集帧率调节模式
 		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_FRAME_RATE_MODE, GX_ACQUISITION_FRAME_RATE_MODE_ON);
@@ -982,6 +1094,28 @@ int csv_gx_acq_frame_type (struct cam_gx_spec_t *pCAM, uint8_t type)
 	}
 
 	return 0;
+}
+
+int csv_gx_cams_acquisition_frame_selector (uint8_t mode)
+{
+	int i = 0, ret = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+	struct cam_gx_spec_t *pCAM = NULL;
+
+	if (!libInit) {
+		return -1;
+	}
+
+	for (i = 0; i < pGX->cnt_gx; i++) {
+		pCAM = &pGX->Cam[i];
+		if ((NULL == pCAM)||(!pCAM->opened)||(NULL == pCAM->hDevice)) {
+			continue;
+		}
+
+		ret |= csv_gx_acquisition_frame_mode(pCAM, mode);
+	}
+
+	return ret;
 }
 
 static int csv_gx_cams_init (struct csv_gx_t *pGX)
@@ -999,47 +1133,14 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		csv_gx_trigger_type(pCAM, GX_TRI_USE_HW_C);
-		csv_gx_exposure_type(pCAM, GX_EXPOTIME_USE);
-		csv_gx_gain_type(pCAM, GX_GAIN_USE);
-		csv_gx_throughput_limit_type(pCAM, GX_THR_PUT_LIMIT);
-		csv_gx_acq_frame_type(pCAM, GX_FRAME_LIMIT);
+		csv_gx_trigger_mode(pCAM, GX_TRI_USE_HW_C);
+		csv_gx_exposure_mode(pCAM, GX_EXPOTIME_USE);
+		csv_gx_gain_mode(pCAM, GX_GAIN_USE);
+		csv_gx_throughput_limit_mode(pCAM, GX_THR_PUT_LIMIT);
+		csv_gx_acquisition_frame_mode(pCAM, GX_FRAME_LIMIT);
 
 		SetBool(pCAM->hDevice, GX_BOOL_CHUNKMODE_ACTIVE, false);
 		SetBool(pCAM->hDevice, GX_BOOL_CHUNK_ENABLE, false);
-	}
-
-	return ret;
-}
-
-int csv_gx_cams_exposure_set (float fExposureTime)
-{
-	int ret = -1, i = 0;
-	int errNum = 0;
-	GX_STATUS emStatus = GX_STATUS_SUCCESS;
-	struct csv_gx_t *pGX = &gCSV->gx;
-	struct cam_gx_spec_t *pCAM = NULL;
-
-	if ((!libInit)||(pGX->cnt_gx < 2)) {
-		return -1;
-	}
-
-    for (i = 0; i < pGX->cnt_gx; i++) {
-		pCAM = &pGX->Cam[i];
-
-		if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
-			errNum++;
-			continue;
-		}
-
-		emStatus = SetFloat(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, (double)fExposureTime);
-		if (GX_STATUS_SUCCESS != emStatus) {
-			errNum++;
-		}
-	}
-
-	if (0 == errNum) {
-		ret = 0;
 	}
 
 	return ret;
@@ -1133,7 +1234,8 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 	csv_file_mkdir(pCALIB->CalibImageRoot);
 	csv_img_clear(pCALIB->CalibImageRoot);
 
-	ret = csv_gx_acquisition(GX_START_ACQ);
+	csv_gx_cams_acquisition(GX_START_ACQ);
+	csv_gx_cams_trigger_selector(GX_TRI_USE_HW_C);
 
 	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1229,7 +1331,6 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 		idx++;
 	}
 
-//	ret = csv_gx_acquisition(GX_STOP_ACQ);
 	pthread_cond_broadcast(&gCSV->img.cond_img);
 
 	if (0 != errNum) {
@@ -1272,7 +1373,8 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 	csv_3d_clear_img(CAM_LEFT);
 	csv_3d_clear_img(CAM_RIGHT);
 
-	ret = csv_gx_acquisition(GX_START_ACQ);
+	csv_gx_cams_acquisition(GX_START_ACQ);
+	csv_gx_cams_trigger_selector(GX_TRI_USE_HW_C);
 
 	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1379,8 +1481,6 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		idx++;
 	}
 
-//	ret = csv_gx_acquisition(GX_STOP_ACQ);
-
 	ret = -1;
 	if (0 == errNum) {
 		ret = csv_3d_calc(DEPTH_TO_FILE);
@@ -1393,89 +1493,54 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 	return ret;
 }
 
-struct user_param_t {
-	int		idx;		// 序号
-	int		pos;		// 左右
-	int		last;		// 最后
-
-};
-
-void GX_STDC OnFrameCallbackFun(GX_FRAME_CALLBACK_PARAM* pFrame)
-{
-log_debug("callback in");
-	if (pFrame->status == GX_FRAME_STATUS_SUCCESS) {
-		struct user_param_t *pParam = (struct user_param_t *)&pFrame->pUserParam;
-log_debug("got a frame.");
-		if (GX_PIXEL_FORMAT_MONO8 == pFrame->nPixelFormat) {
-			char img_name[256] = {0};
-			memset(img_name, 0, 256);
-			csv_img_generate_filename("data", 111, pParam->idx, pParam->pos, img_name);
-log_debug("send to img push");
-			csv_img_push(img_name, (uint8_t *)pFrame->pImgBuf, pFrame->nImgSize, 
-				pFrame->nWidth, pFrame->nHeight, pParam->pos, GRAB_HDRIMAGE_PICS, pParam->last);
-		}
-
-	}
-}
-
-
 int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 {
-	int i = 0;//, ret = 0;
-	//char img_name[256] = {0};
-	//uint8_t lastpic = 0;
-	//GX_STATUS emStatus = GX_STATUS_SUCCESS;
+	int i = 0, ret = 0, idx = 0;
+	char img_name[256] = {0};
+	uint8_t lastpic = 0;
+	int nFrame = 5;
+	float expoTs[5] = {1000.0f, 5000.0f, 10000.0f, 20000.0f, 40000.0f}; // us
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = NULL;
-	struct user_param_t userParam;
 
 	if ((!libInit)||(pGX->cnt_gx < 2)) {
 		return -1;
 	}
 
-	csv_dlp_just_write(DLP_CMD_BRIGHT);
+	csv_dlp_just_write(DLP_CMD_HDRI);
 
-    for (i = 0; i < pGX->cnt_gx; i++) {
-		pCAM = &pGX->Cam[i];
+	csv_gx_cams_acquisition(GX_START_ACQ);
+	csv_gx_cams_trigger_selector(GX_TRI_USE_SW_C);
 
-		if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
-			continue;
-		}
+	while (idx < nFrame) {
+	    for (i = 0; i < pGX->cnt_gx; i++) {
+			pCAM = &pGX->Cam[i];
 
-		userParam.idx = 111;
-		userParam.pos = i;
-		if (CAM_RIGHT == i) {
-			userParam.last = 1;
-		} else {
-			userParam.last = 0;
-		}
-
-GXRegisterCaptureCallback(pCAM->hDevice, &userParam, OnFrameCallbackFun);
-log_debug("start acq");
-csv_gx_acquisition_do(pCAM, GX_START_ACQ);
-
-/*
-		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
-		if ((GX_STATUS_SUCCESS == emStatus)
-		  &&(GX_FRAME_STATUS_SUCCESS == pCAM->pFrameBuffer->nStatus)) {
-			ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
-			if (0 == ret) {
-				memset(img_name, 0, 256);
-				csv_img_generate_filename("data", 111, 0, i, img_name);
-				if (CAM_RIGHT == i) {
-					lastpic = 1;
-				}
-				csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
+			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+				continue;
 			}
+
+			csv_gx_exposure_time(pCAM, expoTs[idx]);
+			SendCommand(pCAM->hDevice, GX_COMMAND_TRIGGER_SOFTWARE);
+
+			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
+			if ((GX_STATUS_SUCCESS == emStatus)&&(GX_FRAME_STATUS_SUCCESS == pCAM->pFrameBuffer->nStatus)) {
+				ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
+				if (0 == ret) {
+					memset(img_name, 0, 256);
+					csv_img_generate_filename("data", 111, idx, i, img_name);
+					if ((4 == idx)&&(CAM_RIGHT == i)) {
+						lastpic = 1;
+					}
+					csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
+						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
+				}
+			}
+
+			GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
 		}
 
-		GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
-*/
-log_debug("acquisiting...");
-csv_gx_acquisition_do(pCAM, GX_STOP_ACQ);
-log_debug("stop acq");
-
-GXUnregisterCaptureCallback(pCAM->hDevice);
+		idx++;
 	}
 
 	pthread_cond_broadcast(&gCSV->img.cond_img);
@@ -1502,7 +1567,8 @@ static int csv_gx_grab_calibrate (struct csv_gx_t *pGX)
 
 	pGX->busying = true;
 
-	ret = csv_gx_acquisition(GX_START_ACQ);
+	csv_gx_cams_acquisition(GX_START_ACQ);
+	csv_gx_cams_trigger_selector(GX_TRI_USE_HW_C);
 
 	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1623,7 +1689,8 @@ static int csv_gx_grab_pointcloud (struct csv_gx_t *pGX)
 	csv_3d_clear_img(CAM_LEFT);
 	csv_3d_clear_img(CAM_RIGHT);
 
-	ret = csv_gx_acquisition(GX_START_ACQ);
+	csv_gx_cams_acquisition(GX_START_ACQ);
+	csv_gx_cams_trigger_selector(GX_TRI_USE_HW_C);
 
 	// 1 常亮
 	ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
@@ -1895,6 +1962,7 @@ static void *csv_gx_loop (void *data)
 
 	log_alert("ALERT : exit pthread %s.", pGX->name_gx);
 
+	csv_gx_cams_acquisition(GX_STOP_ACQ);
 	csv_gx_close(pGX);
 	csv_gx_lib(GX_LIB_CLOSE);
 

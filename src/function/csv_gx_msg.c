@@ -41,7 +41,7 @@ static int gx_msg_cameras_open (struct msg_package_t *pMP, struct msg_ack_t *pAC
 	struct cam_gx_spec_t *pCAMRIGHT = &pGX->Cam[CAM_RIGHT];
 
 	if (pCAMLEFT->opened && pCAMRIGHT->opened) {
-		ret = csv_gx_acquisition(GX_START_ACQ);
+		ret = csv_gx_cams_acquisition(GX_START_ACQ);
 		if (0 == ret) {
 			result = 0;
 		}
@@ -56,7 +56,7 @@ static int gx_msg_cameras_close (struct msg_package_t *pMP, struct msg_ack_t *pA
 {
 	int ret = -1, result = -1;
 
-	ret = csv_gx_acquisition(GX_STOP_ACQ);
+	ret = csv_gx_cams_acquisition(GX_STOP_ACQ);
 	if (0 == ret) {
 		result = 0;
 	}

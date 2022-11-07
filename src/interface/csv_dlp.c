@@ -15,6 +15,9 @@ static uint8_t csv_dlp_pick_code (uint8_t idx)
 	case DLP_CMD_BRIGHT:
 		cmd = CMD_BRIGHT;
 		break;
+	case DLP_CMD_HDRI:
+		cmd = CMD_HDRI;
+		break;
 
 	case DLP_CMD_POINTCLOUD:
 	default:
@@ -67,7 +70,7 @@ int csv_dlp_just_write (uint8_t idx)
 #if defined(USE_HK_CAMS)
 	csv_mvs_cams_exposure_set(&gCSV->mvs, pDlpcfg->expoTime);
 #elif defined(USE_GX_CAMS)
-	csv_gx_cams_exposure_set(pDlpcfg->expoTime);
+	csv_gx_cams_exposure_time_selector(pDlpcfg->expoTime);
 #endif
 
 	pDLP->expoTime = pDlpcfg->expoTime;

@@ -583,6 +583,12 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		}
 		break;
 
+	case REG_HDRImage:
+		break;
+
+	case REG_HDRIExposureTime0:
+		break;
+
 	default:
 		break;
 	}
