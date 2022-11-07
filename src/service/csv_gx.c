@@ -880,7 +880,7 @@ int csv_gx_acquisition_do (struct cam_gx_spec_t *pCAM, uint8_t type)
 int csv_gx_trigger_type (struct cam_gx_spec_t *pCAM, uint8_t type)
 {
 	switch (type) {
-	case GX_TRI_USE_HW_S:
+	case GX_TRI_USE_HW_C:
 		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
 		// GX_TRIGGER_MODE_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
@@ -889,19 +889,10 @@ int csv_gx_trigger_type (struct cam_gx_spec_t *pCAM, uint8_t type)
 		// GX_TRIGGER_SOURCE_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);
 		break;
-	case GX_TRI_USE_SW_S:
-		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
-		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
-		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_SOFTWARE);
-		break;
 	case GX_TRI_USE_SW_C:
 		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_SOFTWARE);
-		break;
-	case GX_TRI_nUSE_S:
-		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
-		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
 		break;
 	case GX_TRI_nUSE_C:
 		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
@@ -1008,7 +999,7 @@ static int csv_gx_cams_init (struct csv_gx_t *pGX)
 			continue;
 		}
 
-		csv_gx_trigger_type(pCAM, GX_TRI_USE_HW_S);
+		csv_gx_trigger_type(pCAM, GX_TRI_USE_HW_C);
 		csv_gx_exposure_type(pCAM, GX_EXPOTIME_USE);
 		csv_gx_gain_type(pCAM, GX_GAIN_USE);
 		csv_gx_throughput_limit_type(pCAM, GX_THR_PUT_LIMIT);

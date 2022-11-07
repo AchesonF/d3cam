@@ -27,10 +27,8 @@ enum {
 };
 
 enum {
-	GX_TRI_USE_HW_S,			///< 硬触发2上升沿 单帧
-	GX_TRI_USE_SW_S,			///< 软触发 单帧
+	GX_TRI_USE_HW_C,			///< 硬触发2上升沿 连续
 	GX_TRI_USE_SW_C,			///< 软触发 连续
-	GX_TRI_nUSE_S,				///< 无触发 单帧
 	GX_TRI_nUSE_C				///< 无触发 连续
 };
 
