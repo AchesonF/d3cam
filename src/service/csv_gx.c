@@ -873,9 +873,10 @@ int csv_gx_cams_acquisition (uint8_t mode)
 // 停采后设置
 int csv_gx_trigger_mode (struct cam_gx_spec_t *pCAM, uint8_t mode)
 {
+	SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
+
 	switch (mode) {
 	case GX_TRI_USE_HW_C:
-		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_SINGLE_FRAME);
 		// GX_TRIGGER_MODE_ENTRY
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
 		// GX_TRIGGER_ACTIVATION_ENTRY
@@ -884,12 +885,10 @@ int csv_gx_trigger_mode (struct cam_gx_spec_t *pCAM, uint8_t mode)
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);
 		break;
 	case GX_TRI_USE_SW_C:
-		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_SOFTWARE);
 		break;
 	case GX_TRI_nUSE_C:
-		SetEnum(pCAM->hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
 		SetEnum(pCAM->hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
 		break;
 	default:

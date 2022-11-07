@@ -258,72 +258,74 @@ static int csv_file_get (struct csv_file_t *pFILE)
 			DEFAULT_LOG_SERV, DEFAULT_LOG_PORT, pFILE->udpserv);
 		system(str_cmd);*/
 		gUDP.enable = 0;
-	}
+	} else {
+		ret = csv_file_get_size(pFILE->udpserv, &len_file);
+		if ((0 == ret)&&(len_file > 0)&&(len_file <= 22)) {
+			uint8_t *buf_file = (uint8_t *)malloc(len_file);
+			if (NULL != buf_file) {
+				int nget = 0;
+				char str_ip[32] = {0};
+				char str_port[32] = {0};
+				int port = 0;
+				ret = csv_file_read_data(pFILE->udpserv, buf_file, len_file);
 
-	ret = csv_file_get_size(pFILE->udpserv, &len_file);
-	if ((0 == ret)&&(len_file > 0)&&(len_file <= 22)) {
-		uint8_t *buf_file = (uint8_t *)malloc(len_file);
-		if (NULL != buf_file) {
-			int nget = 0;
-			char str_ip[32] = {0};
-			char str_port[32] = {0};
-			int port = 0;
-			ret = csv_file_read_data(pFILE->udpserv, buf_file, len_file);
+				nget = sscanf((char *)buf_file, "%[^:]:%[^:]", str_ip, str_port);
+				if (2 == nget) {
+					ret = check_user_ip(str_ip);
+					if (0 == ret) {
+						strcpy(gUDP.ip, str_ip);
+					}
+					port = atoi(str_port);
+					if (port > 1024) {
+						gUDP.port = port;
+					}
+					gUDP.reinit = 1;
+					gUDP.enable = 1;
+					//printf("log server : '%s:%d'.\n", gUDP.ip, gUDP.port);
+				}
 
-			nget = sscanf((char *)buf_file, "%[^:]:%[^:]", str_ip, str_port);
-			if (2 == nget) {
-				ret = check_user_ip(str_ip);
-				if (0 == ret) {
-					strcpy(gUDP.ip, str_ip);
-				}
-				port = atoi(str_port);
-				if (port > 1024) {
-					gUDP.port = port;
-				}
-				gUDP.reinit = 1;
-				gUDP.enable = 1;
-				//printf("log server : '%s:%d'.\n", gUDP.ip, gUDP.port);
+				free(buf_file);
 			}
-
-			free(buf_file);
 		}
+
 	}
 
 	// file 2
 	if (!csv_file_isPath(pFILE->heartbeat_cfg, S_IFREG)) {
-		memset(str_cmd, 0, 512);
+		/*memset(str_cmd, 0, 512);
 		snprintf(str_cmd, 512, "echo \"0:3000\" > %s", pFILE->heartbeat_cfg);
-		system(str_cmd);
-	}
+		system(str_cmd);*/
+		pFILE->beat_enable = 0;
+	} else {
+		ret = csv_file_get_size(pFILE->heartbeat_cfg, &len_file);
+		if ((0 == ret)&&(len_file > 0)&&(len_file <= 12)) {
+			uint8_t *buf_file = (uint8_t *)malloc(len_file);
+			if (NULL != buf_file) {
+				int nget = 0;
+				char str_enable[12] = {0};
+				char str_period[12] = {0};
+				
+				ret = csv_file_read_data(pFILE->heartbeat_cfg, buf_file, len_file);
 
-	ret = csv_file_get_size(pFILE->heartbeat_cfg, &len_file);
-	if ((0 == ret)&&(len_file > 0)&&(len_file <= 12)) {
-		uint8_t *buf_file = (uint8_t *)malloc(len_file);
-		if (NULL != buf_file) {
-			int nget = 0;
-			char str_enable[12] = {0};
-			char str_period[12] = {0};
-			
-			ret = csv_file_read_data(pFILE->heartbeat_cfg, buf_file, len_file);
+				nget = sscanf((char *)buf_file, "%[^:]:%[^:]", str_enable, str_period);
+				if (2 == nget) {
+					if (atoi(str_enable)) {
+						pFILE->beat_enable = 1;
+					} else {
+						pFILE->beat_enable = 0;
+					}
 
-			nget = sscanf((char *)buf_file, "%[^:]:%[^:]", str_enable, str_period);
-			if (2 == nget) {
-				if (atoi(str_enable)) {
-					pFILE->beat_enable = 1;
-				} else {
-					pFILE->beat_enable = 0;
+					if (atoi(str_period) > 100) { // at least 0.1s
+						pFILE->beat_period = atoi(str_period);
+					} else {
+						pFILE->beat_period = 3000;
+					}
+
+					//printf("heartbeat cfg : '%d:%d'.\n", pFILE->beat_enable, pFILE->beat_period);
 				}
 
-				if (atoi(str_period) > 100) { // at least 0.1s
-					pFILE->beat_period = atoi(str_period);
-				} else {
-					pFILE->beat_period = 3000;
-				}
-
-				//printf("heartbeat cfg : '%d:%d'.\n", pFILE->beat_enable, pFILE->beat_period);
+				free(buf_file);
 			}
-
-			free(buf_file);
 		}
 	}
 
