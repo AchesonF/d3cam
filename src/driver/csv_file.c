@@ -381,7 +381,7 @@ int csv_file_init (void)
 	}
 
 	memset(str_dir, 0, 256);
-	snprintf(str_dir, 256, "%s/", PATH_LOG_FILES);
+	snprintf(str_dir, 256, "%s", PATH_LOG_FILES);
 	if (!csv_file_isPath(str_dir, S_IFLNK)) {
 		memset(str_cmd, 0, 512);
 		snprintf(str_cmd, 512, "ln -s /var/log %s", str_dir);
