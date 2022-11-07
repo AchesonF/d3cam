@@ -253,10 +253,11 @@ static int csv_file_get (struct csv_file_t *pFILE)
 
 	// file 1
 	if (!csv_file_isPath(pFILE->udpserv, S_IFREG)) {
-		memset(str_cmd, 0, 512);
+		/*memset(str_cmd, 0, 512);
 		snprintf(str_cmd, 512, "echo \"%s:%d\" > %s", 
 			DEFAULT_LOG_SERV, DEFAULT_LOG_PORT, pFILE->udpserv);
-		system(str_cmd);
+		system(str_cmd);*/
+		gUDP.enable = 0;
 	}
 
 	ret = csv_file_get_size(pFILE->udpserv, &len_file);
@@ -280,6 +281,7 @@ static int csv_file_get (struct csv_file_t *pFILE)
 					gUDP.port = port;
 				}
 				gUDP.reinit = 1;
+				gUDP.enable = 1;
 				//printf("log server : '%s:%d'.\n", gUDP.ip, gUDP.port);
 			}
 

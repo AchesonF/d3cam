@@ -141,7 +141,7 @@ int csv_udp_init (void)
 
 	pUDP->fd = -1;
 	pUDP->name = NAME_UDP_LOG;
-	pUDP->enable = 1;
+	pUDP->enable = 0;
 	pUDP->level = LOG_INFO;
 	pUDP->initialled = 0;
 	pUDP->reinit = 0;
