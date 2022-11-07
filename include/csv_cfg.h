@@ -23,14 +23,14 @@ enum {
 	END_SUFFIX
 };
 
-struct dlp_cfg_t {
+struct dlp_conf_t {
 	char				name[64];
 	float				rate;
 	float				brightness;
 	float				expoTime;
 };
 
-struct device_cfg_t {
+struct device_conf_t {
 	uint8_t				SwitchCams;				///< 左右相机互换 1:互换
 	uint8_t				SaveImageFile;			///< 保存图像
 	uint8_t				SaveImageFormat;		///< 图像存储格式 SUFFIX_BMP
@@ -38,10 +38,10 @@ struct device_cfg_t {
 	uint8_t				exportCamsCfg;			///< 导出相机配置
 	char				*strSuffix;
 
-	struct dlp_cfg_t	dlpcfg[TOTAL_DLP_CMDS];
+	struct dlp_conf_t	dlpcfg[TOTAL_DLP_CMDS];
 };
 
-struct channel_cfg_t {
+struct channel_conf_t {
 	uint32_t				Address;
 	uint16_t				idx;
 	uint16_t				Port;
@@ -117,10 +117,10 @@ struct gev_conf_t {
 	uint32_t				MessageRetryCount;
 	uint32_t				MessageSourcePort;
 
-	struct channel_cfg_t	Channel[TOTAL_CHANNELS];
+	struct channel_conf_t	Channel[TOTAL_CHANNELS];
 };
 
-struct pointcloud_cfg_t {
+struct pointcloud_conf_t {
 	char					ModelRoot[128];		///< 模型存放路径
 	char					PCImageRoot[128];	///< 图片存放路径
 	char					calibFile[128];		///< 标定参数文件名
@@ -138,12 +138,18 @@ struct calib_conf_t {
 
 };
 
-struct csv_cfg_t {
-	struct device_cfg_t		devicecfg;
-	struct pointcloud_cfg_t	pointcloudcfg;
+struct hdri_conf_t {
+	char					HdrImageRoot[128];		///< hdri路径
 
-	struct calib_conf_t		calibcfg;
-	struct gev_conf_t		gigecfg;			///< gev参数
+};
+
+struct csv_cfg_t {
+	struct device_conf_t		devicecfg;
+	struct pointcloud_conf_t	pointcloudcfg;
+
+	struct hdri_conf_t			hdricfg;
+	struct calib_conf_t			calibcfg;
+	struct gev_conf_t			gigecfg;			///< gev参数
 };
 
 

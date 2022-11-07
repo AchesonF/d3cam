@@ -462,7 +462,7 @@ int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
 {
 	int ret = -1, ret_timeo = 0;
 	struct csv_gx_t *pGX = &gCSV->gx;
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
 	int len_msg = 0;
     char str_err[128] = {0};
     int len_err = 0;

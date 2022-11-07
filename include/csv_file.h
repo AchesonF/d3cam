@@ -10,13 +10,21 @@ extern "C" {
 */
 #define CONFIG_APPLICATION			"d3cam"
 
-#define FILE_PATH_BACKTRACE			"backtrace.log"
-#define FILE_CAMERA_CALIBRATE		"camera_param.yml"
+#define PATH_CONFIG_FILES			"config"	///< 配置文件 csvcfg.xml udpserv calib.xml
+#define PATH_SETS_FILES				"sets"		///< 固化文件 gev.xml(zip) .cer .key
+#define PATH_WEB_FILES				"web"		///< web html
+#define PATH_DATA_FILES				"data"		///< images(calib, depth, hdr)
+#define PATH_MODEL_FILES			"model"		///< for so use
+#define PATH_LOG_FILES				"log"		///< link to syslog
 
-// prefix : getenv("HOME")
-#define PATH_D3CAM_CFG				(".config/d3cam")
-#define FILE_UDP_SERVER				(".config/d3cam/udpserv")	// "127.0.0.1:36666"
-#define FILE_CFG_HEARTBEAT			(".config/d3cam/hbcfg")	// "1:3000"
+#define FILE_UDP_SERVER				(PATH_CONFIG_FILES "/udpserv")	// "127.0.0.1:36666"
+#define FILE_CFG_HEARTBEAT			(PATH_CONFIG_FILES "/hbcfg")	// "1:3000"
+
+#define FILE_PATH_BACKTRACE			("backtrace.log")
+
+#define FILE_CALIB_XML				(PATH_CONFIG_FILES "/CSV_Cali_DaHengCamera.xml")
+#define FILE_CALIB_XML_NEW			(PATH_CONFIG_FILES "/calib_new.xml")
+
 
 /** @}*/
 
@@ -53,7 +61,7 @@ extern int csv_file_write_data_append (const char *path, uint8_t *buf, uint32_t 
 /* 将数据流写入文件 */
 extern int file_write_data (char * buf, FILE * fp, uint32_t size);
 
-extern uint8_t csv_file_isExist (char *path);
+extern uint8_t csv_file_isPath (char *path, uint32_t mode);
 
 extern int csv_file_mkdir (char *dir);
 

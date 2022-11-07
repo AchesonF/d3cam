@@ -11,7 +11,7 @@ static int msg_cameras_calibrate_file_get (struct msg_package_t *pMP, struct msg
 	uint32_t len_msg = 0;
 	char *str_cali = NULL;
 
-	ret = csv_file_get_size(FILE_CAMERA_CALIBRATE, &len_msg);
+	ret = csv_file_get_size(FILE_CALIB_XML_NEW, &len_msg);
 	if (ret == 0) {
 		if (len_msg > 0) {
 			str_cali = (char *)malloc(len_msg);
@@ -21,7 +21,7 @@ static int msg_cameras_calibrate_file_get (struct msg_package_t *pMP, struct msg
 			}
 
 			if (ret == 0) {
-				ret = csv_file_read_string(FILE_CAMERA_CALIBRATE, str_cali, len_msg);
+				ret = csv_file_read_string(FILE_CALIB_XML_NEW, str_cali, len_msg);
 			}
 		}
 	}
@@ -47,11 +47,11 @@ static int msg_cameras_calibrate_file_set (struct msg_package_t *pMP, struct msg
 	uint8_t *str_cali = pMP->payload;
 
 	if (pMP->hdr.length > 0) {
-		if (strstr((char *)str_cali, "cam_Q")) {
-			ret = csv_file_write_data(FILE_CAMERA_CALIBRATE, str_cali, pMP->hdr.length);
+		if (strstr((char *)str_cali, "calibrationBoardSize")) {
+			ret = csv_file_write_data(FILE_CALIB_XML_NEW, str_cali, pMP->hdr.length);
 			if (ret == 0) {
 				result = 0;
-				// TODO source it
+				// TODO mv FILE_CALIB_XML_NEW FILE_CALIB_XML
 			}
 		}
 	}

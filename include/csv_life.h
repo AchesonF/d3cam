@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define FILE_PATH_LIFETIME			(".lifetime") ///< 总工时文件
+#define FILE_PATH_LIFETIME			(PATH_DATA_FILES "/.lifetime") ///< 总工时文件
 
 
 struct csv_lifetime_t {

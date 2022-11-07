@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-#define FILE_PATH_XML			("csvcfg.xml")	///< 配置xml文件路径
-#define FILE_PATH_XML_BK		("csvcfg.xml.bk")	///< 配置xml备份路径
+#define FILE_PATH_XML			(PATH_CONFIG_FILES"/csvcfg.xml")	///< 配置xml文件路径
+#define FILE_PATH_XML_BK		(PATH_CONFIG_FILES"/csvcfg.xml.bk")	///< 配置xml备份路径
 
 #define MAX_KEY_VALUE_PAIRS 	32
 #define MAX_KEY_SIZE			48
@@ -57,6 +57,8 @@ extern int csv_xml_write_DeviceParameters (void);
 extern int csv_xml_write_PointCloudParameters (void);
 
 extern int csv_xml_write_CalibParameters (void);
+
+extern int csv_xml_write_HdriParameters (void);
 
 extern int csv_xml_init (void);
 

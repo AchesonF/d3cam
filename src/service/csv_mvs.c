@@ -825,10 +825,10 @@ static int csv_mvs_cams_calibrate (struct csv_mvs_t *pMVS)
 	char img_name[256] = {0};
 	struct cam_hk_spec_t *pCAM = NULL;
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
+	struct device_conf_t *pDevC = &gCSV->cfg.devicecfg;
 
 	if ((NULL == pCALIB->CalibImageRoot)
-		||(!csv_file_isExist(pCALIB->CalibImageRoot))) {
+		||(!csv_file_isPath(pCALIB->CalibImageRoot, S_IFDIR))) {
 		log_warn("ERROR : cali img path null.");
 		return -1;
 	}
@@ -934,8 +934,8 @@ static int csv_mvs_cams_pointcloud (struct csv_mvs_t *pMVS)
 	uint64_t f_timestamp = 0;
 	char img_name[256] = {0};
 	struct cam_hk_spec_t *pCAM = NULL;
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
+	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct device_conf_t *pDevC = &gCSV->cfg.devicecfg;
 
 	// 13 高速光
 	ret = csv_dlp_just_write(DLP_CMD_POINTCLOUD);

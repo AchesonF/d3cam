@@ -4,9 +4,9 @@
 extern "C" {
 #endif
 
-static int csv_cfg_device (struct device_cfg_t *pDevC)
+static int csv_cfg_device (struct device_conf_t *pDevC)
 {
-	struct dlp_cfg_t *pDlpcfg = NULL;
+	struct dlp_conf_t *pDlpcfg = NULL;
 
 	pDevC->SwitchCams = 0;
 	pDevC->SaveImageFile = 1;
@@ -42,12 +42,12 @@ static int csv_cfg_device (struct device_cfg_t *pDevC)
 	return 0;
 }
 
-static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
+static int csv_cfg_pointcloud (struct pointcloud_conf_t *pPC)
 {
-	strcpy(pPC->ModelRoot, "model");
-	strcpy(pPC->PCImageRoot, "data/PointCloudImage");
-	strcpy(pPC->calibFile, "CSV_Cali_DaHengCamera.xml");
-	strcpy(pPC->outFileXYZ, "pointcloud.xyz");
+	strcpy(pPC->ModelRoot, PATH_MODEL_FILES);
+	snprintf(pPC->PCImageRoot, 128, "%s/PointCloudImage", PATH_DATA_FILES);
+	strcpy(pPC->calibFile, FILE_CALIB_XML);
+	snprintf(pPC->outFileXYZ, 256, "%s/pointcloud.xyz", PATH_DATA_FILES);
 	pPC->saveXYZ = 0;
 	pPC->groupPointCloud = 1;
 	pPC->initialized = 0;
@@ -57,8 +57,15 @@ static int csv_cfg_pointcloud (struct pointcloud_cfg_t *pPC)
 
 static int csv_cfg_calib (struct calib_conf_t *pCALIB)
 {
-	strcpy(pCALIB->CalibImageRoot, "data/calibImage");
+	snprintf(pCALIB->CalibImageRoot, 128, "%s/calibImage", PATH_DATA_FILES);
 	pCALIB->groupCalibrate = 1;
+
+	return 0;
+}
+
+static int csv_cfg_hdri (struct hdri_conf_t *pHDRI)
+{
+	snprintf(pHDRI->HdrImageRoot, 128, "%s/HdrImage", PATH_DATA_FILES);
 
 	return 0;
 }
@@ -67,7 +74,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 {
 	uint32_t file_size = 0;
 	int i = 0;
-	struct channel_cfg_t *pCH = NULL;
+	struct channel_conf_t *pCH = NULL;
 
 	pGC->VersionMajor = GEV_VERSION_MAJOR;
 	pGC->VersionMinor = GEV_VERSION_MINOR;
@@ -81,19 +88,25 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	strcpy(pGC->ManufacturerInfo, "CS Vision 3d highspeed structure.");
 	strcpy(pGC->SerialNumber, "CS300131001"); // todo update
 
-	pGC->strXmlfile = GEV_XML_FILENAME;
+	pGC->strXmlfile = FILE_GEV_XML;
 	pGC->xmlData = NULL;
-	csv_file_get_size(pGC->strXmlfile, &file_size);
-	pGC->xmlLength = file_size;
-	snprintf(pGC->FirstURL, GVCP_URL_MAX_LEN, "local:%s;%x;%x", 
-		pGC->strXmlfile, REG_StartOfXmlFile, file_size);
-	if (file_size > 0) {
-		pGC->xmlData = (uint8_t *)malloc(file_size);
-		if (NULL != pGC->xmlData) {
-			csv_file_read_data(pGC->strXmlfile, pGC->xmlData, file_size);
+	if (!csv_file_isPath(pGC->strXmlfile, S_IFREG)) {
+		log_warn("ERROR : lost gev xml file.");
+	} else {
+		csv_file_get_size(pGC->strXmlfile, &file_size);
+		pGC->xmlLength = file_size;
+		snprintf(pGC->FirstURL, GVCP_URL_MAX_LEN, "local:%s;%x;%x", 
+			pGC->strXmlfile, REG_StartOfXmlFile, file_size);
+		if (file_size > 0) {
+			pGC->xmlData = (uint8_t *)malloc(file_size);
+			if (NULL != pGC->xmlData) {
+				csv_file_read_data(pGC->strXmlfile, pGC->xmlData, file_size);
+			} else {
+				log_err("ERROR : malloc xmlData");
+			}
 		}
+		strcpy(pGC->SecondURL, pGC->FirstURL);
 	}
-	strcpy(pGC->SecondURL, pGC->FirstURL);
 
 	pGC->NumberofNetworkInterfaces = 1;
 	pGC->LinkSpeed0 = 1000;
@@ -158,6 +171,7 @@ int csv_cfg_init (void)
 	csv_cfg_device(&pCFG->devicecfg);
 	csv_cfg_pointcloud(&pCFG->pointcloudcfg);
 	csv_cfg_calib(&pCFG->calibcfg);
+	csv_cfg_hdri(&pCFG->hdricfg);
 	csv_cfg_gev(&pCFG->gigecfg);
 
 	return 0;

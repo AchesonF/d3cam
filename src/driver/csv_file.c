@@ -180,7 +180,23 @@ int csv_file_write_data_append (const char *path, uint8_t *buf, uint32_t size)
 	return 0;
 }
 
-uint8_t csv_file_isExist (char *path)
+/*
+	st.st_mode:
+S_IFMT   00170000 mask
+
+S_IFSOCK 0140000 "socket"
+S_IFLNK	 0120000 "symlink"
+S_IFREG  0100000 "regular file"
+S_IFBLK  0060000 "block device"
+S_IFDIR  0040000 "directory"
+S_IFCHR  0020000 "character device"
+S_IFIFO  0010000 "FIFO/pipe"
+S_ISUID  0004000
+S_ISGID  0002000
+S_ISVTX  0001000
+
+*/
+uint8_t csv_file_isPath (char *path, uint32_t mode)
 {
 	struct stat st;
 	int ret = 0;
@@ -190,7 +206,7 @@ uint8_t csv_file_isExist (char *path)
 	}
 
 	ret = stat(path, &st);
-	if (0 == ret) {
+	if ((0 == ret)&&(mode == (st.st_mode & S_IFMT))) {
 		return true;
 	}
 
@@ -204,7 +220,7 @@ int csv_file_mkdir (char *dir)
 
 	memset(str_cmd, 0, 512);
 
-	if ((NULL != dir)&&(!csv_file_isExist(dir))) {
+	if ((NULL != dir)&&(!csv_file_isPath(dir, S_IFDIR))) {
 		snprintf(str_cmd, 512, "mkdir -p %s", dir);
 		ret = system(str_cmd);
 	}
@@ -236,7 +252,7 @@ static int csv_file_get (struct csv_file_t *pFILE)
 	char str_cmd[512] = {0};
 
 	// file 1
-	if (!csv_file_isExist(pFILE->udpserv)) {
+	if (!csv_file_isPath(pFILE->udpserv, S_IFREG)) {
 		memset(str_cmd, 0, 512);
 		snprintf(str_cmd, 512, "echo \"%s:%d\" > %s", 
 			DEFAULT_LOG_SERV, DEFAULT_LOG_PORT, pFILE->udpserv);
@@ -272,7 +288,7 @@ static int csv_file_get (struct csv_file_t *pFILE)
 	}
 
 	// file 2
-	if (!csv_file_isExist(pFILE->heartbeat_cfg)) {
+	if (!csv_file_isPath(pFILE->heartbeat_cfg, S_IFREG)) {
 		memset(str_cmd, 0, 512);
 		snprintf(str_cmd, 512, "echo \"0:3000\" > %s", pFILE->heartbeat_cfg);
 		system(str_cmd);
@@ -339,23 +355,41 @@ int file_write_data(char *buf, FILE *fp, uint32_t size)
 
 int csv_file_init (void)
 {
-	char *env_home = getenv("HOME");
-	char dir_cfg[256]={0};
+	int i = 0;
+	char str_dir[256]={0};
+	char str_cmd[512] = {0};
+	char dir_sets[5][128] = {
+		PATH_CONFIG_FILES,
+		PATH_SETS_FILES,
+		PATH_WEB_FILES,
+		PATH_DATA_FILES,
+		PATH_MODEL_FILES
+	};
+
 	struct csv_file_t *pFILE = &gFILE;
 
 	memset(pFILE, 0, sizeof(struct csv_file_t));
-	memset(dir_cfg, 0, 256);
 
-	snprintf(dir_cfg, 256, "%s/%s", env_home, PATH_D3CAM_CFG);
-	snprintf(pFILE->udpserv, 256, "%s/%s", env_home, FILE_UDP_SERVER);
-	snprintf(pFILE->heartbeat_cfg, 256, "%s/%s", env_home, FILE_CFG_HEARTBEAT);
+	for (i = 0; i < 5; i++) {
+		memset(str_dir, 0, 256);
+		snprintf(str_dir, 256, "%s/", dir_sets[i]);
+		if (!csv_file_isPath(str_dir, S_IFDIR)) {
+			memset(str_cmd, 0, 512);
+			snprintf(str_cmd, 512, "mkdir -p %s", str_dir);
+			system(str_cmd);
+		}
+	}
 
-	if (!csv_file_isExist(dir_cfg)) {
-		char str_cmd[256] = {0};
-		memset(str_cmd, 0, 256);
-		snprintf(str_cmd, 256, "mkdir -p %s", dir_cfg);
+	memset(str_dir, 0, 256);
+	snprintf(str_dir, 256, "%s/", PATH_LOG_FILES);
+	if (!csv_file_isPath(str_dir, S_IFLNK)) {
+		memset(str_cmd, 0, 512);
+		snprintf(str_cmd, 512, "ln -s /var/log %s", str_dir);
 		system(str_cmd);
 	}
+
+	snprintf(pFILE->udpserv, 256, "%s", FILE_UDP_SERVER);
+	snprintf(pFILE->heartbeat_cfg, 256, "%s", FILE_CFG_HEARTBEAT);
 
 	return csv_file_get(pFILE);
 }

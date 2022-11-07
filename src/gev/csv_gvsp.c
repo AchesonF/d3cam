@@ -275,7 +275,7 @@ static int csv_gvsp_data_dispatch (struct gvsp_stream_t *pStream,
 	}
 
 	int ret = 0;
-	struct channel_cfg_t *pCH = &gCSV->cfg.gigecfg.Channel[CAM_LEFT];
+	struct channel_conf_t *pCH = &gCSV->cfg.gigecfg.Channel[CAM_LEFT];
 	uint8_t len_hdr = 0;
 #if USE_GVSP_EI_FLAG
 	len_hdr = sizeof(GVSP_PACKET_HEADER_V2);

@@ -535,13 +535,13 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_CalibrateExpoTime0: {
-		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_BRIGHT];
+		struct dlp_conf_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_BRIGHT];
 		pDlpcfg->expoTime = (float)regData;
 		}
 		break;
 
 	case REG_CalibrateExpoTime1: {
-		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB];
+		struct dlp_conf_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_CALIB];
 		pDlpcfg->expoTime = (float)regData;
 		}
 		break;
@@ -557,7 +557,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_PointCloudExpoTime: {
-		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
+		struct dlp_conf_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
 		pDlpcfg->expoTime = (float)regData;
 		}
 		break;
@@ -578,7 +578,7 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_DepthImageExpoTime: {
-		struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
+		struct dlp_conf_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
 		pDlpcfg->expoTime = (float)regData;
 		}
 		break;

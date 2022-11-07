@@ -196,16 +196,16 @@ int csv_3d_calc (uint8_t what)
 {
 	int ret = -1;
 	uint64_t f_timestamp = 0;
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	if ((NULL == pPC->calibFile)
-		||(!csv_file_isExist(pPC->calibFile))) {
+		||(!csv_file_isPath(pPC->calibFile, S_IFREG))) {
 		log_warn("ERROR : calibFile null.");
 		return -1;
 	}
 
 	if ((NULL == pPC->PCImageRoot)
-		||(!csv_file_isExist(pPC->PCImageRoot))) {
+		||(!csv_file_isPath(pPC->PCImageRoot, S_IFDIR))) {
 		log_warn("ERROR : Point Cloud Image Root not exist.");
 		return -1;
 	}
@@ -291,14 +291,14 @@ int csv_3d_calc (uint8_t what)
 int csv_3d_init (void)
 {
 	int ret = CSV_OK;
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
 
-	if ((NULL == pPC->calibFile)||(!csv_file_isExist(pPC->calibFile))) {
+	if ((NULL == pPC->calibFile)||(!csv_file_isPath(pPC->calibFile, S_IFREG))) {
 		log_warn("ERROR : calibFile null.");
 		return -1;
 	}
 
-	if ((NULL == pPC->PCImageRoot)||(!csv_file_isExist(pPC->PCImageRoot))) {
+	if ((NULL == pPC->PCImageRoot)||(!csv_file_isPath(pPC->PCImageRoot, S_IFDIR))) {
 		log_warn("ERROR : Point Cloud Image Root not exist.");
 		return -1;
 	}

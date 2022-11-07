@@ -65,7 +65,7 @@ int csv_dlp_just_write (uint8_t idx)
 	}
 
 	// update parameter before encode
-	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[idx];
+	struct dlp_conf_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[idx];
 
 #if defined(USE_HK_CAMS)
 	csv_mvs_cams_exposure_set(&gCSV->mvs, pDlpcfg->expoTime);
@@ -298,7 +298,7 @@ int csv_dlp_init (void)
 	int fd = 0;
 	struct csv_dlp_t *pDLP = &gCSV->dlp;
 	struct csv_tty_param_t *pParam = &pDLP->param;
-	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
+	struct dlp_conf_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[DLP_CMD_POINTCLOUD];
 
 	pDLP->dev = DEV_TTY_DLP;
 	pDLP->name = NAME_DEV_DLP;

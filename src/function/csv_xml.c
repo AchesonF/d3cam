@@ -38,9 +38,9 @@ static int xml_load_file (struct csv_xml_t *pXML)
 	char cmd[256] = {0};
 	memset(cmd, 0, 256);
 
-	if (!csv_file_isExist(pXML->file)) {
+	if (!csv_file_isPath(pXML->file, S_IFREG)) {
 		log_warn("WARN : xml \"%s\" not exist.", pXML->file);
-		if (!csv_file_isExist(FILE_PATH_XML_BK)) {
+		if (!csv_file_isPath(FILE_PATH_XML_BK, S_IFREG)) {
 			log_warn("WARN : backup xml \"%s\" not exist.", FILE_PATH_XML_BK);
 		} else {
 			log_warn("WARN : use backup xml \"%s\".", FILE_PATH_XML_BK);
@@ -422,7 +422,7 @@ static int csv_xml_DlpAttribute (
 		return -1;
 	}
 
-	struct dlp_cfg_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[inode];
+	struct dlp_conf_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[inode];
 
 	xml_strlcpy(key_pair[nums].key, "name", MAX_KEY_SIZE);
 	key_pair[nums].value = &pDlpcfg->name;
@@ -497,7 +497,7 @@ static int csv_xml_DeviceConfiguration (
 	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[16];
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
+	struct device_conf_t *pDevC = &gCSV->cfg.devicecfg;
 
 	xml_strlcpy(key_pair[nums].key, "SwitchCams", MAX_KEY_SIZE);
 	key_pair[nums].value = &pDevC->SwitchCams;
@@ -576,7 +576,7 @@ static int csv_xml_PointCloudConfiguration (
 	int ret = 0;
 	uint32_t nums = 0;
 	struct key_value_pair_t key_pair[16];
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	xml_strlcpy(key_pair[nums].key, "ModelRoot", MAX_KEY_SIZE);
 	key_pair[nums].value = &pPC->ModelRoot;
@@ -680,6 +680,40 @@ static int csv_xml_CalibConfiguration (
 	return 0;
 }
 
+static int csv_xml_HdriConfiguration (
+	struct csv_xml_t *pXML, uint8_t mode)
+{
+	int ret = 0;
+	uint32_t nums = 0;
+	struct key_value_pair_t key_pair[4];
+	struct hdri_conf_t *pHDRI = &gCSV->cfg.hdricfg;
+
+	xml_strlcpy(key_pair[nums].key, "HdrImageRoot", MAX_KEY_SIZE);
+	key_pair[nums].value = &pHDRI->HdrImageRoot;
+	key_pair[nums].value_type = XML_VALUE_STRING;
+	key_pair[nums].nodeType = XML_ELEMENT_NODE;
+	nums++;
+
+	if (mode == XML_GET) {
+		ret = xml_get_node_data(pXML->pDoc, pXML->pNode,
+			"HdriConfiguration", key_pair, nums, 0);
+	} else {
+		ret = xml_set_node_data(pXML->pDoc, pXML->pNode,
+			"HdriConfiguration", key_pair, nums, 0);
+	}
+
+	if (ret != 0) {
+		log_warn("ERROR : HdriConfiguration.");
+		return -1;
+	}
+
+	if (mode == XML_SET) {
+		pXML->SaveFile = true;
+	}
+
+	return 0;
+}
+
 // 一次全部读取
 // 分模块写入
 
@@ -722,6 +756,14 @@ int csv_xml_read_ALL (struct csv_xml_t *pXML)
 		ret = csv_xml_CalibConfiguration(pXML, XML_GET);
 		if (ret < 0) {
 			log_warn("ERROR : CalibConfiguration GET.");
+		}
+	}
+
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVHdriConfiguration", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_HdriConfiguration(pXML, XML_GET);
+		if (ret < 0) {
+			log_warn("ERROR : HdriConfiguration GET.");
 		}
 	}
 
@@ -840,6 +882,34 @@ int csv_xml_write_CalibParameters (void)
 	return ret;
 }
 
+int csv_xml_write_HdriParameters (void)
+{
+	int ret = 0;
+	struct csv_xml_t *pXML = &gCSV->xml;
+
+	ret = xml_load_file(pXML);
+	if (ret < 0) {
+		log_warn("ERROR : xml file load.");
+		return -1;
+	}
+
+	/* node_index is 0, pNodePtr is pRootPtr */
+	pXML->pNode = xml_get_node(pXML->pRoot, "CSVHdriConfiguration", 0);
+	if (pXML->pNode != NULL) {
+		ret = csv_xml_HdriConfiguration(pXML, XML_SET);
+		if (ret < 0) {
+			log_warn("ERROR : HdriConfiguration SET.");
+			goto xml_exit;
+		}
+	}
+
+  xml_exit:
+	xml_unload_file(pXML->pDoc);
+
+	return ret;
+}
+
+
 static int csv_xml_directories_prepare (void)
 {
 	int ret = 0;
@@ -848,6 +918,7 @@ static int csv_xml_directories_prepare (void)
 	ret = csv_file_mkdir(pCFG->pointcloudcfg.ModelRoot);
 	ret |= csv_file_mkdir(pCFG->pointcloudcfg.PCImageRoot);
 	ret |= csv_file_mkdir(pCFG->calibcfg.CalibImageRoot);
+	ret |= csv_file_mkdir(pCFG->hdricfg.HdrImageRoot);
 
 	return ret;
 }

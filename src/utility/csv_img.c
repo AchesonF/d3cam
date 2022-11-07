@@ -143,9 +143,9 @@ static void *csv_img_loop (void *data)
 	}
 
 	struct csv_img_t *pIMG = (struct csv_img_t *)data;
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
+	struct device_conf_t *pDevC = &gCSV->cfg.devicecfg;
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
 
 	int ret = 0;
 

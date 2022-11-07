@@ -1348,8 +1348,8 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 	char img_name[256] = {0};
 	uint8_t lastpic = 0;
 	struct cam_gx_spec_t *pCAM = NULL;
-	struct pointcloud_cfg_t *pPC = &gCSV->cfg.pointcloudcfg;
-	struct device_cfg_t *pDevC = &gCSV->cfg.devicecfg;
+	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct device_conf_t *pDevC = &gCSV->cfg.devicecfg;
 	int errNum = 0;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 
@@ -1543,6 +1543,7 @@ int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 		idx++;
 	}
 
+	csv_dlp_just_write(DLP_CMD_HDRI); // for stop
 	pthread_cond_broadcast(&gCSV->img.cond_img);
 
 	return 0;

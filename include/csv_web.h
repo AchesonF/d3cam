@@ -7,7 +7,7 @@ extern "C" {
 
 #define NAME_THREAD_WEB			"'thr_web'"
 
-#define DEFAULT_WEB_CONFIG		"webapp.conf"
+#define DEFAULT_WEB_CONFIG		PATH_CONFIG_FILES "/webapp.conf"
 
 struct csv_web_t {
 	char					*ConfigFile;
