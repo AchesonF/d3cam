@@ -213,6 +213,23 @@ uint8_t csv_file_isPath (char *path, uint32_t mode)
 	return false;
 }
 
+uint8_t csv_file_isPathLink (char *path, uint32_t mode)
+{
+	struct stat st;
+	int ret = 0;
+
+	if (NULL == path) {
+		return false;
+	}
+
+	ret = lstat(path, &st);
+	if ((0 == ret)&&(mode == (st.st_mode & S_IFMT))) {
+		return true;
+	}
+
+	return false;
+}
+
 int csv_file_mkdir (char *dir)
 {
 	int ret = -1;
@@ -249,7 +266,7 @@ static int csv_file_get (struct csv_file_t *pFILE)
 {
 	int ret = 0;
 	uint32_t len_file = 0;
-	char str_cmd[512] = {0};
+//	char str_cmd[512] = {0};
 
 	// file 1
 	if (!csv_file_isPath(pFILE->udpserv, S_IFREG)) {
@@ -386,7 +403,7 @@ int csv_file_init (void)
 
 	memset(str_dir, 0, 256);
 	snprintf(str_dir, 256, "%s", PATH_LOG_FILES);
-	if (!csv_file_isPath(str_dir, S_IFLNK)) {
+	if (!csv_file_isPathLink(str_dir, S_IFLNK)) {
 		memset(str_cmd, 0, 512);
 		snprintf(str_cmd, 512, "ln -s /var/log %s", str_dir);
 		system(str_cmd);
