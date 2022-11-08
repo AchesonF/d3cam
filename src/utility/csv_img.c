@@ -146,6 +146,7 @@ static void *csv_img_loop (void *data)
 	struct device_conf_t *pDevC = &gCSV->cfg.devicecfg;
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
 	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
+	struct hdri_conf_t *pHDRI = &gCSV->cfg.hdricfg;
 
 	int ret = 0;
 
@@ -190,7 +191,7 @@ static void *csv_img_loop (void *data)
 					csv_xml_write_PointCloudParameters();
 					break;
 				case GRAB_HDRIMAGE_PICS:
-					csv_img_sender("data", 111);
+					csv_img_sender(pHDRI->HdrImageRoot, pHDRI->groupHdri);
 					break;
 				}
 

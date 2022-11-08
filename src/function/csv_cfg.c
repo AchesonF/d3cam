@@ -66,6 +66,7 @@ static int csv_cfg_calib (struct calib_conf_t *pCALIB)
 static int csv_cfg_hdri (struct hdri_conf_t *pHDRI)
 {
 	snprintf(pHDRI->HdrImageRoot, 128, "%s/HdrImage", PATH_DATA_FILES);
+	pHDRI->groupHdri = 1;
 
 	return 0;
 }

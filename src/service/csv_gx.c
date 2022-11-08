@@ -1498,13 +1498,24 @@ int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 	char img_name[256] = {0};
 	uint8_t lastpic = 0;
 	int nFrame = 5;
+	int errNum = 0;
 	float expoTs[5] = {1000.0f, 5000.0f, 10000.0f, 20000.0f, 40000.0f}; // us
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct cam_gx_spec_t *pCAM = NULL;
+	struct hdri_conf_t *pHDRI = &gCSV->cfg.hdricfg;
 
 	if ((!libInit)||(pGX->cnt_gx < 2)) {
 		return -1;
 	}
+
+	if (pGX->busying) {
+		return -2;
+	}
+
+	pGX->busying = true;
+
+	csv_file_mkdir(pHDRI->HdrImageRoot);
+	csv_img_clear(pHDRI->HdrImageRoot);
 
 	csv_dlp_just_write(DLP_CMD_HDRI);
 
@@ -1516,6 +1527,7 @@ int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 			pCAM = &pGX->Cam[i];
 
 			if ((!pCAM->opened)||(NULL == pCAM->hDevice)||(NULL == pCAM->pMonoImageBuf)) {
+				errNum++;
 				continue;
 			}
 
@@ -1527,13 +1539,17 @@ int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 				ret = PixelFormatConvert(pCAM->pFrameBuffer, pCAM->pMonoImageBuf, pCAM->PayloadSize);
 				if (0 == ret) {
 					memset(img_name, 0, 256);
-					csv_img_generate_filename("data", 111, idx, i, img_name);
+					csv_img_generate_filename(pHDRI->HdrImageRoot, pHDRI->groupHdri, idx, i, img_name);
 					if ((4 == idx)&&(CAM_RIGHT == i)) {
 						lastpic = 1;
 					}
 					csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
 						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
+				} else {
+					errNum++;
 				}
+			} else {
+				errNum++;
 			}
 
 			GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1543,7 +1559,14 @@ int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 	}
 
 	csv_dlp_just_write(DLP_CMD_HDRI); // for stop
-	pthread_cond_broadcast(&gCSV->img.cond_img);
+
+	ret = -1;
+	if (0 == errNum) {
+		pthread_cond_broadcast(&gCSV->img.cond_img);
+	} else {
+		pGX->busying = false;
+		csv_img_list_release(&gCSV->img);
+	}
 
 	return 0;
 }

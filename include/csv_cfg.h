@@ -140,7 +140,7 @@ struct calib_conf_t {
 
 struct hdri_conf_t {
 	char					HdrImageRoot[128];		///< hdri路径
-
+	uint8_t					groupHdri;
 };
 
 struct csv_cfg_t {
