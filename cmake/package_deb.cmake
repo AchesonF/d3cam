@@ -19,7 +19,7 @@ endif ()
 
 # add date stamp("%Y%m%d+%H%M%S") to CPACK_PACKAGE_VERSION
 string(TIMESTAMP STAMP "%Y%m%d")
-set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION}-0+${STAMP}")
+set(CPACK_PACKAGE_VERSION "${D3CAM_PACKAGE_VERSION}-${STAMP}")
 
 ###############################
 # debian package specific stuff
@@ -94,6 +94,7 @@ execute_process(COMMAND chmod 755 "${PRERM_FILE}")
 execute_process(COMMAND chmod 644 "${TEMPLATES_FILE}")
 
 set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA};${PREINST_FILE};${POSTINST_FILE};${PRERM_FILE};${POSTRM_FILE};${TEMPLATES_FILE};${CONFIG_FILE}")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "ftp-upload")
 
 # make dev and gui components depend on bin with rpfilter.conf
 set(CPACK_COMPONENT_DEV_DEPENDS "bin")
