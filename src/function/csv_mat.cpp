@@ -1,13 +1,15 @@
-#include "CameraParams.h"
-#include "CsvStereoMatch.hpp"
-
 #include "inc_files.h"
+
+#include <opencv2/opencv.hpp>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // 换成 opencv Mat 格式
+
+using namespace cv;
+using namespace std;
 
 static int Convert2Mat (uint32_t nPixelType, uint32_t nWidth, uint32_t nHeight, 
 	unsigned char *pData, Mat& outImgMat, bool needRGB)

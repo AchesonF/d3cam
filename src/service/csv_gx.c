@@ -758,7 +758,7 @@ static int csv_gx_open (struct csv_gx_t *pGX)
 		GetFloatRange(pCAM->hDevice, GX_FLOAT_EXPOSURE_TIME, &pCAM->expoTimeRange);
 		GetFloatRange(pCAM->hDevice, GX_FLOAT_GAIN, &pCAM->gainRange);
 		GetEnum(pCAM->hDevice, GX_ENUM_PIXEL_FORMAT, &pCAM->PixelFormat);
-		log_debug("width[%ld, %ld], height[%ld, %ld], expoTime[%f, %f], gain[%f, %f], pixel:%08X", 
+		log_debug("width[%ld, %ld], height[%ld, %ld], expoTime[%.2f, %.2f], gain[%.2f, %.2f], pixel:0x%08X", 
 			pCAM->widthRange.nMin, pCAM->widthRange.nMax,
 			pCAM->heightRange.nMin, pCAM->heightRange.nMax,
 			pCAM->expoTimeRange.dMin, pCAM->expoTimeRange.dMax,
