@@ -471,22 +471,10 @@ int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
     Mat depthImg;
     int depthMatsize = 0;
 
+	pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
 	ret = csv_gx_cams_pointcloud(pGX);
 
-	struct timeval now;
-	struct timespec timeo;
-	gettimeofday(&now, NULL);
-	timeo.tv_sec = now.tv_sec + 5;
-	timeo.tv_nsec = now.tv_usec * 1000;
-
-	ret = pthread_cond_timedwait(&pGX->cond_wait_depth, &pGX->mutex_wait_depth, &timeo);
-	if (ret == ETIMEDOUT) {
-		ret_timeo = -1;
-	}
-
-	if (ret_timeo < 0) {
-		len_err = snprintf(str_err, 128, "depth timeout.");
-	} else {
+	if (ret== 0) {
 		depthImg = imread(pPC->outDepthImage, IMREAD_ANYDEPTH);
 		depthImg.convertTo(depthImg, CV_16S);
 		depthMatsize = depthImg.cols * depthImg.rows * 2;
@@ -515,10 +503,12 @@ int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
 		pIMGHdr->rows = depthImg.rows;
 		pIMGHdr->channel = 2;	// 深度图数据是1通道CV_16S占两个字节
 		pS += sizeof(struct img_hdr_t);
-
 		memcpy(pS, depthImg.data, depthMatsize);
 
+		pGX->busying = false;
 		return csv_msg_send(pACK);
+	}else {
+		len_err = snprintf(str_err, 128, "depth error.");
 	}
 
 	csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);

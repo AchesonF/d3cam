@@ -1404,8 +1404,14 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 		if (0 == ret) {
 			memset(img_name, 0, 256);
 			csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, 0, i, img_name);
+			if (!pDevC->SaveImageFile) {
+				if (CAM_RIGHT == i) {
+					lastpic = 1;
+				}
+			}
+
 			csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
-				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, 0);
+				pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
 		}
 
 		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1460,7 +1466,6 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
 					csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, idx, i, img_name);
-
 					csv_img_push(img_name, (uint8_t *)&pGX->pImgPayload[pos], pCAM->PayloadSize, 
 						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
 				}
