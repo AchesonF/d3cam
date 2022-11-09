@@ -485,8 +485,9 @@ int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
 	if (ret_timeo < 0) {
 		len_err = snprintf(str_err, 128, "depth timeout.");
 	} else {
-		depthImg = imread(pPC->outDepthImage);
-		depthMatsize = depthImg.cols * depthImg.rows *2;
+		depthImg = imread(pPC->outDepthImage, IMREAD_ANYDEPTH);
+		depthImg.convertTo(depthImg, CV_16S);
+		depthMatsize = depthImg.cols * depthImg.rows * 2;
 		len_msg = sizeof(struct img_hdr_t) + depthMatsize;
 
 		pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug

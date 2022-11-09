@@ -1452,14 +1452,15 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pGX->pImgPayload[pos], pCAM->PayloadSize);
 			if (0 == ret) {
 				csv_3d_load_img(i, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, (uint8_t *)&pGX->pImgPayload[pos]);
+				if ((NUM_PICS_POINTCLOUD == idx)&&(CAM_RIGHT == i)) {
+					lastpic = 1;
+					csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
+				}
 
 				if (pDevC->SaveImageFile) {
 					memset(img_name, 0, 256);
 					csv_img_generate_filename(pPC->PCImageRoot, pPC->groupPointCloud, idx, i, img_name);
-					if ((NUM_PICS_POINTCLOUD == idx)&&(CAM_RIGHT == i)) {
-						lastpic = 1;
-						csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
-					}
+
 					csv_img_push(img_name, (uint8_t *)&pGX->pImgPayload[pos], pCAM->PayloadSize, 
 						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, i, pGX->grab_type, lastpic);
 				}
@@ -1494,7 +1495,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX)
 
 int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 {
-	int i = 0, ret = 0, idx = 0;
+	int i = 0, ret = 0, idx = 1;
 	char img_name[256] = {0};
 	uint8_t lastpic = 0;
 	int nFrame = 5;
@@ -1522,7 +1523,7 @@ int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 	csv_gx_cams_acquisition(GX_START_ACQ);
 	csv_gx_cams_trigger_selector(GX_TRI_USE_SW_C);
 
-	while (idx < nFrame) {
+	while (idx <= nFrame) {
 	    for (i = 0; i < pGX->cnt_gx; i++) {
 			pCAM = &pGX->Cam[i];
 
@@ -1531,7 +1532,7 @@ int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 				continue;
 			}
 
-			csv_gx_exposure_time(pCAM, expoTs[idx]);
+			csv_gx_exposure_time(pCAM, expoTs[idx-1]);
 			SendCommand(pCAM->hDevice, GX_COMMAND_TRIGGER_SOFTWARE);
 
 			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 3000);
@@ -1540,7 +1541,7 @@ int csv_gx_cams_hdrimage (struct csv_gx_t *pGX)
 				if (0 == ret) {
 					memset(img_name, 0, 256);
 					csv_img_generate_filename(pHDRI->HdrImageRoot, pHDRI->groupHdri, idx, i, img_name);
-					if ((4 == idx)&&(CAM_RIGHT == i)) {
+					if ((5 == idx)&&(CAM_RIGHT == i)) {
 						lastpic = 1;
 					}
 					csv_img_push(img_name, pCAM->pMonoImageBuf, pCAM->PayloadSize, 
