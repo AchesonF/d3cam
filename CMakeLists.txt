@@ -119,3 +119,13 @@ include_directories(
 
 add_subdirectory(src)
 
+install(FILES ${CMAKE_SOURCE_DIR}/target/CSV_Cali_DaHengCamera.xml COMPONENT bin DESTINATION /opt/d3cam/config/)
+install(FILES ${CMAKE_SOURCE_DIR}/target/web_conf/auth.conf COMPONENT bin DESTINATION /opt/d3cam/config/)
+install(FILES ${CMAKE_SOURCE_DIR}/target/web_conf/webapp.conf COMPONENT bin DESTINATION /opt/d3cam/config/)
+install(FILES ${CMAKE_SOURCE_DIR}/target/web_conf/webapp-all.conf COMPONENT bin DESTINATION /opt/d3cam/config/)
+install(FILES ${CMAKE_SOURCE_DIR}/target/web_conf/csv.crt COMPONENT bin DESTINATION /opt/d3cam/sets/)
+install(FILES ${CMAKE_SOURCE_DIR}/target/web_conf/csv.key COMPONENT bin DESTINATION /opt/d3cam/sets/)
+install(FILES ${CMAKE_SOURCE_DIR}/target/CS-3D001-3MHS.zip COMPONENT bin DESTINATION /opt/d3cam/sets/)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/target/public/ COMPONENT bin DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/d3cam/)
+
+include(cmake/package_deb.cmake)

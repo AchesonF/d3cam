@@ -1,0 +1,4 @@
+Template: csv/d3cam
+Type: boolean
+Default: true
+Description: highspeed 3d device.
