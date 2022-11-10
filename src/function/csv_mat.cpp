@@ -469,14 +469,14 @@ int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
 	pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
 	ret = csv_gx_cams_pointcloud(pGX, DEPTH_TO_INTERFACE);
 
-	if (0 == ret) {
-		return 0;
+	if (ret < 0) {
+		len_err = snprintf(str_err, 128, "depth error.");
+		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
+
+		return csv_msg_send(pACK);
 	}
 
-	len_err = snprintf(str_err, 128, "depth error.");
-	csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
-
-	return csv_msg_send(pACK);
+	return 0;
 }
 
 #endif
