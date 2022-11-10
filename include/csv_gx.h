@@ -112,9 +112,6 @@ struct csv_gx_t {
 	uint8_t					grab_type;		///< 获取图像组类型 0: none 1:calib 2:pointcloud/depth ...
 	uint8_t					busying;		///< 忙于处理图像
 
-	pthread_mutex_t			mutex_wait_depth;
-	pthread_cond_t			cond_wait_depth;
-
 	const char				*name_grab;		///< 取图
 	pthread_t				thr_grab;		///< ID
 	pthread_mutex_t			mutex_grab;		///< 锁
@@ -129,7 +126,7 @@ extern int csv_gx_cams_grab_both (struct csv_gx_t *pGX);
 
 extern int csv_gx_cams_calibrate (struct csv_gx_t *pGX);
 
-extern int csv_gx_cams_pointcloud (struct csv_gx_t *pGX);
+extern int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, uint8_t towhere);
 
 extern int csv_gx_cams_hdrimage (struct csv_gx_t *pGX);
 

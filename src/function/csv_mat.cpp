@@ -459,58 +459,21 @@ int gx_msg_cameras_grab_rgb (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 	return csv_msg_send(pACK);
 }
 
-
 int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *pACK)
 {
-	int ret = -1, ret_timeo = 0;
+	int ret = -1;
 	struct csv_gx_t *pGX = &gCSV->gx;
-	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
-	int len_msg = 0;
     char str_err[128] = {0};
     int len_err = 0;
-    Mat depthImg;
-    int depthMatsize = 0;
 
 	pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
-	ret = csv_gx_cams_pointcloud(pGX);
+	ret = csv_gx_cams_pointcloud(pGX, DEPTH_TO_INTERFACE);
 
-	if (ret== 0) {
-		depthImg = imread(pPC->outDepthImage, IMREAD_ANYDEPTH);
-		depthImg.convertTo(depthImg, CV_16S);
-		depthMatsize = depthImg.cols * depthImg.rows * 2;
-		len_msg = sizeof(struct img_hdr_t) + depthMatsize;
-
-		pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
-		pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
-		if (NULL == pACK->buf_send) {
-			log_err("ERROR : malloc send.");
-			csv_msg_ack_package(pMP, pACK, NULL, 0, -1);
-			return -1;
-		}
-
-		memset(pACK->buf_send, 0, pACK->len_send+1);
-
-		unsigned char *pS = pACK->buf_send;
-		struct msg_head_t *pHDR = (struct msg_head_t *)pS;
-		pHDR->cmdtype = pMP->hdr.cmdtype;
-		pHDR->length = len_msg + sizeof(pHDR->result);
-		pHDR->result = 0;
-		pS += sizeof(struct msg_head_t);
-
-		struct img_hdr_t *pIMGHdr = (struct img_hdr_t *)pS;
-		pIMGHdr->type = 3;
-		pIMGHdr->cols = depthImg.cols;
-		pIMGHdr->rows = depthImg.rows;
-		pIMGHdr->channel = 2;	// 深度图数据是1通道CV_16S占两个字节
-		pS += sizeof(struct img_hdr_t);
-		memcpy(pS, depthImg.data, depthMatsize);
-
-		pGX->busying = false;
-		return csv_msg_send(pACK);
-	}else {
-		len_err = snprintf(str_err, 128, "depth error.");
+	if (0 == ret) {
+		return 0;
 	}
 
+	len_err = snprintf(str_err, 128, "depth error.");
 	csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 
 	return csv_msg_send(pACK);

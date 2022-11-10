@@ -378,7 +378,7 @@ static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_
 		ret = -2;
 	} else {
 		pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
-		ret = csv_gx_cams_pointcloud(pGX);
+		ret = csv_gx_cams_pointcloud(pGX, DEPTH_TO_FILE);
 	}
 
 	if (ret == 0) {

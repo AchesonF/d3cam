@@ -47,11 +47,6 @@ int csv_3d_clear_img (uint8_t rl)
 	return 0;
 }
 
-bool ParseDepthImage2CVMat(CsvImageSimple &depthImage, Mat& out) {
-	out = Mat(depthImage.m_height, depthImage.m_width, CV_16U, depthImage.m_data);
-	return true;
-}
-
 int csv_save_pointXYZ (Mat& out, vector<float> *point3D)
 {
 	if (point3D != NULL) {
@@ -192,7 +187,96 @@ string str3dErrCode (int errcode)
 	return str_err;
 }
 
-int csv_3d_calc (uint8_t what)
+static int csv_3d_save_depth (Mat& depthImgMat)
+{
+	struct pointcloud_conf_t *pPC = &gCSV->cfg.pointcloudcfg;
+
+	if (pPC->saveXYZ) {
+		uint64_t f_timestamp = 0;
+		unsigned int cloudNum = 0;
+		f_timestamp = utility_get_microsecond();
+
+		ofstream outfile(pPC->outFileXYZ);
+		vector<float> vector3DXYZParseFromDepthImage;
+		CsvC1RangeImageTo3DCloudXYZ(depthImgMat, vector3DXYZParseFromDepthImage);
+
+		for (size_t i = 0; i < vector3DXYZParseFromDepthImage.size(); i+=3) {
+			float x = vector3DXYZParseFromDepthImage[i + 0];
+			float y = vector3DXYZParseFromDepthImage[i + 1];
+			float z = vector3DXYZParseFromDepthImage[i + 2];
+			outfile << x << " " << y << " " << z << " " << "\n";
+			cloudNum++;
+		}
+		outfile.close();
+		log_debug("Depth Image To Cloud Dot Number : ", cloudNum);
+
+		log_debug("save pointcloud take %ld us.", utility_get_microsecond() - f_timestamp);
+	}
+
+	Mat vdisp;
+	string outfilepng = string(pPC->outDepthImage);
+	depthImgMat.row(0) = Scalar(0); // remove the first row
+	normalize(depthImgMat, vdisp, 0, 256, NORM_MINMAX, CV_8U);
+	imwrite(outfilepng, vdisp);
+
+	return 0;
+}
+
+static int csv_gvsp_depth_up (Mat& depthImgMat)
+{
+	struct gvsp_stream_t *pStream = &gCSV->gvsp.stream[CAM_DEPTH];
+	Mat vdisp;
+	GX_FRAME_BUFFER FrameBuffer;
+	depthImgMat.row(0) = Scalar(0); // remove the first row
+	normalize(depthImgMat, vdisp, 0, 256, NORM_MINMAX, CV_8U);
+
+	FrameBuffer.nPixelFormat = GX_PIXEL_FORMAT_MONO8;
+	FrameBuffer.nHeight = vdisp.rows;
+	FrameBuffer.nWidth = vdisp.cols;
+	FrameBuffer.nOffsetX = 0;
+	FrameBuffer.nOffsetY = 0;
+
+	return csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, vdisp.data, 
+		vdisp.rows*vdisp.cols, &FrameBuffer, NULL);
+}
+
+static int csv_msg_depth_ack (Mat& depthImgMat)
+{
+	int len_msg = 0;
+	int depthMatsize = 0;
+	struct msg_ack_t *pACK = &gCSV->msg.ack;
+	depthMatsize = depthImgMat.cols * depthImgMat.rows * 2;
+	len_msg = sizeof(struct img_hdr_t) + depthMatsize;
+
+
+	pACK->len_send = sizeof(struct msg_head_t) + len_msg + 4; // add 4 for tool bug
+	pACK->buf_send = (uint8_t *)malloc(pACK->len_send + 1);
+	if (NULL == pACK->buf_send) {
+		log_err("ERROR : malloc send.");
+		return -1;
+	}
+
+	memset(pACK->buf_send, 0, pACK->len_send+1);
+
+	unsigned char *pS = pACK->buf_send;
+	struct msg_head_t *pHDR = (struct msg_head_t *)pS;
+	pHDR->cmdtype = CAMERA_GET_GRAB_DEEP;
+	pHDR->length = len_msg + sizeof(pHDR->result);
+	pHDR->result = 0;
+	pS += sizeof(struct msg_head_t);
+
+	struct img_hdr_t *pIMGHdr = (struct img_hdr_t *)pS;
+	pIMGHdr->type = 3;
+	pIMGHdr->cols = depthImgMat.cols;
+	pIMGHdr->rows = depthImgMat.rows;
+	pIMGHdr->channel = 2;	// 深度图数据是1通道CV_16S占两个字节
+	pS += sizeof(struct img_hdr_t);
+	memcpy(pS, depthImgMat.data, depthMatsize);
+
+	return csv_msg_send(pACK);
+}
+
+int csv_3d_calc (uint8_t towhere)
 {
 	int ret = -1;
 	uint64_t f_timestamp = 0;
@@ -233,55 +317,18 @@ int csv_3d_calc (uint8_t what)
 		return ret;
 	}
 
-	Mat out1;
-	ParseDepthImage2CVMat(depthImage, out1);
+	Mat u16Img(depthImage.m_height, depthImage.m_width, CV_16U, depthImage.m_data);
 
-	vector<float> vector3DXYZParseFromDepthImage;
-	CsvC1RangeImageTo3DCloudXYZ(out1, vector3DXYZParseFromDepthImage);
-
-	switch (what) {
-	case DEPTH_TO_FILE: {
-			if (pPC->saveXYZ) {
-				f_timestamp = utility_get_microsecond();
-				unsigned int cloudNum = 0;
-				ofstream outfile(pPC->outFileXYZ);
-				for (size_t i = 0; i < vector3DXYZParseFromDepthImage.size(); i+=3) {
-					float x = vector3DXYZParseFromDepthImage[i + 0];
-					float y = vector3DXYZParseFromDepthImage[i + 1];
-					float z = vector3DXYZParseFromDepthImage[i + 2];
-					outfile << x << " " << y << " " << z << " " << "\n";
-					cloudNum++;
-				}
-				outfile.close();
-				log_debug("Depth Image To Cloud Dot Number : ", cloudNum);
-
-				log_debug("save pointcloud take %ld us.", utility_get_microsecond() - f_timestamp);
-			}
-
-			Mat vdisp;
-			string outfilepng = string(pPC->outDepthImage);
-			out1.row(0) = Scalar(0); // remove the first row
-			normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
-			imwrite(outfilepng, vdisp);
-
-			pthread_cond_broadcast(&gCSV->gx.cond_wait_depth);
-		}
+	switch (towhere) {
+	case DEPTH_TO_FILE:
+		ret = csv_3d_save_depth(u16Img);
 		break;
 
-	case DEPTH_TO_STREAM: {
-			struct gvsp_stream_t *pStream = &gCSV->gvsp.stream[CAM_DEPTH];
-			Mat vdisp;
-			GX_FRAME_BUFFER FrameBuffer;
-			out1.row(0) = Scalar(0); // remove the first row
-			normalize(out1, vdisp, 0, 256, NORM_MINMAX, CV_8U);
-			FrameBuffer.nPixelFormat = GX_PIXEL_FORMAT_MONO8;
-			FrameBuffer.nHeight = vdisp.rows;
-			FrameBuffer.nWidth = vdisp.cols;
-			FrameBuffer.nOffsetX = 0;
-			FrameBuffer.nOffsetY = 0;
-			csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, vdisp.data, 
-				vdisp.rows*vdisp.cols, &FrameBuffer, NULL);
-		}
+	case DEPTH_TO_STREAM:
+		ret = csv_gvsp_depth_up(u16Img);
+		break;
+	case DEPTH_TO_INTERFACE:
+		ret = csv_msg_depth_ack(u16Img);
 		break;
 	}
 
