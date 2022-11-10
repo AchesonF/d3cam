@@ -933,6 +933,7 @@ int csv_gev_init (void)
 
 	ret = csv_gvsp_init();
 	ret |= csv_gvcp_init();
+	ret |= csv_gevmsg_init();
 
 	return ret;
 }
@@ -945,6 +946,7 @@ int csv_gev_deinit (void)
 
 	ret = csv_gvsp_deinit();
 	ret |= csv_gvcp_deinit();
+	ret |= csv_gevmsg_deinit();
 
 	return ret;
 }

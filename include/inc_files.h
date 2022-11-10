@@ -107,6 +107,7 @@ extern "C" {
 #endif
 #include "csv_gvcp.h"
 #include "csv_gvsp.h"
+#include "csv_gevmsg.h"
 #include "csv_gev.h"
 #include "csv_3d.h"
 #include "csv_main.h"

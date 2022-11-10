@@ -64,7 +64,7 @@ struct csv_info_t {
 
 	struct csv_gvcp_t	gvcp;					///< GVCP 控制通道
 	struct csv_gvsp_t	gvsp;					///< GVSP 流通道
-//	struct csv_gevmsg_t	gvmsg;					///< GVMessage 消息通道
+	struct csv_gevmsg_t	gvmsg;					///< GVMessage 消息通道
 	struct csv_gev_t	gev;					///< GigE Vision
 
 	struct csv_dlp_t	dlp;					///< 光机控制通道
