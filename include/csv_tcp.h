@@ -38,7 +38,7 @@ extern int csv_tcp_local_recv (uint8_t *buf, int nbytes);
 
 extern int csv_tcp_local_send (uint8_t *buf, int nbytes);
 
-extern int csv_tcp_reading_trigger (struct csv_tcp_t *pTCP);
+extern int csv_tcp_reading_trigger (struct csv_tcp_t *pTCPL);
 
 extern int csv_tcp_local_close (void);
 

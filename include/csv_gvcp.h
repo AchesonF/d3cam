@@ -29,7 +29,6 @@ struct csv_gvcp_t {
 	int						fd;			///< 文件描述符
 	char					*name;		///< 链接名称
 	uint16_t				port;		///< udp 监听端口
-	uint16_t				ReqId;		///< 发起的消息序号
 
 	uint32_t				rxlen;
 	uint8_t					rxbuf[GVCP_MAX_MSG_LEN];

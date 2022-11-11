@@ -121,7 +121,7 @@ static int csv_cfg_gev (struct gev_conf_t *pGC)
 	pGC->MessageCapability = MSGCap_SP;
 	pGC->GVCPCapability = GVCPCap_UN|GVCPCap_SN|GVCPCap_HD|GVCPCap_LS //|GVCPCap_TD
 		|GVCPCap_ES|GVCPCap_PTP|GVCPCap_ES2|GVCPCap_SAC
-		|GVCPCap_A|GVCPCap_E|GVCPCap_PR|GVCPCap_W|GVCPCap_C;
+		|GVCPCap_A|GVCPCap_E|/*GVCPCap_PR|*/GVCPCap_W|GVCPCap_C;
 	pGC->HeartbeatTimeout = GVCP_HEARTBEAT_TIMEOUT;
 	pGC->TimestampTickFrequencyHigh = 0;
 	pGC->TimestampTickFrequencyLow = 0x3B9ACA00;

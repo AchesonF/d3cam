@@ -942,7 +942,7 @@ static int csv_gvcp_msg_ack (struct gvcp_ask_t *pASK, CMD_MSG_HEADER *pHdr)
 	return ret;
 }
 
-int csv_gvcp_ask_deal (struct gvcp_ask_t *pASK)
+static int csv_gvcp_ask_deal (struct gvcp_ask_t *pASK)
 {
 	int i = 0;
 	struct csv_ifcfg_t *pIFCFG = &gCSV->ifcfg;
@@ -1221,7 +1221,6 @@ int csv_gvcp_init (void)
 	pGVCP->fd = -1;
 	pGVCP->name = NAME_SOCKET_GVCP;
 	pGVCP->port = GVCP_PUBLIC_PORT;
-	pGVCP->ReqId = GVCP_REQ_ID_INIT;
 	pGVCP->rxlen = 0;
 
 	pGVCP->name_gvcpask = NAME_THREAD_GVCP_ASK;

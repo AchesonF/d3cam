@@ -404,7 +404,7 @@ static void csv_gev_reg_general_enroll (void)
 		4, pGC->MessageTimeout, NULL, toSTR(REG_MessageChannelTransmissionTimeout));
 	csv_gev_reg_add(REG_MessageChannelRetryCount, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
 		4, pGC->MessageRetryCount, NULL, toSTR(REG_MessageChannelRetryCount));
-	csv_gev_reg_add(REG_MessageChannelSourcePort, GEV_REG_TYPE_REG, GEV_REG_RDWR, 
+	csv_gev_reg_add(REG_MessageChannelSourcePort, GEV_REG_TYPE_REG, GEV_REG_READ, 
 		4, pGC->MessageSourcePort, NULL, toSTR(REG_MessageChannelSourcePort));
 
 	// left channel stream

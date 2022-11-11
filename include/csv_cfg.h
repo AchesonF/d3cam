@@ -113,7 +113,7 @@ struct gev_conf_t {
 
 	uint32_t				MessageAddress;
 	uint32_t				MessagePort;
-	uint32_t				MessageTimeout;
+	uint32_t				MessageTimeout;			// ms
 	uint32_t				MessageRetryCount;
 	uint32_t				MessageSourcePort;
 

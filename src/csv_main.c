@@ -368,6 +368,7 @@ int main (int argc, char **argv)
 	struct csv_gvcp_t *pGVCP = &gCSV->gvcp;
 	struct csv_tick_t *pTICK = &gCSV->tick;
 	struct csv_tcp_t *pTCPL = &gCSV->tcpl;
+	struct csv_gevmsg_t *pGVMSG = &gCSV->gvmsg;
 
 	while (1) {
 		tv.tv_sec = 1;
@@ -404,6 +405,11 @@ int main (int argc, char **argv)
 				maxfd = MAX(maxfd, pTCPL->beat.timerfd);
 				FD_SET(pTCPL->beat.timerfd, &readset);
 			}
+		}
+
+		if (pGVMSG->fd > 0) {
+			maxfd = MAX(maxfd, pGVMSG->fd);
+			FD_SET(pGVMSG->fd, &readset);
 		}
 
 		if (pTICK->fd > 0) {
@@ -455,6 +461,10 @@ int main (int argc, char **argv)
 
 		if ((pTCPL->beat.timerfd > 0)&&(FD_ISSET(pTCPL->beat.timerfd, &readset))) {
 			csv_beat_timer_trigger(&pTCPL->beat);
+		}
+
+		if ((pGVMSG->fd > 0)&&(FD_ISSET(pGVMSG->fd, &readset))) {
+			csv_gevmsg_udp_reading_trigger(pGVMSG);
 		}
 
 		if ((pTICK->fd > 0)&&(FD_ISSET(pTICK->fd, &readset))) {
