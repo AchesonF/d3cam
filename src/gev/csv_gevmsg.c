@@ -19,16 +19,7 @@ static int csv_gevmsg_sendto (struct csv_gevmsg_t *pGVMSG, uint8_t *txbuf, uint3
 		(struct sockaddr *)&pGVMSG->peer_addr, sizeof(struct sockaddr_in));
 }
 
-int csv_gevmsg_package (struct csv_gevmsg_t *pGVMSG)
-{
-
-
-	pGVMSG->ReqId = (pGVMSG->ReqId+GVCP_REQ_ID_INIT)/0xFFFF+GVCP_REQ_ID_INIT;
-
-	return 0;
-}
-
-int csv_gevmsg_push (struct csv_gevmsg_t *pGVMSG, uint8_t *buf, uint32_t len)
+static int csv_gevmsg_push (struct csv_gevmsg_t *pGVMSG, uint8_t *buf, uint32_t len)
 {
 	if ((NULL == pGVMSG)||(NULL == buf)||(len < GVCP_GVCP_HEADER_LEN)) {
 		return -1;
@@ -57,6 +48,40 @@ int csv_gevmsg_push (struct csv_gevmsg_t *pGVMSG, uint8_t *buf, uint32_t len)
 	pthread_cond_broadcast(&pGVMSG->cond_gevmsg);
 
 	return 0;
+}
+
+// identifier : 
+// event number as defined by the GigE Vision specification for value between 0 and 36863
+// or the XML device description file for value between 36864 and 65535.
+int csv_gevmsg_package (uint16_t identifier)
+{
+	struct csv_gevmsg_t *pGVMSG = &gCSV->gvmsg;
+
+	if (0 == pGVMSG->peer_addr.sin_port) {
+		return -1;
+	}
+
+	uint64_t millis = utility_get_millisecond();
+	pGVMSG->ReqId = (pGVMSG->ReqId+GVCP_REQ_ID_INIT)/0xFFFF+GVCP_REQ_ID_INIT;
+
+	CMD_MSG_HEADER *pHeader = (CMD_MSG_HEADER *)pGVMSG->bufSend;
+
+	pHeader->cKeyValue			= GVCP_CMD_KEY_VALUE;
+	pHeader->cFlg				= 0;	// bit3(0)-> block_id16
+	pHeader->nCommand			= htons(GEV_EVENT_CMD);
+	pHeader->nLength			= htons(16);
+	pHeader->nReqId				= htons(pGVMSG->ReqId);
+
+	EVENT_CMD_MSG *pEvent = (EVENT_CMD_MSG *)pGVMSG->bufSend + sizeof(CMD_MSG_HEADER);
+	pEvent->reserved			= htons(16);
+	pEvent->event_identifier	= htons(identifier);
+	pEvent->stream_channel_index	= htons(0);
+	pEvent->timestamp_high		= htonl((millis>>32)&0xFFFFFFFF);
+	pEvent->timestamp_low		= htonl(millis&0xFFFFFFFF);
+
+	pGVMSG->lenSend = sizeof(CMD_MSG_HEADER) + sizeof(EVENT_CMD_MSG);
+	
+	return csv_gevmsg_push(pGVMSG, pGVMSG->bufSend, pGVMSG->lenSend);
 }
 
 static int csv_gevmsg_update (struct csv_gevmsg_t *pGVMSG, uint16_t RegID)
@@ -335,6 +360,8 @@ int csv_gevmsg_init (void)
 	pGVMSG->name_gevmsg = NAME_THREAD_GEV_MESSAGE;
 	pGVMSG->ReqId = GVCP_REQ_ID_INIT;
 	pGVMSG->port = 0;
+	pGVMSG->lenRecv = 0;
+	pGVMSG->lenSend = 0;
 	INIT_LIST_HEAD(&pGVMSG->head_gevmsg.list);
 
 	ret = csv_gevmsg_client_open(pGVMSG);

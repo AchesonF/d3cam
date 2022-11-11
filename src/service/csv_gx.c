@@ -2080,6 +2080,7 @@ int csv_gx_init (void)
 	libInit = false;
 	pGX->cnt_gx = 0;
 	pGX->name_gx = NAME_THREAD_GX;
+	pGX->name_grab = NAME_THREAD_GRAB;
 	pGX->grab_type = GRAB_NONE;
 	pGX->busying = false;
 	pGX->pImgPCRawData = malloc(len_malloc);

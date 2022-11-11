@@ -407,8 +407,8 @@ typedef struct _EVENT_CMD_MSG_ {
     uint16_t			block_id;
 
     // 仅当flag的bit3置1，才包含以下2个字段
-    uint32_t			block_id_high;
-    uint32_t			block_id_low;
+    //uint32_t			block_id_high;
+    //uint32_t			block_id_low;
 
     uint32_t			timestamp_high;
     uint32_t			timestamp_low;

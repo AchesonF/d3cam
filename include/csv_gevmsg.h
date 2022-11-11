@@ -36,6 +36,8 @@ struct csv_gevmsg_t {
 
 	uint8_t					bufRecv[GVCP_PACKET_MAX_LEN];
 	uint32_t				lenRecv;
+	uint8_t					bufSend[GVCP_PACKET_MAX_LEN];
+	uint32_t				lenSend;
 
 	struct gevmsg_list_t	head_gevmsg;	///< 发送(及等待确认)消息队列
 
@@ -45,6 +47,8 @@ struct csv_gevmsg_t {
 	pthread_cond_t			cond_gevmsg;
 };
 
+
+extern int csv_gevmsg_package (uint16_t identifier);
 
 extern int csv_gevmsg_udp_reading_trigger (struct csv_gevmsg_t *pGVMSG);
 

@@ -317,13 +317,14 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 		break;
 
 	case REG_MessageChannelPort:
-		pGC->MessagePort = (uint16_t)regData;
+		pGC->MessagePort = swap16((uint16_t)regData);
+		gCSV->gvmsg.peer_addr.sin_port = swap16((uint16_t)regData);
 		break;
 
 	case REG_MessageChannelDestination:
 		if (0 != regData) {
 			pGC->MessageAddress = swap32(regData);
-			//pGVCP->message.peer_addr.sin_addr.s_addr = swap32(regData);
+			gCSV->gvmsg.peer_addr.sin_addr.s_addr = swap32(regData);
 		} else {
 			ret = -1;
 		}
@@ -335,10 +336,6 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 
 	case REG_MessageChannelRetryCount:
 		pGC->MessageRetryCount = regData;
-		break;
-
-	case REG_MessageChannelSourcePort:
-		pGC->MessageSourcePort = regData;
 		break;
 
 	case REG_StreamChannelPort0:
@@ -975,11 +972,6 @@ static int csv_gvcp_ask_deal (struct gvcp_ask_t *pASK)
 	Cmdheader.nReqId = ntohs(pHeader->nReqId);
 
 	if (GVCP_CMD_KEY_VALUE != pHeader->cKeyValue) {
-		if ((GEV_STATUS_SUCCESS == (pHeader->cKeyValue<<8)+pHeader->cFlg)
-		  &&(GEV_EVENT_ACK == Cmdheader.nCommand)) {
-			log_info("OK : event ack id[%d].", Cmdheader.nReqId);
-		}
-
 		return -1;
 	}
 
