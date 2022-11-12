@@ -85,6 +85,8 @@ struct img_payload_t {
 
 struct cam_gx_spec_t {
 	uint8_t					opened;			///< 已打开
+	uint8_t					grabDone;		///< 当前组捕获完成
+	uint8_t					index;			///< 左右编号
 
 	GX_DEV_HANDLE			hDevice;		///< handle device
 
@@ -115,8 +117,6 @@ struct cam_gx_spec_t {
 
 	uint8_t					*pImgRawData;		///< 图像原始数据总缓冲区(50pics=150MB)
 	struct img_payload_t	*pImgPayload;		///< 缓冲区以此分区域管理 (索引nPos)
-
-	uint8_t					grabDone;		///< 当前组捕获完成
 
 	const char				*name_cam;		///< 相机
 	pthread_t				thr_cam;		///< ID

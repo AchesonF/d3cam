@@ -979,7 +979,6 @@ int csv_gx_cam_exposure_time_selector (uint8_t idx)
 	struct csv_gx_t *pGX = &gCSV->gx;
 	struct cam_gx_spec_t *pCAM = NULL;
 	struct dlp_conf_t *pDlpcfg = NULL;
-	float
 
 	if (idx >= TOTAL_DLP_CMDS) {
 		return -1;
@@ -1251,6 +1250,16 @@ int csv_gx_cams_grab_both (struct csv_gx_t *pGX)
 	return ret;
 }
 
+// 下一个图像在内存偏移点
+static int csv_gx_update_pos (void)
+{
+	if (++gCSV->gx.nPos >= MAX_CAM_RAW_PICS) {
+		gCSV->gx.nPos = 0;
+	}
+
+	return 0;
+}
+
 int csv_gx_calibrate_prepare (struct csv_gx_t *pGX)
 {
 	if (pGX->busying) {
@@ -1320,9 +1329,88 @@ int csv_gx_calibrate_stripe (struct csv_gx_t *pGX)
 	return 0;
 }
 
-int csv_gx_calibrate_grab (struct cam_gx_spec_t *pCAM)
+static int csv_gx_calibrate_grab_bright (struct cam_gx_spec_t *pCAM)
 {
+	int ret = 0;
+	char img_name[256] = {0};
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
+	uint8_t pos = gCSV->gx.nPos;
 
+	if (NULL != pCAM->hDevice) {
+		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+		if (GX_STATUS_SUCCESS != emStatus) {
+			log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
+			GxErrStr(emStatus);
+			return -1;
+		}
+
+		if (GX_FRAME_STATUS_SUCCESS == pCAM->pFrameBuffer->nStatus) {
+			ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pCAM->pImgPayload[pos], pCAM->PayloadSize);
+			if (0 == ret) {
+				memset(img_name, 0, 256);
+				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, 
+					0, pCAM->index, img_name);
+				csv_img_push(img_name, (uint8_t *)&pCAM->pImgPayload[pos], pCAM->PayloadSize, 
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, pCAM->index, GRAB_CALIB_PICS, 0);
+
+				pCAM->grabDone = true;
+				csv_gx_update_pos();
+			} else {
+				ret = -1;
+			}
+		} else {
+			ret = -1;
+		}
+
+		emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+	}
+
+	return ret;
+}
+
+static int csv_gx_calibrate_grab_stripe (struct cam_gx_spec_t *pCAM)
+{
+	int ret = 0, i = 0;
+	uint8_t lastpic = 0;
+	char img_name[256] = {0};
+	GX_STATUS emStatus = GX_STATUS_SUCCESS;
+	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
+	uint8_t pos = gCSV->gx.nPos;
+
+	if (NULL != pCAM->hDevice) {
+		for (i = 0; i < NUM_PICS_CALIB; i++) {
+			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
+			if (GX_STATUS_SUCCESS != emStatus) {
+				log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
+				GxErrStr(emStatus);
+				return -1;
+			}
+
+			if (GX_FRAME_STATUS_SUCCESS == pCAM->pFrameBuffer->nStatus) {
+				ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pCAM->pImgPayload[pos], pCAM->PayloadSize);
+				if (0 != ret) {
+					return -1;
+				}
+
+				memset(img_name, 0, 256);
+				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, 
+					i+1, pCAM->index, img_name);
+
+				if ((NUM_PICS_CALIB == i+1)&&(CAM_RIGHT == pCAM->index)) {
+					lastpic = 1;
+				}
+				csv_img_push(img_name, (uint8_t *)&pCAM->pImgPayload[pos], pCAM->PayloadSize, 
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, pCAM->index, GRAB_CALIB_PICS, lastpic);
+
+				csv_gx_update_pos();
+			}
+
+			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
+		}
+
+		pCAM->grabDone = true;
+	}
 
 	return 0;
 }
@@ -2016,7 +2104,7 @@ static void *csv_gx_grab_loop (void *data)
 	return NULL;
 }
 
-static int csv_gx_grab_thread (struct csv_gx_t *pGX)
+int csv_gx_grab_thread (struct csv_gx_t *pGX)
 {
 	int ret = -1;
 
@@ -2046,7 +2134,7 @@ static int csv_gx_grab_thread (struct csv_gx_t *pGX)
 	return ret;
 }
 
-static int csv_gx_grab_thread_cancel (struct csv_gx_t *pGX)
+int csv_gx_grab_thread_cancel (struct csv_gx_t *pGX)
 {
 	int ret = 0;
 	void *retval = NULL;
@@ -2208,8 +2296,8 @@ static void *csv_gx_cam_loop (void *data)
 
 	while (gCSV->running) {
 		gettimeofday(&now, NULL);
-		timeout.tv_sec = now.tv_sec + 3;
-		timeout.tv_nsec = now.tv_usec * 1000;
+		timeo.tv_sec = now.tv_sec + 3;
+		timeo.tv_nsec = now.tv_usec * 1000;
 
 		ret = pthread_cond_timedwait(&pCAM->cond_cam, &pCAM->mutex_cam, &timeo);
 		if (ret == ETIMEDOUT) {
@@ -2219,18 +2307,18 @@ static void *csv_gx_cam_loop (void *data)
 		if ((!pCAM->opened)||(NULL == pCAM->hDevice)) {
 			continue;
 		}
-
+log_debug("%s %d", pCAM->name_cam, pGX->cams_status);
 		switch (pGX->cams_status) {
 		case CAM_STATUS_GRAB_BRIGHT:
 
 			break;
 
 		case CAM_STATUS_CALIB_BRIGHT:
-			csv_gx_calibrate_grab(pCAM);
+			csv_gx_calibrate_grab_bright(pCAM);
 			break;
 
 		case CAM_STATUS_CALIB_STRIPE:
-			csv_gx_calibrate_grab(pCAM);
+			csv_gx_calibrate_grab_stripe(pCAM);
 			break;
 
 		case CAM_STATUS_DEPTH_BRIGHT:
@@ -2248,6 +2336,7 @@ static void *csv_gx_cam_loop (void *data)
 			break;
 		}
 
+		pGX->cams_status = CAM_STATUS_IDLE;
 	}
 
 	pCAM->thr_cam = 0;
@@ -2338,7 +2427,7 @@ int csv_gx_init (void)
 	pGX->pImgPayload = (struct img_payload_t *)pGX->pImgPCRawData;
 
 	pGX->Cam[CAM_LEFT].name_cam = NAME_THREAD_CAM_LEFT;
-	pGX->Cam[CAM_RIGHT].name_cam = NAME_THREAD_CAM_LEFT;
+	pGX->Cam[CAM_RIGHT].name_cam = NAME_THREAD_CAM_RIGHT;
 
 	for (i = 0; i < TOTAL_CAMS; i++) {
 		pCAM = &pGX->Cam[i];
@@ -2346,6 +2435,7 @@ int csv_gx_init (void)
 		pCAM->hDevice = NULL;
 		pCAM->pMonoImageBuf = NULL;
 		pCAM->grabDone = false;
+		pCAM->index = i;
 
 		pCAM->pImgRawData = malloc(len_malloc);
 		if (NULL == pCAM->pImgRawData) {
@@ -2359,7 +2449,7 @@ int csv_gx_init (void)
 	}
 
 	ret = csv_gx_thread(pGX);
-	ret |= csv_gx_grab_thread(pGX);
+	//ret |= csv_gx_grab_thread(pGX);
 
 	return ret;
 }
@@ -2383,7 +2473,7 @@ int csv_gx_deinit (void)
 	}
 
 	ret = csv_gx_thread_cancel(pGX);
-	ret |= csv_gx_grab_thread_cancel(pGX);
+	//ret |= csv_gx_grab_thread_cancel(pGX);
 
 	if (NULL != pGX->pImgPCRawData) {
 		free(pGX->pImgPCRawData);

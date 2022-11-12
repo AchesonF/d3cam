@@ -210,7 +210,7 @@ static void *csv_img_loop (void *data)
 
 
 		gettimeofday(&now, NULL);
-		timeo.tv_sec = now.tv_sec + 10;
+		timeo.tv_sec = now.tv_sec + 5;
 		timeo.tv_nsec = now.tv_usec * 1000;
 
 		ret = pthread_cond_timedwait(&pIMG->cond_img, &pIMG->mutex_img, &timeo);
