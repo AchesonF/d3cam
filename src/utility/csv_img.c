@@ -96,17 +96,7 @@ int csv_img_push (char *filename, uint8_t *pRawData, uint32_t length,
 	pIPK->position = pos;
 	pIPK->lastPic = lastpic;
 	pIPK->payload = pRawData;
-
-	/*if (length > 0) {
-		pIPK->payload = (uint8_t *)malloc(length);
-
-		if (NULL == pIPK->payload) {
-			log_err("ERROR : malloc payload.");
-			return -1;
-		}
-
-		memcpy(pIPK->payload, pRawData, length);
-	}*/
+	//log_debug("pRawData %p.", pRawData);
 
 	pthread_mutex_lock(&pIMG->mutex_img);
 	list_add_tail(&cur->list, &pIMG->head_img.list);
@@ -198,12 +188,7 @@ static void *csv_img_loop (void *data)
 
 				gCSV->gx.busying = false;
 			}
-/*
-			if (NULL != pIPK->payload) {
-				free(pIPK->payload);
-				pIPK->payload = NULL;
-			}
-*/
+
 			list_del(&task->list);
 			free(task);
 			task = NULL;

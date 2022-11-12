@@ -1294,6 +1294,9 @@ int csv_gx_calibrate_bright_trigger (struct csv_gx_t *pGX)
 
 	pGX->cams_status = CAM_STATUS_CALIB_BRIGHT;
 
+	pCAML->grabDone = false;
+	pCAMR->grabDone = false;
+
 	log_debug("calib bright trigger.");
 	pthread_cond_broadcast(&pCAML->cond_cam);
 	pthread_cond_broadcast(&pCAMR->cond_cam);
@@ -1319,6 +1322,9 @@ int csv_gx_calibrate_stripe_trigger (struct csv_gx_t *pGX)
 	csv_gx_cam_exposure_time_selector(DLP_CMD_CALIB);
 
 	pGX->cams_status = CAM_STATUS_CALIB_STRIPE;
+
+	pCAML->grabDone = false;
+	pCAMR->grabDone = false;
 
 	log_debug("calib stripe trigger.");
 	pthread_cond_broadcast(&pCAML->cond_cam);
@@ -1382,10 +1388,12 @@ static int csv_gx_calibrate_grab_stripe (struct cam_gx_spec_t *pCAM)
 	char img_name[256] = {0};
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
 	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
-	uint8_t pos = gCSV->gx.nPos;
+	uint8_t pos = 0;
 
 	if (NULL != pCAM->hDevice) {
 		for (i = 0; i < NUM_PICS_CALIB; i++) {
+			pos = gCSV->gx.nPos;
+
 			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 			if (GX_STATUS_SUCCESS != emStatus) {
 				log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
