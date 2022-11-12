@@ -1283,7 +1283,7 @@ int csv_gx_calibrate_prepare (struct csv_gx_t *pGX)
 	return 0;
 }
 
-int csv_gx_calibrate_bright (struct csv_gx_t *pGX)
+int csv_gx_calibrate_bright_trigger (struct csv_gx_t *pGX)
 {
 	struct cam_gx_spec_t *pCAML = &pGX->Cam[CAM_LEFT];
 	struct cam_gx_spec_t *pCAMR = &pGX->Cam[CAM_RIGHT];
@@ -1293,12 +1293,15 @@ int csv_gx_calibrate_bright (struct csv_gx_t *pGX)
 	csv_gx_cam_exposure_time_selector(DLP_CMD_BRIGHT);
 
 	pGX->cams_status = CAM_STATUS_CALIB_BRIGHT;
+
+	log_debug("calib bright trigger.");
 	pthread_cond_broadcast(&pCAML->cond_cam);
 	pthread_cond_broadcast(&pCAMR->cond_cam);
 
 	while ((!pCAML->grabDone) || (!pCAMR->grabDone)) {
 		usleep(1000);	// 1ms
 		if (++timeout >= 1000) { // 1s timeout
+			log_debug("calib bright timeo.");
 			return -1;
 		}
 	}
@@ -1306,7 +1309,7 @@ int csv_gx_calibrate_bright (struct csv_gx_t *pGX)
 	return 0;
 }
 
-int csv_gx_calibrate_stripe (struct csv_gx_t *pGX)
+int csv_gx_calibrate_stripe_trigger (struct csv_gx_t *pGX)
 {
 	struct cam_gx_spec_t *pCAML = &pGX->Cam[CAM_LEFT];
 	struct cam_gx_spec_t *pCAMR = &pGX->Cam[CAM_RIGHT];
@@ -1316,12 +1319,15 @@ int csv_gx_calibrate_stripe (struct csv_gx_t *pGX)
 	csv_gx_cam_exposure_time_selector(DLP_CMD_CALIB);
 
 	pGX->cams_status = CAM_STATUS_CALIB_STRIPE;
+
+	log_debug("calib stripe trigger.");
 	pthread_cond_broadcast(&pCAML->cond_cam);
 	pthread_cond_broadcast(&pCAMR->cond_cam);
 
 	while ((!pCAML->grabDone) || (!pCAMR->grabDone)) {
 		usleep(1000);	// 1ms
 		if (++timeout >= 3000) { // 3s timeout
+			log_debug("calib stripe timeo.");
 			return -1;
 		}
 	}
@@ -2307,7 +2313,7 @@ static void *csv_gx_cam_loop (void *data)
 		if ((!pCAM->opened)||(NULL == pCAM->hDevice)) {
 			continue;
 		}
-log_debug("%s %d", pCAM->name_cam, pGX->cams_status);
+
 		switch (pGX->cams_status) {
 		case CAM_STATUS_GRAB_BRIGHT:
 

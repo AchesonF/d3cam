@@ -157,9 +157,9 @@ extern int csv_gx_cams_grab_both (struct csv_gx_t *pGX);
 
 extern int csv_gx_calibrate_prepare (struct csv_gx_t *pGX);
 
-extern int csv_gx_calibrate_bright (struct csv_gx_t *pGX);
+extern int csv_gx_calibrate_bright_trigger (struct csv_gx_t *pGX);
 
-extern int csv_gx_calibrate_stripe (struct csv_gx_t *pGX);
+extern int csv_gx_calibrate_stripe_trigger (struct csv_gx_t *pGX);
 
 extern int csv_gx_cams_calibrate (struct csv_gx_t *pGX);
 

@@ -356,9 +356,9 @@ static int gx_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t
 
 		ret = csv_gx_calibrate_prepare(pGX);
 		if (0 == ret) {
-			ret = csv_gx_calibrate_bright(pGX);
+			ret = csv_gx_calibrate_bright_trigger(pGX);
 			if (0 == ret) {
-				ret = csv_gx_calibrate_stripe(pGX);
+				ret = csv_gx_calibrate_stripe_trigger(pGX);
 			}
 		}
 	}
