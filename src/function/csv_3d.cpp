@@ -217,7 +217,12 @@ static int csv_3d_save_depth (Mat& depthImgMat)
 	string outfilepng = string(pPC->outDepthImage);
 	depthImgMat.row(0) = Scalar(0); // remove the first row
 	normalize(depthImgMat, vdisp, 0, 256, NORM_MINMAX, CV_8U);
-	imwrite(outfilepng, vdisp);
+	if (!outfilepng.empty()) {
+		imwrite(outfilepng, vdisp);
+	} else {
+		log_warn("ERROR : filename 'outDepthImage' null.");
+		return -1;
+	}
 
 	return 0;
 }
@@ -276,7 +281,7 @@ static int csv_msg_depth_ack (Mat& depthImgMat)
 	return csv_msg_send(pACK);
 }
 
-int csv_3d_calc (uint8_t towhere)
+int csv_3d_calc (eSEND_TO_t eSendTo)
 {
 	int ret = -1;
 	uint64_t f_timestamp = 0;
@@ -319,17 +324,20 @@ int csv_3d_calc (uint8_t towhere)
 
 	Mat u16Img(depthImage.m_height, depthImage.m_width, CV_16U, depthImage.m_data);
 
-	switch (towhere) {
-	case DEPTH_TO_FILE:
+	switch (eSendTo) {
+	case SEND_TO_INTERFACE:
+		ret = csv_msg_depth_ack(u16Img);
+		break;
+
+	case SEND_TO_FILE:
 		ret = csv_3d_save_depth(u16Img);
 		break;
 
-	case DEPTH_TO_STREAM:
+	case SEND_TO_STREAM:
 		ret = csv_gvsp_depth_up(u16Img);
 		break;
-	case DEPTH_TO_INTERFACE:
-		ret = csv_msg_depth_ack(u16Img);
-		break;
+	default :
+		return -1;
 	}
 
 	return ret;

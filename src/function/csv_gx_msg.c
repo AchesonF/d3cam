@@ -352,13 +352,13 @@ static int gx_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t
 	} else {
 		pGX->grab_type = GRAB_CALIB_PICS;
 		//ret = csv_gx_cams_calibrate(pGX);
+		pGX->sendTo = SEND_TO_FILE;
 
-
-		ret = csv_gx_calibrate_prepare(pGX);
+		ret = csv_gx_grab_prepare(pGX, gCSV->cfg.calibcfg.CalibImageRoot);
 		if (0 == ret) {
-			ret = csv_gx_calibrate_bright_trigger(pGX);
+			ret = csv_gx_grab_bright_trigger(pGX, CAM_STATUS_CALIB_BRIGHT);
 			if (0 == ret) {
-				ret = csv_gx_calibrate_stripe_trigger(pGX);
+				ret = csv_gx_grab_stripe_trigger(pGX, DLP_CMD_CALIB);
 			}
 		}
 	}
@@ -387,7 +387,19 @@ static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_
 		ret = -2;
 	} else {
 		pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
-		ret = csv_gx_cams_pointcloud(pGX, DEPTH_TO_FILE);
+		//ret = csv_gx_cams_pointcloud(pGX, SEND_TO_FILE);
+		pGX->sendTo = SEND_TO_FILE;
+
+		ret = csv_gx_grab_prepare(pGX, gCSV->cfg.pointcloudcfg.PCImageRoot);
+		if (0 == ret) {
+			ret = csv_gx_grab_bright_trigger(pGX, CAM_STATUS_DEPTH_BRIGHT);
+			if (0 == ret) {
+				ret = csv_gx_grab_stripe_trigger(pGX, DLP_CMD_POINTCLOUD);
+				if (0 == ret) {
+					ret = csv_3d_calc(pGX->sendTo);
+				}
+			}
+		}
 	}
 
 	if (ret == 0) {
@@ -396,7 +408,7 @@ static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_
 		len_err = snprintf(str_err, 128, "Cams busy now.");
 		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 	} else {
-		len_err = snprintf(str_err, 128, "Cams grab failed.");
+		len_err = snprintf(str_err, 128, "Cams depth failed.");
 		csv_msg_ack_package(pMP, pACK, str_err, len_err, -1);
 	}
 

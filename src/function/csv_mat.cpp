@@ -467,7 +467,18 @@ int gx_msg_cameras_grab_img_depth (struct msg_package_t *pMP, struct msg_ack_t *
     int len_err = 0;
 
 	pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
-	ret = csv_gx_cams_pointcloud(pGX, DEPTH_TO_INTERFACE);
+	//ret = csv_gx_cams_pointcloud(pGX, SEND_TO_INTERFACE);
+
+
+	pGX->sendTo = SEND_TO_INTERFACE;
+
+	ret = csv_gx_grab_prepare(pGX, gCSV->cfg.pointcloudcfg.PCImageRoot);
+	if (0 == ret) {
+		ret = csv_gx_grab_stripe_trigger(pGX, DLP_CMD_POINTCLOUD);
+		if (0 == ret) {
+			ret = csv_3d_calc(pGX->sendTo);
+		}
+	}
 
 	if (ret < 0) {
 		len_err = snprintf(str_err, 128, "depth error.");

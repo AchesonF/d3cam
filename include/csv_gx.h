@@ -66,9 +66,9 @@ enum {
 	GRAB_HDRIMAGE_PICS			= (3)
 };
 
-enum {
+typedef enum {
 	CAM_STATUS_IDLE				= (0),		///< 空闲
-	CAM_STATUS_GRAB_BRIGHT		= (1),		///< 采普通常亮原图 1
+	CAM_STATUS_GRAB_BRIGHT		= (1),		///< 采常亮原图 1
 	CAM_STATUS_CALIB_BRIGHT		= (2),		///< 采标定常亮原图 1
 	CAM_STATUS_CALIB_STRIPE		= (3),		///< 采标定条纹原图 22
 	CAM_STATUS_DEPTH_BRIGHT		= (4),		///< 采深度常亮原图 1
@@ -77,7 +77,15 @@ enum {
 	CAM_STATUS_STREAM			= (7),		///< 采原图做流
 
 	CAM_STATUS_END
-};
+} eCAM_STATUS_t;
+
+typedef enum {
+	SEND_TO_NONE			= (0),			///< 无
+	SEND_TO_INTERFACE		= (1),			///< 从消息接口送出
+	SEND_TO_FILE			= (2),			///< 存为本地图片(ftp传送至PC)
+	SEND_TO_STREAM			= (3)			///< 从 gev 流送出
+
+} eSEND_TO_t;
 
 struct img_payload_t {
 	uint8_t						data[DEFAULT_WIDTH*DEFAULT_HEIGHT];
@@ -141,7 +149,8 @@ struct csv_gx_t {
 
 	uint8_t					grab_type;		///< 获取图像组类型 0: none 1:calib 2:pointcloud/depth ...
 	uint8_t					busying;		///< 忙于处理图像
-	uint8_t					cams_status;	///< 当前相机工作状态 CAM_STATUS_IDLE
+	eCAM_STATUS_t			camStatus;		///< 当前相机工作状态 CAM_STATUS_IDLE
+	eSEND_TO_t				sendTo;			///< 图像发送至
 
 	const char				*name_grab;		///< 取图
 	pthread_t				thr_grab;		///< ID
@@ -155,15 +164,15 @@ extern int csv_gx_cams_exposure_time_selector (float expoT);
 
 extern int csv_gx_cams_grab_both (struct csv_gx_t *pGX);
 
-extern int csv_gx_calibrate_prepare (struct csv_gx_t *pGX);
+extern int csv_gx_grab_prepare (struct csv_gx_t *pGX, char *path);
 
-extern int csv_gx_calibrate_bright_trigger (struct csv_gx_t *pGX);
+extern int csv_gx_grab_bright_trigger (struct csv_gx_t *pGX, eCAM_STATUS_t eStatus);
 
-extern int csv_gx_calibrate_stripe_trigger (struct csv_gx_t *pGX);
+extern int csv_gx_grab_stripe_trigger (struct csv_gx_t *pGX, eDLP_CMD_t eCmd);
 
 extern int csv_gx_cams_calibrate (struct csv_gx_t *pGX);
 
-extern int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, uint8_t towhere);
+extern int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, eSEND_TO_t towhere);
 
 extern int csv_gx_cams_hdrimage (struct csv_gx_t *pGX);
 

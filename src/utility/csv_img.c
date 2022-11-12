@@ -140,6 +140,7 @@ static void *csv_img_loop (void *data)
 	struct hdri_conf_t *pHDRI = &gCSV->cfg.hdricfg;
 
 	int ret = 0;
+	uint8_t endLeft = false, endRight = false;
 
 	struct list_head *pos = NULL, *n = NULL;
 	struct img_list_t *task = NULL;
@@ -159,34 +160,45 @@ static void *csv_img_loop (void *data)
 			csv_mat_img_save(pIPK->height, pIPK->width, pIPK->payload, pIPK->filename);
 
 			if (pIPK->lastPic) {
-				switch (pIPK->grabtype) {
-				case GRAB_CALIB_PICS:
-					if (pDevC->ftpupload) {
-						csv_img_sender(pCALIB->CalibImageRoot, pCALIB->groupCalibrate);
-					}
-
-					if (++pCALIB->groupCalibrate == 0) {
-						pCALIB->groupCalibrate = 1;
-					}
-					csv_xml_write_CalibParameters();
-					break;
-				case GRAB_DEPTHIMAGE_PICS:
-					if (pDevC->ftpupload) {
-						usleep(500000); //wait for 3d calc
-						csv_img_sender(pPC->PCImageRoot, pPC->groupPointCloud);
-					}
-
-					if (++pPC->groupPointCloud == 0) {
-						pPC->groupPointCloud = 1;
-					}
-					csv_xml_write_PointCloudParameters();
-					break;
-				case GRAB_HDRIMAGE_PICS:
-					csv_img_sender(pHDRI->HdrImageRoot, pHDRI->groupHdri);
-					break;
+				if (CAM_LEFT == pIPK->position) {
+					endLeft = true;
+				} else if (CAM_RIGHT == pIPK->position) {
+					endRight = true;
 				}
 
-				gCSV->gx.busying = false;
+				if (endLeft && endRight) {
+					switch (pIPK->grabtype) {
+					case GRAB_CALIB_PICS:
+						if (pDevC->ftpupload) {
+							csv_img_sender(pCALIB->CalibImageRoot, pCALIB->groupCalibrate);
+							log_debug("ftp send done");
+						}
+
+						if (++pCALIB->groupCalibrate == 0) {
+							pCALIB->groupCalibrate = 1;
+						}
+						csv_xml_write_CalibParameters();
+						break;
+					case GRAB_DEPTHIMAGE_PICS:
+						if (pDevC->ftpupload) {
+							usleep(500000); //wait for 3d calc
+							csv_img_sender(pPC->PCImageRoot, pPC->groupPointCloud);
+							log_debug("ftp send done");
+						}
+
+						if (++pPC->groupPointCloud == 0) {
+							pPC->groupPointCloud = 1;
+						}
+						csv_xml_write_PointCloudParameters();
+						break;
+					case GRAB_HDRIMAGE_PICS:
+						csv_img_sender(pHDRI->HdrImageRoot, pHDRI->groupHdri);
+						log_debug("ftp send done");
+						break;
+					}
+
+					gCSV->gx.busying = false;
+				}
 			}
 
 			list_del(&task->list);

@@ -31,14 +31,14 @@ extern "C" {
 #define NUM_PICS_CALIB			(22)	// 标定条纹采图
 #define NUM_PICS_BRIGHT			(1)		// 常亮采图
 
-enum {
+typedef enum {
 	DLP_CMD_POINTCLOUD			= (0),
 	DLP_CMD_CALIB				= (1),
 	DLP_CMD_BRIGHT				= (2),
 	DLP_CMD_HDRI				= (3),
 
 	TOTAL_DLP_CMDS
-};
+} eDLP_CMD_t;
 
 
 
@@ -65,11 +65,11 @@ struct csv_dlp_t {
 	pthread_cond_t			cond_dlp;		///< 条件
 };
 
-extern int csv_dlp_write_only (uint8_t idx);
+extern int csv_dlp_write_only (eDLP_CMD_t eCmd);
 
-extern int csv_dlp_just_write (uint8_t idx);
+extern int csv_dlp_just_write (eDLP_CMD_t eCmd);
 
-extern int csv_dlp_write_and_read (uint8_t idx);
+extern int csv_dlp_write_and_read (eDLP_CMD_t eCmd);
 
 extern int csv_dlp_init (void);
 

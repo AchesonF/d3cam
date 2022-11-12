@@ -973,18 +973,18 @@ int csv_gx_exposure_time (struct cam_gx_spec_t *pCAM, float expoT)
 	return 0;
 }
 
-int csv_gx_cam_exposure_time_selector (uint8_t idx)
+static int csv_gx_cam_exposure_time_selector (eDLP_CMD_t eCmd)
 {
 	int i = 0, ret = 0;
 	struct csv_gx_t *pGX = &gCSV->gx;
 	struct cam_gx_spec_t *pCAM = NULL;
 	struct dlp_conf_t *pDlpcfg = NULL;
 
-	if (idx >= TOTAL_DLP_CMDS) {
+	if (eCmd >= TOTAL_DLP_CMDS) {
 		return -1;
 	}
 
-	pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[idx];
+	pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[eCmd];
 
 	for (i = 0; i < pGX->cnt_gx; i++) {
 		pCAM = &pGX->Cam[i];
@@ -1260,22 +1260,23 @@ static int csv_gx_update_pos (void)
 	return 0;
 }
 
-int csv_gx_calibrate_prepare (struct csv_gx_t *pGX)
+int csv_gx_grab_prepare (struct csv_gx_t *pGX, char *path)
 {
+	if (NULL == path) {
+		log_warn("ERROR : Calib Image path not exist.");
+		return -1;
+	}
+
 	if (pGX->busying) {
 		return -2;
 	}
 
 	pGX->busying = true;
 
-	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
-	if (NULL == pCALIB->CalibImageRoot) {
-		log_warn("ERROR : Calib Image path not exist.");
-		return -1;
+	if (SEND_TO_FILE == pGX->sendTo) {
+		csv_file_mkdir(path);
+		csv_img_clear(path);
 	}
-
-	csv_file_mkdir(pCALIB->CalibImageRoot);
-	csv_img_clear(pCALIB->CalibImageRoot);
 
 	csv_gx_cams_acquisition(GX_START_ACQ);
 	csv_gx_cams_trigger_selector(GX_TRI_USE_HW_C);
@@ -1283,28 +1284,42 @@ int csv_gx_calibrate_prepare (struct csv_gx_t *pGX)
 	return 0;
 }
 
-int csv_gx_calibrate_bright_trigger (struct csv_gx_t *pGX)
+int csv_gx_grab_bright_trigger (struct csv_gx_t *pGX, eCAM_STATUS_t eStatus)
 {
+	int ret = 0, timeout = 0;
 	struct cam_gx_spec_t *pCAML = &pGX->Cam[CAM_LEFT];
 	struct cam_gx_spec_t *pCAMR = &pGX->Cam[CAM_RIGHT];
-	int timeout = 0;
 
-	csv_dlp_write_only(DLP_CMD_BRIGHT);
+	ret = csv_dlp_write_only(DLP_CMD_BRIGHT);
+	if (ret < 0) {
+		log_warn("ERROR : dlp write cfg[%d].", DLP_CMD_BRIGHT);
+		return -1;
+	}
 	csv_gx_cam_exposure_time_selector(DLP_CMD_BRIGHT);
 
-	pGX->cams_status = CAM_STATUS_CALIB_BRIGHT;
+	switch (eStatus) {
+	case CAM_STATUS_CALIB_BRIGHT:
+		pGX->camStatus = CAM_STATUS_CALIB_BRIGHT;
+		break;
+	case CAM_STATUS_DEPTH_BRIGHT:
+		pGX->camStatus = CAM_STATUS_DEPTH_BRIGHT;
+		break;
+	default :
+		pGX->camStatus = CAM_STATUS_IDLE;
+		return -1;
+	}
 
 	pCAML->grabDone = false;
 	pCAMR->grabDone = false;
 
-	log_debug("calib bright trigger.");
+	log_debug("grab bright trigger.");
 	pthread_cond_broadcast(&pCAML->cond_cam);
 	pthread_cond_broadcast(&pCAMR->cond_cam);
 
 	while ((!pCAML->grabDone) || (!pCAMR->grabDone)) {
 		usleep(1000);	// 1ms
 		if (++timeout >= 1000) { // 1s timeout
-			log_debug("calib bright timeo.");
+			log_debug("grab bright timeo.");
 			return -1;
 		}
 	}
@@ -1312,28 +1327,42 @@ int csv_gx_calibrate_bright_trigger (struct csv_gx_t *pGX)
 	return 0;
 }
 
-int csv_gx_calibrate_stripe_trigger (struct csv_gx_t *pGX)
+int csv_gx_grab_stripe_trigger (struct csv_gx_t *pGX, eDLP_CMD_t eCmd)
 {
+	int ret = 0, timeout = 0;
 	struct cam_gx_spec_t *pCAML = &pGX->Cam[CAM_LEFT];
 	struct cam_gx_spec_t *pCAMR = &pGX->Cam[CAM_RIGHT];
-	int timeout = 0;
 
-	csv_dlp_write_only(DLP_CMD_CALIB);
-	csv_gx_cam_exposure_time_selector(DLP_CMD_CALIB);
+	ret = csv_dlp_write_only(eCmd);
+	if (ret < 0) {
+		log_warn("ERROR : dlp write cfg[%d].", eCmd);
+		return -1;
+	}
+	csv_gx_cam_exposure_time_selector(eCmd);
 
-	pGX->cams_status = CAM_STATUS_CALIB_STRIPE;
+	switch (eCmd) {
+	case DLP_CMD_CALIB:
+		pGX->camStatus = CAM_STATUS_CALIB_STRIPE;
+		break;
+	case DLP_CMD_POINTCLOUD:
+		pGX->camStatus = CAM_STATUS_DEPTH_STRIPE;
+		break;
+	default:
+		pGX->camStatus = CAM_STATUS_IDLE;
+		return -1;
+	}
 
 	pCAML->grabDone = false;
 	pCAMR->grabDone = false;
 
-	log_debug("calib stripe trigger.");
+	log_debug("grab stripe trigger.");
 	pthread_cond_broadcast(&pCAML->cond_cam);
 	pthread_cond_broadcast(&pCAMR->cond_cam);
 
 	while ((!pCAML->grabDone) || (!pCAMR->grabDone)) {
 		usleep(1000);	// 1ms
 		if (++timeout >= 3000) { // 3s timeout
-			log_debug("calib stripe timeo.");
+			log_debug("grab stripe timeo.");
 			return -1;
 		}
 	}
@@ -1341,13 +1370,28 @@ int csv_gx_calibrate_stripe_trigger (struct csv_gx_t *pGX)
 	return 0;
 }
 
-static int csv_gx_calibrate_grab_bright (struct cam_gx_spec_t *pCAM)
+static int csv_gx_acquisition_bright_image (struct cam_gx_spec_t *pCAM, eCAM_STATUS_t eStatus)
 {
 	int ret = 0;
-	char img_name[256] = {0};
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
-	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
-	uint8_t pos = gCSV->gx.nPos;
+	char *path = NULL;
+	uint8_t group = 0, grabtype = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+
+	switch (eStatus) {
+	case CAM_STATUS_CALIB_BRIGHT:
+		path = gCSV->cfg.calibcfg.CalibImageRoot;
+		group = gCSV->cfg.calibcfg.groupCalibrate;
+		grabtype = GRAB_CALIB_PICS;
+		break;
+	case CAM_STATUS_DEPTH_BRIGHT:
+		path = gCSV->cfg.pointcloudcfg.PCImageRoot;
+		group = gCSV->cfg.pointcloudcfg.groupPointCloud;
+		grabtype = GRAB_DEPTHIMAGE_PICS;
+		break;
+	default :
+		return -1;
+	}
 
 	if (NULL != pCAM->hDevice) {
 		emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
@@ -1358,19 +1402,32 @@ static int csv_gx_calibrate_grab_bright (struct cam_gx_spec_t *pCAM)
 		}
 
 		if (GX_FRAME_STATUS_SUCCESS == pCAM->pFrameBuffer->nStatus) {
-			ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pCAM->pImgPayload[pos], pCAM->PayloadSize);
-			if (0 == ret) {
-				memset(img_name, 0, 256);
-				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, 
-					0, pCAM->index, img_name);
-				csv_img_push(img_name, (uint8_t *)&pCAM->pImgPayload[pos], pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, pCAM->index, GRAB_CALIB_PICS, 0);
-
-				pCAM->grabDone = true;
-				csv_gx_update_pos();
-			} else {
-				ret = -1;
+			ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pCAM->pImgPayload[pGX->nPos], pCAM->PayloadSize);
+			if (0 != ret) {
+				return -1;
 			}
+
+			switch (pGX->sendTo) {
+			case SEND_TO_FILE: {
+				char img_name[256] = {0};
+				memset(img_name, 0, 256);
+				csv_img_generate_filename(path, group, 0, pCAM->index, img_name);
+				csv_img_push(img_name, (uint8_t *)&pCAM->pImgPayload[pGX->nPos], pCAM->PayloadSize, 
+					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, pCAM->index, grabtype, 0);
+				}
+				break;
+			case SEND_TO_STREAM: {
+				struct gvsp_stream_t *pStream = &gCSV->gvsp.stream[pCAM->index];
+				csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, (uint8_t *)&pCAM->pImgPayload[pGX->nPos], 
+					pCAM->PayloadSize, pCAM->pFrameBuffer, NULL);
+				}
+				break;
+			default:
+				break;
+			}
+
+			pCAM->grabDone = true;
+			csv_gx_update_pos();
 		} else {
 			ret = -1;
 		}
@@ -1381,19 +1438,36 @@ static int csv_gx_calibrate_grab_bright (struct cam_gx_spec_t *pCAM)
 	return ret;
 }
 
-static int csv_gx_calibrate_grab_stripe (struct cam_gx_spec_t *pCAM)
+static int csv_gx_acquisition_stripe_images (struct cam_gx_spec_t *pCAM, eCAM_STATUS_t eStatus)
 {
 	int ret = 0, i = 0;
-	uint8_t lastpic = 0;
-	char img_name[256] = {0};
+	uint8_t lastpic = false;
 	GX_STATUS emStatus = GX_STATUS_SUCCESS;
-	struct calib_conf_t *pCALIB = &gCSV->cfg.calibcfg;
-	uint8_t pos = 0;
+	char *path = NULL;
+	uint8_t group = 0, grabtype = 0, nFrames = 0;
+	struct csv_gx_t *pGX = &gCSV->gx;
+
+	switch (eStatus) {
+	case CAM_STATUS_CALIB_STRIPE:
+		path = gCSV->cfg.calibcfg.CalibImageRoot;
+		group = gCSV->cfg.calibcfg.groupCalibrate;
+		grabtype = GRAB_CALIB_PICS;
+		nFrames = NUM_PICS_CALIB;
+		break;
+
+	case CAM_STATUS_DEPTH_STRIPE:
+		path = gCSV->cfg.pointcloudcfg.PCImageRoot;
+		group = gCSV->cfg.pointcloudcfg.groupPointCloud;
+		grabtype = GRAB_DEPTHIMAGE_PICS;
+		nFrames = NUM_PICS_POINTCLOUD;
+		csv_3d_clear_img(pCAM->index);
+		break;
+	default :
+		return -1;
+	}
 
 	if (NULL != pCAM->hDevice) {
-		for (i = 0; i < NUM_PICS_CALIB; i++) {
-			pos = gCSV->gx.nPos;
-
+		for (i = 0; i < nFrames; i++) {
 			emStatus = GXDQBuf(pCAM->hDevice, &pCAM->pFrameBuffer, 2000);
 			if (GX_STATUS_SUCCESS != emStatus) {
 				log_warn("ERROR : CAM '%s' GXDQBuf errcode[%d].", pCAM->serial, emStatus);
@@ -1402,22 +1476,42 @@ static int csv_gx_calibrate_grab_stripe (struct cam_gx_spec_t *pCAM)
 			}
 
 			if (GX_FRAME_STATUS_SUCCESS == pCAM->pFrameBuffer->nStatus) {
-				ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pCAM->pImgPayload[pos], pCAM->PayloadSize);
+				ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pCAM->pImgPayload[pGX->nPos], pCAM->PayloadSize);
 				if (0 != ret) {
 					return -1;
 				}
 
-				memset(img_name, 0, 256);
-				csv_img_generate_filename(pCALIB->CalibImageRoot, pCALIB->groupCalibrate, 
-					i+1, pCAM->index, img_name);
+				csv_3d_load_img(pCAM->index, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, (uint8_t *)&pCAM->pImgPayload[pGX->nPos]);
 
-				if ((NUM_PICS_CALIB == i+1)&&(CAM_RIGHT == pCAM->index)) {
-					lastpic = 1;
+				switch (pGX->sendTo) {
+				case SEND_TO_FILE: {
+					char img_name[256] = {0};
+					memset(img_name, 0, 256);
+					csv_img_generate_filename(path, group, i+1, pCAM->index, img_name);
+
+					if (nFrames == i+1) {
+						lastpic = true;
+						if (CAM_STATUS_DEPTH_STRIPE == eStatus) {
+							csv_img_generate_depth_filename(path, group, gCSV->cfg.pointcloudcfg.outDepthImage);
+						}
+					}
+					csv_img_push(img_name, (uint8_t *)&pCAM->pImgPayload[pGX->nPos], pCAM->PayloadSize, 
+						pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, pCAM->index, grabtype, lastpic);
+					}
+					break;
+				case SEND_TO_STREAM: {
+					struct gvsp_stream_t *pStream = &gCSV->gvsp.stream[pCAM->index];
+					csv_gvsp_data_fetch(pStream, GVSP_PT_UNCOMPRESSED_IMAGE, (uint8_t *)&pCAM->pImgPayload[pGX->nPos], 
+						pCAM->PayloadSize, pCAM->pFrameBuffer, NULL);
+					}
+					break;
+				default:
+					break;
 				}
-				csv_img_push(img_name, (uint8_t *)&pCAM->pImgPayload[pos], pCAM->PayloadSize, 
-					pCAM->pFrameBuffer->nWidth, pCAM->pFrameBuffer->nHeight, pCAM->index, GRAB_CALIB_PICS, lastpic);
 
 				csv_gx_update_pos();
+			} else {
+				return -1;
 			}
 
 			emStatus = GXQBuf(pCAM->hDevice, pCAM->pFrameBuffer);
@@ -1565,7 +1659,7 @@ int csv_gx_cams_calibrate (struct csv_gx_t *pGX)
 	return ret;
 }
 
-int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, uint8_t towhere)
+int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, eSEND_TO_t towhere)
 {
 	int ret = 0, i = 0;
 	int idx = 1, pos = 0;
@@ -1592,7 +1686,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, uint8_t towhere)
 
 	pGX->busying = true;
 
-	if (DEPTH_TO_FILE == towhere) {
+	if (SEND_TO_FILE == towhere) {
 		csv_file_mkdir(pPC->PCImageRoot);
 		csv_img_clear(pPC->PCImageRoot);
 	}
@@ -1603,7 +1697,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, uint8_t towhere)
 	csv_gx_cams_acquisition(GX_START_ACQ);
 	csv_gx_cams_trigger_selector(GX_TRI_USE_HW_C);
 
-	if (DEPTH_TO_FILE == towhere) {
+	if (SEND_TO_FILE == towhere) {
 		// 1 常亮
 		ret = csv_dlp_just_write(DLP_CMD_BRIGHT);
 
@@ -1688,7 +1782,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, uint8_t towhere)
 			ret = PixelFormatConvert(pCAM->pFrameBuffer, (uint8_t *)&pGX->pImgPayload[pos], pCAM->PayloadSize);
 			if (0 == ret) {
 				csv_3d_load_img(i, pCAM->pFrameBuffer->nHeight, pCAM->pFrameBuffer->nWidth, (uint8_t *)&pGX->pImgPayload[pos]);
-				if (DEPTH_TO_FILE == towhere) {
+				if (SEND_TO_FILE == towhere) {
 					if ((NUM_PICS_POINTCLOUD == idx)&&(CAM_RIGHT == i)) {
 						lastpic = 1;
 						csv_img_generate_depth_filename(pPC->PCImageRoot, pPC->groupPointCloud, pPC->outDepthImage);
@@ -1722,7 +1816,7 @@ int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, uint8_t towhere)
 	ret = -1;
 	if (0 == errNum) {
 		ret = csv_3d_calc(towhere);
-		if (DEPTH_TO_FILE == towhere) {
+		if (SEND_TO_FILE == towhere) {
 			pthread_cond_broadcast(&gCSV->img.cond_img);
 		} else {
 			pGX->busying = false;
@@ -2053,7 +2147,7 @@ static int csv_gx_grab_pointcloud (struct csv_gx_t *pGX)
 
 	ret = -1;
 	if (0 == errNum) {
-		ret = csv_3d_calc(DEPTH_TO_STREAM);
+		ret = csv_3d_calc(SEND_TO_STREAM);
 	} else {
 		pGX->busying = false;
 		csv_img_list_release(&gCSV->img);
@@ -2322,25 +2416,25 @@ static void *csv_gx_cam_loop (void *data)
 			continue;
 		}
 
-		switch (pGX->cams_status) {
+		switch (pGX->camStatus) {
 		case CAM_STATUS_GRAB_BRIGHT:
 
 			break;
 
 		case CAM_STATUS_CALIB_BRIGHT:
-			csv_gx_calibrate_grab_bright(pCAM);
+			csv_gx_acquisition_bright_image(pCAM, CAM_STATUS_CALIB_BRIGHT);
 			break;
 
 		case CAM_STATUS_CALIB_STRIPE:
-			csv_gx_calibrate_grab_stripe(pCAM);
+			csv_gx_acquisition_stripe_images(pCAM, CAM_STATUS_CALIB_STRIPE);
 			break;
 
 		case CAM_STATUS_DEPTH_BRIGHT:
-
+			csv_gx_acquisition_bright_image(pCAM, CAM_STATUS_DEPTH_BRIGHT);
 			break;
 
 		case CAM_STATUS_DEPTH_STRIPE:
-
+			csv_gx_acquisition_stripe_images(pCAM, CAM_STATUS_DEPTH_STRIPE);
 			break;
 
 		case CAM_STATUS_HDR:
@@ -2350,7 +2444,7 @@ static void *csv_gx_cam_loop (void *data)
 			break;
 		}
 
-		pGX->cams_status = CAM_STATUS_IDLE;
+		pGX->camStatus = CAM_STATUS_IDLE;
 	}
 
 	pCAM->thr_cam = 0;
@@ -2430,7 +2524,8 @@ int csv_gx_init (void)
 	pGX->grab_type = GRAB_NONE;
 	pGX->busying = false;
 	pGX->nPos = 0;
-	pGX->cams_status = CAM_STATUS_IDLE;
+	pGX->camStatus = CAM_STATUS_IDLE;
+	pGX->sendTo = SEND_TO_NONE;
 	pGX->pImgPCRawData = malloc(len_malloc);
 	if (NULL == pGX->pImgPCRawData) {
 		log_err("ERROR : malloc pImgPCRawData");
