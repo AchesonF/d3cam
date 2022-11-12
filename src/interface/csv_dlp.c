@@ -51,6 +51,51 @@ static int csv_dlp_encode (struct csv_dlp_t *pDLP, uint8_t idx)
 	return pDLP->tlen;
 }
 
+int csv_dlp_write_only (uint8_t idx)
+{
+	int ret = 0;
+	struct csv_dlp_t *pDLP = &gCSV->dlp;
+
+	if (idx >= TOTAL_DLP_CMDS) {
+		return -1;
+	}
+
+	if (pDLP->fd <= 0) {
+		return -1;
+	}
+
+	// update parameter before encode
+	struct dlp_conf_t *pDlpcfg = &gCSV->cfg.devicecfg.dlpcfg[idx];
+
+	pDLP->expoTime = pDlpcfg->expoTime;
+	pDLP->rate = pDlpcfg->rate;
+	pDLP->brightness = pDlpcfg->brightness;
+
+	ret = csv_dlp_encode(pDLP, idx);
+	if (ret < 0) {
+		return -1;
+	}
+
+	ret = csv_tty_write(pDLP->fd, pDLP->tbuf, pDLP->tlen);
+	if (ret < 0) {
+		log_err("ERROR : %s write failed.", pDLP->name);
+		ret = csv_tty_deinit(pDLP->fd, pDLP->name);
+		pDLP->fd = -1;
+		ret = csv_tty_init(pDLP->dev, &pDLP->param);
+		if (ret <= 0) {
+			return -1;
+		}
+		pDLP->fd = ret;
+		ret = csv_tty_write(pDLP->fd, pDLP->tbuf, pDLP->tlen);
+	}
+
+	if (ret > 0) {
+		log_hex(STREAM_TTY, pDLP->tbuf, ret, "DLP write");
+	}
+
+	return ret;
+}
+
 int csv_dlp_just_write (uint8_t idx)
 {
 	int ret = 0;

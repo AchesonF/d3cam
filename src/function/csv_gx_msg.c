@@ -351,7 +351,16 @@ static int gx_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t
 		ret = -2;
 	} else {
 		pGX->grab_type = GRAB_CALIB_PICS;
-		ret = csv_gx_cams_calibrate(pGX);
+		//ret = csv_gx_cams_calibrate(pGX);
+
+
+		ret = csv_gx_calibrate_prepare(pGX);
+		if (0 == ret) {
+			ret = csv_gx_calibrate_bright(pGX);
+			if (0 == ret) {
+				ret = csv_gx_calibrate_stripe(pGX);
+			}
+		}
 	}
 
 	if (ret == 0) {
