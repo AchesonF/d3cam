@@ -95,6 +95,7 @@ struct cam_gx_spec_t {
 	uint8_t					opened;			///< 已打开
 	uint8_t					grabDone;		///< 当前组捕获完成
 	uint8_t					index;			///< 左右编号
+	uint8_t					nPos;			///< 图片在当前缓冲区的分区号 0~(MAX_CAM_RAW_PICS-1)
 
 	GX_DEV_HANDLE			hDevice;		///< handle device
 
@@ -137,22 +138,18 @@ struct csv_gx_t {
 
 	struct cam_gx_spec_t	Cam[TOTAL_CAMS];
 
-	uint8_t					*pImgPCRawData;		///< 深度图计算素材总缓冲区(限定只支持26*2048*1536的图)
-	struct img_payload_t	*pImgPayload;		///< 总缓冲区以此分区域管理
-
-	uint8_t					nPos;				///< 当前在缓冲区的分区号 0~(MAX_CAM_RAW_PICS-1)
-
 	const char				*name_gx;		///< 
 	pthread_t				thr_gx;			///< ID
 	pthread_mutex_t			mutex_gx;		///< 锁
 	pthread_cond_t			cond_gx;		///< 条件
 
-	uint8_t					grab_type;		///< 获取图像组类型 0: none 1:calib 2:pointcloud/depth ...
 	uint8_t					busying;		///< 忙于处理图像
 	eCAM_STATUS_t			camStatus;		///< 当前相机工作状态 CAM_STATUS_IDLE
 	eSEND_TO_t				sendTo;			///< 图像发送至
 
-	const char				*name_grab;		///< 取图
+	uint8_t					grab_type;		///< 获取图像组类型 0: none 1:calib 2:pointcloud/depth ...
+
+	const char				*name_grab;		///< 消息
 	pthread_t				thr_grab;		///< ID
 	pthread_mutex_t			mutex_grab;		///< 锁
 	pthread_cond_t			cond_grab;		///< 条件
@@ -169,10 +166,6 @@ extern int csv_gx_grab_prepare (struct csv_gx_t *pGX, char *path);
 extern int csv_gx_grab_bright_trigger (struct csv_gx_t *pGX, eCAM_STATUS_t eStatus);
 
 extern int csv_gx_grab_stripe_trigger (struct csv_gx_t *pGX, eDLP_CMD_t eCmd);
-
-extern int csv_gx_cams_calibrate (struct csv_gx_t *pGX);
-
-extern int csv_gx_cams_pointcloud (struct csv_gx_t *pGX, eSEND_TO_t towhere);
 
 extern int csv_gx_cams_hdrimage (struct csv_gx_t *pGX);
 

@@ -548,7 +548,12 @@ static int csv_gvcp_writereg_effective (uint32_t regAddr, uint32_t regData)
 			if ((pGC->Channel[CAM_LEFT].Port > 0)
 			  &&(pGC->Channel[CAM_RIGHT].Port > 0)
 			  &&(pGC->Channel[CAM_DEPTH].Port > 0)) {
-
+				if (pGX->busying) {
+					ret = -1;
+				} else {
+					pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
+					pthread_cond_broadcast(&pGX->cond_grab);
+				}
 			}
 		}
 		break;

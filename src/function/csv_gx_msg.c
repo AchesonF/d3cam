@@ -350,8 +350,6 @@ static int gx_msg_cameras_calibrate (struct msg_package_t *pMP, struct msg_ack_t
 	if (pGX->busying) {
 		ret = -2;
 	} else {
-		pGX->grab_type = GRAB_CALIB_PICS;
-		//ret = csv_gx_cams_calibrate(pGX);
 		pGX->sendTo = SEND_TO_FILE;
 
 		ret = csv_gx_grab_prepare(pGX, gCSV->cfg.calibcfg.CalibImageRoot);
@@ -386,8 +384,6 @@ static int gx_msg_cameras_pointcloud (struct msg_package_t *pMP, struct msg_ack_
 	if (pGX->busying) {
 		ret = -2;
 	} else {
-		pGX->grab_type = GRAB_DEPTHIMAGE_PICS;
-		//ret = csv_gx_cams_pointcloud(pGX, SEND_TO_FILE);
 		pGX->sendTo = SEND_TO_FILE;
 
 		ret = csv_gx_grab_prepare(pGX, gCSV->cfg.pointcloudcfg.PCImageRoot);
@@ -425,7 +421,6 @@ static int gx_msg_camera_hdrimage (struct msg_package_t *pMP, struct msg_ack_t *
 	if (pGX->busying) {
 		ret = -2;
 	} else {
-		pGX->grab_type = GRAB_HDRIMAGE_PICS;
 		ret = csv_gx_cams_hdrimage(pGX);
 	}
 

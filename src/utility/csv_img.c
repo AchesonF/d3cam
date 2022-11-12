@@ -198,6 +198,9 @@ static void *csv_img_loop (void *data)
 					}
 
 					gCSV->gx.busying = false;
+
+					endLeft = false;
+					endRight = false;
 				}
 			}
 
